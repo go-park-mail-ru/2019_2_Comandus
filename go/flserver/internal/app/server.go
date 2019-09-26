@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/frontend-park-mail-ru/2019_2_Comandus/server/internal/model"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"net/http"
-	"github.com/gorilla/mux"
 )
 
 type ctxKey int8
@@ -49,7 +49,9 @@ func (s * server) ConfigureServer() {
 	private := s.mux.PathPrefix("/private").Subrouter()
 	private.Use(s.authenticateUser)
 	private.HandleFunc("/whoami", s.handleWhoami).Methods("GET")
-	private.HandleFunc("/profile", s.HandleShowProfile).Methods("GET")
+	private.HandleFunc("/logout", s.HandleLogout).Methods("GET")
+	private.HandleFunc("/profile", s.HandleShowProfile)
+	private.HandleFunc("/profile/edit", s.HandleEditProfile)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +61,26 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	// TODO Dima
+}
+
+func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	if session == nil {
+		s.error(w, r, http.StatusNotFound, errors.New("failed to delete session"))
+		return
+	}
+
+	session.Options.MaxAge = -1
+	err = session.Save(r, w)
+	if err != nil {
+		s.error(w, r, http.StatusExpectationFailed, errors.New("failed to delete session"))
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (s *server) authenticateUser(next http.Handler) http.Handler {

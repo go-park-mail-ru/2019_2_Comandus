@@ -12,6 +12,6 @@ func NewConfig() *Config {
 	return &Config{
 		BindAddr: ":8080",
 		LogLevel: "debug",
-		SessionKey: "DHGHDGHSDGHjshjdhsjdsh",
+		SessionKey: "jdfhdfdj",
 	}
 }
