@@ -152,7 +152,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	for i:=0; i < len(s.usersdb.Users); i++ {
 		// TODO: secure passwoord
 		if s.usersdb.Users[i].Email == newUserInput.Email &&
-			s.usersdb.Users[i].Password == newUserInput.Password {
+			s.usersdb.Users[i].ComparePassword(newUserInput.Password) {
 
 			u := s.usersdb.Users[i]
 			session, err := s.sessionStore.Get(r, sessionName)
@@ -204,14 +204,23 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		idc = s.usersdb.Customers[len(s.usersdb.Customers)-1].ID + 1
 	}
 
-	s.usersdb.Users = append(s.usersdb.Users, model.User{
-		ID:       id,
-		FreelancerID: idf,
-		CustomerID: idc,
-		Name: 	newUserInput.Name,
-		Email:  newUserInput.Email,
-		Password: newUserInput.Password,
-	})
+
+	user := model.User{
+		ID:              id,
+		FreelancerID:    idf,
+		CustomerID:      idc,
+		Name:            newUserInput.Name,
+		Email:           newUserInput.Email,
+		Password:        newUserInput.Password,
+	}
+
+	err = user.BeforeCreate()
+	if err != nil {
+		s.respond(w, r, http.StatusInternalServerError, newUserInput)
+	}
+	user.Sanitize()
+
+	s.usersdb.Users = append(s.usersdb.Users, user)
 
 	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer {
 		ID:       idf,

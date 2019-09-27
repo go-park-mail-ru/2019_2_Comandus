@@ -28,9 +28,9 @@ func (u *User) BeforeCreate() error {
 	return nil
 }
 
-/*func (u *User) Sanitize() {
+func (u *User) Sanitize() {
 	u.Password = ""
-}*/
+}
 
 func (u *User) ComparePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.EncryptPassword), []byte(password)) == nil
