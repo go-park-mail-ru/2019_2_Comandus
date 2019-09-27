@@ -97,6 +97,7 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.error(w, r, http.StatusExpectationFailed, errors.New("failed to delete session"))
 	}
+	fmt.Println("logout")
 	http.Redirect(w, r, "/", http.StatusUnauthorized)
 }
 
@@ -117,13 +118,16 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 		var u *model.User
 		var found bool
 		for i := 0; i < len(s.usersdb.Users); i++ {
+			//fmt.Printf("id=%T ID=%T", id , s.usersdb.Users[i].ID)//, id == s.usersdb.Users[i].ID)
 			if id == s.usersdb.Users[i].ID {
 				u = &s.usersdb.Users[i]
 				found = true
 			}
 		}
+		//fmt.Println("id=", id)
 
 		if !found {
+			fmt.Println("HERE3s")
 			s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
 			return
 		}
@@ -195,9 +199,9 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	var id int64
-	var idf int64
-	var idc int64
+	var id int
+	var idf int
+	var idc int
 	if len(s.usersdb.Users) > 0 {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
 		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
@@ -218,8 +222,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, newUserInput)
 	}
-	user.Sanitize()
-
 	s.usersdb.Users = append(s.usersdb.Users, user)
 
 	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer {

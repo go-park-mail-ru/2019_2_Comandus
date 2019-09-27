@@ -8,9 +8,9 @@ import (
 )
 
 type User struct {
-	ID int64 `json:"id"`
-	FreelancerID int64 `json:"freelancer"`
-	CustomerID int64 `json:"customer"`
+	ID int `json:"id"`
+	FreelancerID int `json:"freelancer"`
+	CustomerID int `json:"customer"`
 	Name     string `json:"name"`
 	Email string `json:"email"`
 	Password string `json:"password, omitempty"`
@@ -25,11 +25,8 @@ func (u *User) BeforeCreate() error {
 		}
 		u.EncryptPassword = enc
 	}
-	return nil
-}
-
-func (u *User) Sanitize() {
 	u.Password = ""
+	return nil
 }
 
 func (u *User) ComparePassword(password string) bool {
