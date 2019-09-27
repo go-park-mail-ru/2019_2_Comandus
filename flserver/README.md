@@ -7,7 +7,7 @@
 #### Удалить сессию:
 `$: http -v --session=user http://localhost:8080/private/logout`
 
-####### Завести БД: (пока не нужно)
+###### Завести БД: (пока не нужно)
 `$: psql restapi_dev`  
 `restapi_dev=> ALTER USER d PASSWORD '1234';`
 
