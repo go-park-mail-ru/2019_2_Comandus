@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
+	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
 	"log"
-	apiserver "github.com/frontend-park-mail-ru/2019_2_Comandus/server/internal/app"
 )
 
 var (

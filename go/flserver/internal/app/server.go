@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/frontend-park-mail-ru/2019_2_Comandus/server/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"net/http"
@@ -25,12 +26,19 @@ var (
 type server struct {
 	mux *mux.Router
 	// store
+	store *store.Store
 	usersdb *model.UsersDB
 	sessionStore sessions.Store
+	config *Config
 }
 
 func newServer(sessionStore sessions.Store) *server {
-	s := &server{mux: mux.NewRouter(), usersdb: model.NewUsersDB(), sessionStore:sessionStore}
+	s := &server{
+		mux: mux.NewRouter(),
+		usersdb: model.NewUsersDB(),
+		sessionStore:sessionStore,
+		//store: store,
+	}
 	s.ConfigureServer()
 	return s
 }
@@ -39,10 +47,19 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
+func (s * server) ConfigureStore() error {
+	cnfg := store.NewConfig()
+	st := store.New(cnfg)
+	if err := st.Open(); err != nil {
+		return err
+	}
+	s.store = st
+	return nil
+}
 
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s * server) ConfigureServer() {
-	s.mux.HandleFunc("/users", s.HandleCreateUser).Methods("POST")
+	s.mux.HandleFunc("/users", s.HandleCreateUser)//.Methods("POST")
 	s.mux.HandleFunc("/sessions", s.HandleSessionCreate).Methods("POST")
 
 	// only for authenticated users
@@ -80,7 +97,7 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.error(w, r, http.StatusExpectationFailed, errors.New("failed to delete session"))
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusUnauthorized)
 }
 
 func (s *server) authenticateUser(next http.Handler) http.Handler {
@@ -134,7 +151,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 
 	for i:=0; i < len(s.usersdb.Users); i++ {
 		// TODO: secure passwoord
-		if s.usersdb.Users[i].Name == newUserInput.Name &&
+		if s.usersdb.Users[i].Email == newUserInput.Email &&
 			s.usersdb.Users[i].Password == newUserInput.Password {
 
 			u := s.usersdb.Users[i]
@@ -171,21 +188,39 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(newUserInput)
+	err = newUserInput.CheckEmail()
+	if err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
 
 	s.usersdb.Mu.Lock()
 	var id int64
+	var idf int64
+	var idc int64
 	if len(s.usersdb.Users) > 0 {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
-		// первый почему то не ставится
-		//id = DataSignerMd5(newUserInput.Name)
+		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
+		idc = s.usersdb.Customers[len(s.usersdb.Customers)-1].ID + 1
 	}
 
 	s.usersdb.Users = append(s.usersdb.Users, model.User{
 		ID:       id,
-		Name:     newUserInput.Name,
+		FreelancerID: idf,
+		CustomerID: idc,
+		Name: 	newUserInput.Name,
+		Email:  newUserInput.Email,
 		Password: newUserInput.Password,
 	})
+
+	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer {
+		ID:       idf,
+	})
+	s.usersdb.Customers = append(s.usersdb.Customers, model.Customer {
+		ID:       idc,
+	})
+
+	fmt.Println(s.usersdb.Users[id])
 	s.usersdb.Mu.Unlock()
 
 	// TODO
