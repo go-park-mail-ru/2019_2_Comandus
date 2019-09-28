@@ -10,7 +10,6 @@ type User struct {
 	ID int `json:"id"`
 	FreelancerID int `json:"freelancer"`
 	CustomerID int `json:"customer"`
-	ProfileID int `json:"Profile_id"`
 	Name     string `json:"name"`
 	Email string `json:"email"`
 	Password string `json:"password, omitempty"`

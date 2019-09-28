@@ -35,7 +35,6 @@ func Start(config *Config) error {
 	//}
 	return http.ListenAndServe(config.BindAddr, srv)
 }
-
 func newDB(dbURL string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
