@@ -9,7 +9,9 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"log"
 	"net/http"
+	"strconv"
 )
 
 type ctxKey int8
@@ -61,23 +63,57 @@ func (s * server) ConfigureStore() error {
 func (s * server) ConfigureServer() {
 	s.mux.HandleFunc("/users", s.HandleCreateUser)//.Methods("POST")
 	s.mux.HandleFunc("/sessions", s.HandleSessionCreate).Methods("POST")
-
+	s.mux.HandleFunc("/profile", s.HandleShowProfile)
 	// only for authenticated users
 	private := s.mux.PathPrefix("/private").Subrouter()
 	private.Use(s.authenticateUser)
 	private.HandleFunc("/whoami", s.handleWhoami).Methods("GET")
 	private.HandleFunc("/logout", s.HandleLogout).Methods("GET")
-	private.HandleFunc("/profile", s.HandleShowProfile)
-	private.HandleFunc("/profile/edit", s.HandleEditProfile)
+	private.HandleFunc("/profile/edit", s.HandleEditProfile).Methods(http.MethodPost)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
-	// TODO Dima
-	fmt.Println("HELLO profile")
+	UserIDStr := r.FormValue("id")
+	if UserIDStr != "" {
+		http.Redirect(w , r , "/" , http.StatusBadRequest)
+		return
+	}
+	UserID, err := strconv.Atoi(UserIDStr)
+	if err != nil {
+		log.Printf("error id isn't int: %s", err)
+		http.Redirect(w, r , "/" , http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	s.usersdb.Mu.Lock()
+	err = encoder.Encode(s.usersdb.GetUserByID(UserID))
+	s.usersdb.Mu.Unlock()
+	if err != nil {
+		log.Printf("error while marshalling JSON: %s", err)
+		http.Redirect(w, r , "/" , http.StatusBadRequest)
+		return
+	}
 }
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
-	// TODO Dima
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	uidInteface := session.Values["user_id"]
+	uid := uidInteface.(int)
+	user := s.usersdb.GetUserByID(uid)
+	profile := s.usersdb.GetProfileByID((*user).ProfileID)
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(profile)
+	if err != nil {
+		log.Printf("error while marshalling JSON: %s", err)
+		w.Write([]byte("{}"))
+		return
+	}
+
 }
 
 func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +171,6 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, u)))
 	})
 }
-
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	defer func() {
@@ -202,17 +237,20 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	var id int
 	var idf int
 	var idc int
+	var idp int //+
 	if len(s.usersdb.Users) > 0 {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
 		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
 		idc = s.usersdb.Customers[len(s.usersdb.Customers)-1].ID + 1
+		idp = s.usersdb.Profiles[len(s.usersdb.Profiles) - 1].ID + 1 // +
 	}
 
-
+	// Может по указателю надо &model.User
 	user := model.User{
 		ID:              id,
 		FreelancerID:    idf,
 		CustomerID:      idc,
+		ProfileID:		 idp,
 		Name:            newUserInput.Name,
 		Email:           newUserInput.Email,
 		Password:        newUserInput.Password,
@@ -229,6 +267,9 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	})
 	s.usersdb.Customers = append(s.usersdb.Customers, model.Customer {
 		ID:       idc,
+	})
+	s.usersdb.Profiles = append(s.usersdb.Profiles, model.Profile { // +
+		ID: idp,
 	})
 
 	fmt.Println(s.usersdb.Users[id])

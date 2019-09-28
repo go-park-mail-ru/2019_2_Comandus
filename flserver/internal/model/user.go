@@ -4,13 +4,13 @@ import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
-	"sync"
 )
-
+// Можно изменить на uint64
 type User struct {
 	ID int `json:"id"`
 	FreelancerID int `json:"freelancer"`
 	CustomerID int `json:"customer"`
+	ProfileID int `json:"Profile_id"`
 	Name     string `json:"name"`
 	Email string `json:"email"`
 	Password string `json:"password, omitempty"`
@@ -49,27 +49,10 @@ type UserInput struct {
 	Password string `json:"password"`
 }
 
-func (u *UserInput) CheckEmail() error{
+func (u *UserInput) CheckEmail() error {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	if valid := re.MatchString(u.Email); valid == false {
 		return errors.New("invalid email")
 	}
 	return nil
 }
-
-type UsersDB struct {
-	Users []User
-	Freelancers []Freelancer
-	Customers []Customer
-	Mu    *sync.Mutex
-}
-
-func NewUsersDB() *UsersDB {
-	return &UsersDB{
-		make([]User, 0),
-		make([]Freelancer, 0),
-		make([]Customer, 0),
-		&sync.Mutex{},
-	}
-}
-
