@@ -11,13 +11,14 @@ import (
 	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type ctxKey int8
 const (
 	sessionName = "user-session"
 	ctxKeyUser  ctxKey = iota
+	userFreelancer = "freelancer"
+	userCustomer = "customer"
 )
 
 var (
@@ -63,21 +64,52 @@ func (s * server) ConfigureStore() error {
 func (s * server) ConfigureServer() {
 	s.mux.HandleFunc("/users", s.HandleCreateUser)//.Methods("POST")
 	s.mux.HandleFunc("/sessions", s.HandleSessionCreate).Methods("POST")
-	s.mux.HandleFunc("/profile", s.HandleShowProfile)
+	//s.mux.HandleFunc("/profile", s.HandleShowProfile)
 	// only for authenticated users
 	private := s.mux.PathPrefix("/private").Subrouter()
 	private.Use(s.authenticateUser)
-	private.HandleFunc("/whoami", s.handleWhoami).Methods("GET")
+	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods("POST")
+	private.HandleFunc("/profile", s.HandleShowProfile).Methods("GET")
+	//private.HandleFunc("/whoami", s.handleWhoami).Methods("GET")
 	private.HandleFunc("/logout", s.HandleLogout).Methods("GET")
 	private.HandleFunc("/profile/edit", s.HandleEditProfile).Methods(http.MethodPost)
 }
 
+func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
+	// TODO check if input user type invalid
+	type Input struct {
+		UserType     string `json:"user_type"`
+	}
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
+
+	decoder := json.NewDecoder(r.Body)
+	newInput := new(Input)
+	err := decoder.Decode(newInput)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	session.Values["user_type"] = newInput.UserType
+	session.Save(r,w)
+}
+
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
-	UserIDStr := r.FormValue("id")
+	/*UserIDStr := r.FormValue("id")
 	if UserIDStr != "" {
 		http.Redirect(w , r , "/" , http.StatusBadRequest)
 		return
 	}
+	fmt.Println(UserIDStr)
 	UserID, err := strconv.Atoi(UserIDStr)
 	if err != nil {
 		log.Printf("error id isn't int: %s", err)
@@ -93,6 +125,30 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error while marshalling JSON: %s", err)
 		http.Redirect(w, r , "/" , http.StatusBadRequest)
 		return
+	}*/
+
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	uidInteface := session.Values["user_id"]
+	uid := uidInteface.(int)
+	utypeInteface := session.Values["user_type"]
+	utype := utypeInteface.(string)
+
+	user := s.usersdb.GetUserByID(uid)
+	if utype == userFreelancer {
+		fmt.Println(userFreelancer)
+		freelancer := s.usersdb.GetFreelancerByID(user.FreelancerID)
+		s.respond(w, r, http.StatusOK, freelancer)//r.Context().Value(ctxKeyUser).(model.Freelancer))
+	} else if utype == userCustomer {
+		fmt.Println(userCustomer)
+		customer := s.usersdb.GetCustomerByID(user.CustomerID)
+		s.respond(w, r, http.StatusOK, customer)
+	} else {
+		s.error(w,r, http.StatusInternalServerError, errors.New("user type not set"))
 	}
 }
 
@@ -154,16 +210,13 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 		var u *model.User
 		var found bool
 		for i := 0; i < len(s.usersdb.Users); i++ {
-			//fmt.Printf("id=%T ID=%T", id , s.usersdb.Users[i].ID)//, id == s.usersdb.Users[i].ID)
 			if id == s.usersdb.Users[i].ID {
 				u = &s.usersdb.Users[i]
 				found = true
 			}
 		}
-		//fmt.Println("id=", id)
 
 		if !found {
-			fmt.Println("HERE3s")
 			s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
 			return
 		}
@@ -189,7 +242,6 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(newUserInput)
 
 	for i:=0; i < len(s.usersdb.Users); i++ {
-		// TODO: secure passwoord
 		if s.usersdb.Users[i].Email == newUserInput.Email &&
 			s.usersdb.Users[i].ComparePassword(newUserInput.Password) {
 
@@ -201,6 +253,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 			}
 
 			session.Values["user_id"] = u.ID
+			session.Values["user_type"] = userFreelancer
 			if err := s.sessionStore.Save(r, w, session); err != nil {
 				s.error(w, r, http.StatusInternalServerError, err)
 				return

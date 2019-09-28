@@ -29,6 +29,24 @@ func (db *UsersDB) GetUserByID (id int) *User {
 	return nil
 }
 
+func (db *UsersDB) GetCustomerByID (id int) *Customer {
+	for i := 0; i < len(db.Customers); i++ {
+		if id == db.Customers[i].ID {
+			return &db.Customers[i]
+		}
+	}
+	return nil
+}
+
+func (db *UsersDB) GetFreelancerByID (id int) *Freelancer {
+	for i := 0; i < len(db.Freelancers); i++ {
+		if id == db.Freelancers[i].ID {
+			return &db.Freelancers[i]
+		}
+	}
+	return nil
+}
+
 func (db *UsersDB) GetProfileByID (id int) *Profile {
 	for i := 0; i < len(db.Profiles); i++ {
 		if id == db.Profiles[i].ID {
