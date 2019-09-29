@@ -49,11 +49,13 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	var id int
 	var idf int
 	var idc int
+	var idCompany int
 
 	if len(s.usersdb.Users) > 0 {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
 		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
 		idc = s.usersdb.HireManagers[len(s.usersdb.HireManagers)-1].ID + 1
+		idCompany = s.usersdb.Companies[len(s.usersdb.Companies)-1].ID + 1
 	}
 
 	user := model.User{
@@ -78,6 +80,12 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		ID:        idc,
 		AccountID: id,
 	})
+
+	s.usersdb.Companies = append(s.usersdb.Companies, model.Company{
+		ID:        idCompany,
+		CompanyName: "DefaultName",
+	})
+
 
 	fmt.Println(s.usersdb.Users[id])
 	s.usersdb.Mu.Unlock()
