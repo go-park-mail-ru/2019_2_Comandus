@@ -71,4 +71,22 @@ func (db *UsersDB) GetNotificationsByUserID (id int) *Notification {
 	return nil
 }
 
+func (db *UsersDB) GetHireManagerByID (id int) *HireManager {
+	for i := 0; i < len(db.HireManagers); i++ {
+		if id == db.HireManagers[i].ID {
+			return &db.HireManagers[i]
+		}
+	}
+	return nil
+}
+
+func (db *UsersDB) GetCompanyByID (id int) *Company {
+	for i := 0; i < len(db.Companies); i++ {
+		if id == db.Companies[i].ID {
+			return &db.Companies[i]
+		}
+	}
+	return nil
+}
+
 
