@@ -14,6 +14,7 @@ type User struct {
 	Email string `json:"email"`
 	Password string `json:"password, omitempty"`
 	EncryptPassword string `json:"-"`
+	Avatar string `json:"-"`
 }
 
 func (u *User) BeforeCreate() error {

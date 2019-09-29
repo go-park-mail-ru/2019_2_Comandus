@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -265,6 +266,44 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("File Upload Endpoint Hit")
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, errors.New("error retrieving the file"))
+		return
+	}
+
+	file, _, err := r.FormFile("myFile")
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, errors.New("error retrieving the file"))
+		return
+	}
+	defer file.Close()
+
+	tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
+		return
+	}
+	defer tempFile.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	tempFile.Write(fileBytes)
+
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	uidInterface := session.Values["user_id"]
+	uid := uidInterface.(int)
+	s.usersdb.Users[uid].Avatar = tempFile.Name()
+}
 /*func (s * server) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 

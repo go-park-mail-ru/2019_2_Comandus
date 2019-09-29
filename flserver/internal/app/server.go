@@ -57,6 +57,32 @@ func (s * server) ConfigureStore() error {
 	return nil
 }
 
+var uploadFormTmpl = []byte(`
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form
+      enctype="multipart/form-data"
+      action="http://localhost:8080/upload"
+      method="post"
+    >
+      <input type="file" name="myFile" />
+      <input type="submit" value="upload" />
+    </form>
+  </body>
+</html>
+`)
+
+func mainPage(w http.ResponseWriter, r *http.Request) {
+	w.Write(uploadFormTmpl)
+}
+
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s * server) ConfigureServer() {
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
@@ -67,6 +93,9 @@ func (s * server) ConfigureServer() {
 	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost)
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
 	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
+	//private
+	//s.mux.HandleFunc("/", mainPage)
+	//s.mux.HandleFunc("/upload", s.HandleUploadAvatar)
 	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
