@@ -12,7 +12,7 @@ type User struct {
 	SecondName 		string `json:"secondName"`
 	UserName     	string `json:"username"`
 	Email 			string `json:"email"`
-	Password 		string `json:"password, omitempty"`
+	Password 		string `json:"-"`
 	EncryptPassword string `json:"-"`
 	Avatar string `json:"-"`
 }
