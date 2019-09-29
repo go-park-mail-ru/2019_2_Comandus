@@ -13,6 +13,21 @@ import (
 	"testing"
 )
 
+func (s * server) ConfigureTestServer() {
+	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
+	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
+	s.mux.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost)
+	s.mux.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
+	s.mux.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
+	s.mux.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
+	s.mux.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
+	s.mux.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
+	s.mux.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
+	s.mux.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)
+	s.mux.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
+}
+
+
 func TestServer_HandleCreateUser(t *testing.T) {
 	config := NewConfig()
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
@@ -164,6 +179,59 @@ func TestAuthenticateUser(t *testing.T) {
 	}
 }
 
-func TestServer_HandleLogout(t *testing.T) {
-	// TODO:
+func TestServer_HandleSetUserType(t *testing.T) {
+	/*config := NewConfig()
+	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
+	s := &server{
+		mux: mux.NewRouter(),
+		usersdb: model.NewUsersDB(),
+		sessionStore:sessionStore,
+	}
+	s.ConfigureTestServer()
+
+	u := model.User{
+		ID:              0,
+		FirstName:            "name",
+		Email:           "user@example.org",
+		Password:        "secret",
+		EncryptPassword: "",
+	}
+	u.BeforeCreate()
+	s.usersdb.Users = append(s.usersdb.Users, u)
+
+	testCases := []struct {
+		name         string
+		payload  map[interface{}]interface{}
+		expectedCode int
+	}{
+		{
+			name: "freelancer",
+			payload: map[interface{}]interface{}{
+				"type": "freelancer",
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "hiremanager",
+			payload: map[interface{}]interface{}{
+				"type": "customer",
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "wrong input",
+			payload:  nil,
+			expectedCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		rec := httptest.NewRecorder()
+		b := &bytes.Buffer{}
+		json.NewEncoder(b).Encode(tc.payload)
+		req, _ := http.NewRequest(http.MethodPost, "/setusertype", b)
+		s.ServeHTTP(rec, req)
+		assert.Equal(t, tc.expectedCode, rec.Code)
+	}*/
 }
+
