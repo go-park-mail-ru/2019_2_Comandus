@@ -3,19 +3,23 @@ package model
 import "sync"
 
 type UsersDB struct {
-	Users []User
-	Freelancers []Freelancer
-	Customers []Customer
-	Profiles []Profile
-	Mu    *sync.Mutex
+	Users 			[]User
+	Freelancers 	[]Freelancer
+	HireManagers 	[]HireManager
+	Companies	 	[]Company
+	Notifications 	[]Notification
+	InnerInfos		[]InnerInfo
+	Mu    			*sync.Mutex
 }
 
 func NewUsersDB() *UsersDB {
 	return &UsersDB{
 		make([]User, 0),
 		make([]Freelancer, 0),
-		make([]Customer, 0),
-		make([]Profile,0),
+		make([]HireManager, 0),
+		make([]Company,0),
+		make([]Notification,0),
+		make([]InnerInfo,0),
 		&sync.Mutex{},
 	}
 }
@@ -29,10 +33,10 @@ func (db *UsersDB) GetUserByID (id int) *User {
 	return nil
 }
 
-func (db *UsersDB) GetCustomerByID (id int) *Customer {
-	for i := 0; i < len(db.Customers); i++ {
-		if id == db.Customers[i].ID {
-			return &db.Customers[i]
+func (db *UsersDB) GetCompanyByID (id int) *Company {
+	for i := 0; i < len(db.Companies); i++ {
+		if id == db.Companies[i].ID {
+			return &db.Companies[i]
 		}
 	}
 	return nil
@@ -47,14 +51,14 @@ func (db *UsersDB) GetFreelancerByID (id int) *Freelancer {
 	return nil
 }
 
-func (db *UsersDB) GetProfileByID (id int) *Profile {
-	for i := 0; i < len(db.Profiles); i++ {
-		if id == db.Profiles[i].ID {
-			return &db.Profiles[i]
-		}
-	}
-	return nil
-}
+//func (db *UsersDB) GetProfileByID (id int64) *Profile {
+//	for i := 0; i < len(db.Profiles); i++ {
+//		if id == db.Profiles[i].ID {
+//			return &db.Profiles[i]
+//		}
+//	}
+//	return nil
+//}
 
 
 

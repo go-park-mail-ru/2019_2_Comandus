@@ -6,8 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 )
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	defer func() {
@@ -37,7 +41,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
 		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
 		idc = s.usersdb.Customers[len(s.usersdb.Customers)-1].ID + 1
-		idp = s.usersdb.Profiles[len(s.usersdb.Profiles) - 1].ID + 1 // +
 	}
 
 	user := model.User{
@@ -47,12 +50,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		Name:            newUserInput.Name,
 		Email:           newUserInput.Email,
 		Password:        newUserInput.Password,
-	}
-	profile := model.Profile{
-		ID:idp,
-		ContactInformation: model.ContactInfo{},
-		AdditionalInfo: model.AdditionalInformation{},
-		InnerInformation: model.InnerInfo{},
 	}
 	err = user.BeforeCreate()
 	if err != nil {
@@ -200,68 +197,169 @@ func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SHOW PROFILE")
-	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
+	if SendErr != nil {
+		s.error(w, r, CodeStatus, SendErr)
 		return
 	}
-
-	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int)
-	utypeInteface := session.Values["user_type"]
-	utype := utypeInteface.(string)
-
-	user := s.usersdb.GetUserByID(uid)
-	if utype == userFreelancer {
-		fmt.Println(userFreelancer)
-		freelancer := s.usersdb.GetFreelancerByID(user.FreelancerID)
-		profile := s.usersdb.GetProfileByID(freelancer.ProfileID)
-		fmt.Println(*profile)
-		s.respond(w, r, http.StatusOK, *profile)//r.Context().Value(ctxKeyUser).(model.Freelancer))
-	} else if utype == userCustomer {
-		fmt.Println(userCustomer)
-		customer := s.usersdb.GetCustomerByID(user.CustomerID)
-		profile := s.usersdb.GetProfileByID(customer.ProfileID)
-		fmt.Println(*profile)
-		s.respond(w, r, http.StatusOK, profile)
-	} else {
-		s.error(w,r, http.StatusInternalServerError, errors.New("user type not set"))
-	}
+	s.respond(w, r, http.StatusOK, user)
 }
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Edit profile")
-	var profile *model.Profile
+	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
+	if SendErr != nil {
+		s.error(w, r, CodeStatus, SendErr)
+		return
+	}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(user)
+	fmt.Println(user)
+	if err != nil {
+		log.Printf("error while marshalling JSON: %s", err)
+		SendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, SendErr)
+		return
+	}
+	s.respond(w, r, http.StatusOK, nil)
+
+}
+
+func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request){
+	var err error
+	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
+		return
+	}
+	currPassword := r.FormValue("password")
+	newPassword := r.FormValue("newPassword")
+	newPasswordConfirmation := r.FormValue("newPasswordConfirmation")
+	if newPassword != newPasswordConfirmation {
+		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
+	}
+	if user.Password != currPassword {
+		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
+	}
+	newEncryptPassword , err := model.EncryptString(newPassword)
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError , fmt.Errorf("error in updating password"))
+	}
+	user.Password = newPassword
+	user.EncryptPassword = newEncryptPassword
+	s.respond(w, r, http.StatusOK, nil)
+}
+
+func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int) {
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		SendErr := fmt.Errorf( "user isn't authorized")
+		return nil , SendErr , http.StatusUnauthorized
+	}
+	uidInteface := session.Values["user_id"]
+	uid := uidInteface.(int64)
+	user := s.usersdb.GetUserByID(uid)
+	if user == nil {
+		SendErr := fmt.Errorf( "can't find user with id:" + strconv.Itoa(int(uid)))
+		return nil , SendErr , http.StatusBadRequest
+	}
+	return user, nil , http.StatusOK
+}
+
+func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("File Upload Endpoint Hit")
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, errors.New("error retrieving the file"))
+		return
+	}
+
+	file, _, err := r.FormFile("myFile")
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, errors.New("error retrieving the file"))
+		return
+	}
+	defer file.Close()
+
+	tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
+		return
+	}
+	defer tempFile.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	tempFile.Write(fileBytes)
+
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int)
-	utypeInteface := session.Values["user_type"]
-	utype := utypeInteface.(string)
-	user := s.usersdb.GetUserByID(uid)
-	if utype == userFreelancer {
-		fmt.Println(userFreelancer)
-		freelancer := s.usersdb.GetFreelancerByID(user.FreelancerID)
-		profile = s.usersdb.GetProfileByID(freelancer.ProfileID)
-	} else if utype == userCustomer {
-		fmt.Println(userCustomer)
-		customer := s.usersdb.GetCustomerByID(user.CustomerID)
-		profile = s.usersdb.GetProfileByID(customer.ProfileID)
-	} else {
-		s.error(w,r, http.StatusInternalServerError, errors.New("user type not set"))
-	}
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(profile)
-	fmt.Println(*profile)
-	if err != nil {
-		log.Printf("error while marshalling JSON: %s", err)
-		w.Write([]byte("{}"))
+
+	uidInterface := session.Values["user_id"]
+	uid := uidInterface.(int)
+	s.usersdb.Users[uid].Avatar = tempFile.Name()
+}
+
+
+func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
+	uidInterface := session.Values["user_id"]
+	uid := uidInterface.(int)
+	Filename := s.usersdb.Users[uid].Avatar
+
+	if Filename == "" {
+		Filename = "/internal/store/avatars/default.png"
+	}
+	fmt.Println("Client requests: " + Filename)
+
+	Openfile, err := os.Open(Filename)
+	defer Openfile.Close()
+	if err != nil {
+		s.error(w,r,http.StatusNotFound, errors.New("cant open file"))
+		return
+	}
+
+	FileHeader := make([]byte, 100000) // max image size!!!
+	Openfile.Read(FileHeader)
+	FileContentType := http.DetectContentType(FileHeader)
+
+	FileStat, _ := Openfile.Stat()
+	FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+	w.Header().Set("Content-Type", FileContentType)
+	w.Header().Set("Content-Length", FileSize)
+
+	Openfile.Seek(0, 0)
+	io.Copy(w, Openfile)
+}
+
+
+func (s * server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleGetSecQuestion(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -271,6 +369,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	s.usersdb.mu.Lock()
 	err := encoder.Encode(s.usersdb.users)
 	s.usersdb.mu.Unlock()
+
 
 	if err != nil {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
