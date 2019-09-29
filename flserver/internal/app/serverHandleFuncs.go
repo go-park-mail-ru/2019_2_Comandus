@@ -14,9 +14,11 @@ import (
 	"strconv"
 )
 
+const clientUrl = "http://localhost:9000"
+
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:9000")
+	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	defer func() {
@@ -118,7 +120,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:9000")
+	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	defer func() {
 		// TODO: handle err
@@ -415,7 +417,7 @@ func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:9000")
+	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Methods", "POST,PUT")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
