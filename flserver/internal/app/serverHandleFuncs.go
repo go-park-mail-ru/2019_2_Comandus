@@ -16,6 +16,9 @@ import (
 
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:9000")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 	defer func() {
 		// TODO: handle err
 		r.Body.Close()
@@ -51,10 +54,10 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := model.User{
-		ID:              id,
-		FirstName:            newUserInput.Name,
-		Email:           newUserInput.Email,
-		Password:        newUserInput.Password,
+		ID:        id,
+		FirstName: newUserInput.Name,
+		Email:     newUserInput.Email,
+		Password:  newUserInput.Password,
 	}
 
 	err = user.BeforeCreate()
@@ -63,15 +66,14 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	s.usersdb.Users = append(s.usersdb.Users, user)
 
-
-	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer {
-		ID:       idf,
+	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer{
+		ID:        idf,
 		AccountId: id,
 	})
 
-	s.usersdb.HireManagers = append(s.usersdb.HireManagers, model.HireManager {
-		ID:       idc,
-		AccountID : id,
+	s.usersdb.HireManagers = append(s.usersdb.HireManagers, model.HireManager{
+		ID:        idc,
+		AccountID: id,
 	})
 
 	fmt.Println(s.usersdb.Users[id])
@@ -116,6 +118,8 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:9000")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	defer func() {
 		// TODO: handle err
 		r.Body.Close()
@@ -132,7 +136,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
-	for i:=0; i < len(s.usersdb.Users); i++ {
+	for i := 0; i < len(s.usersdb.Users); i++ {
 		if s.usersdb.Users[i].Email == newUserInput.Email &&
 			s.usersdb.Users[i].ComparePassword(newUserInput.Password) {
 
@@ -152,7 +156,8 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			s.usersdb.Mu.Unlock()
-			s.respond(w, r, http.StatusOK, nil)
+			s.respond(w, r, http.StatusOK, struct {
+			}{})
 			return
 		}
 	}
@@ -182,13 +187,13 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusUnauthorized)
 }
 
-func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//s.respond(w,r, http.StatusOK, nil)
 	//return
 	// TODO check if input user type invalid
 	type Input struct {
-		UserType     string `json:"type"`
+		UserType string `json:"type"`
 	}
 	defer func() {
 		// TODO: handle err
@@ -210,12 +215,12 @@ func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["user_type"] = newInput.UserType
-	session.Save(r,w)
+	session.Save(r, w)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
+	user, SendErr, CodeStatus := s.GetUserFromRequest(r)
 	if SendErr != nil {
 		s.error(w, r, CodeStatus, SendErr)
 		return
@@ -225,7 +230,7 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
+	user, SendErr, CodeStatus := s.GetUserFromRequest(r)
 	if SendErr != nil {
 		s.error(w, r, CodeStatus, SendErr)
 		return
@@ -243,10 +248,10 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request){
+func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var err error
-	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	user, sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
 		s.error(w, r, codeStatus, sendErr)
 		return
@@ -260,20 +265,20 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request){
 	if user.Password != currPassword {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 	}
-	newEncryptPassword , err := model.EncryptString(newPassword)
+	newEncryptPassword, err := model.EncryptString(newPassword)
 	if err != nil {
-		s.error(w, r, http.StatusInternalServerError , fmt.Errorf("error in updating password"))
+		s.error(w, r, http.StatusInternalServerError, fmt.Errorf("error in updating password"))
 	}
 	user.Password = newPassword
 	user.EncryptPassword = newEncryptPassword
 	s.respond(w, r, http.StatusOK, nil)
 }
 
-func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int) {
+func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		SendErr := fmt.Errorf( "user isn't authorized")
-		return nil , SendErr , http.StatusUnauthorized
+		SendErr := fmt.Errorf("user isn't authorized")
+		return nil, SendErr, http.StatusUnauthorized
 	}
 	uidInteface := session.Values["user_id"]
 	uid := uidInteface.(int)
@@ -283,16 +288,16 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 	s.usersdb.Mu.Unlock()
 
 	if user == nil {
-		SendErr := fmt.Errorf( "can't find user with id:" + strconv.Itoa(int(uid)))
-		return nil , SendErr , http.StatusBadRequest
+		SendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
+		return nil, SendErr, http.StatusBadRequest
 	}
-	return user, nil , http.StatusOK
+	return user, nil, http.StatusOK
 }
 
 // TODO:
-func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	user, sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
 		s.error(w, r, codeStatus, sendErr)
 		return
@@ -353,7 +358,6 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	s.usersdb.Mu.Unlock()
 }
 
-
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
@@ -375,7 +379,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	Openfile, err := os.Open(Filename)
 	defer Openfile.Close()
 	if err != nil {
-		s.error(w,r,http.StatusNotFound, errors.New("cant open file"))
+		s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
 		return
 	}
 
@@ -394,21 +398,29 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, Openfile)
 }
 
-
-func (s * server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (s * server) HandleGetSecQuestion(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s * server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleGetSecQuestion(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s * server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:9000")
+	w.Header().Set("Access-Control-Allow-Methods", "POST,PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	s.respond(w, r, http.StatusOK, nil)
 }
 
 /*func (s * server) HandleListUsers(w http.ResponseWriter, r *http.Request) {

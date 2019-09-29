@@ -11,11 +11,12 @@ import (
 )
 
 type ctxKey int8
+
 const (
-	sessionName = "user-session"
-	ctxKeyUser  ctxKey = iota
-	userFreelancer = "freelancer"
-	userCustomer = "customer"
+	sessionName           = "user-session"
+	ctxKeyUser     ctxKey = iota
+	userFreelancer        = "freelancer"
+	userCustomer          = "customer"
 )
 
 var (
@@ -26,18 +27,18 @@ var (
 type server struct {
 	mux *mux.Router
 	// store
-	store *store.Store
-	usersdb *model.UsersDB
+	store        *store.Store
+	usersdb      *model.UsersDB
 	sessionStore sessions.Store
-	config *Config
-	userType string
+	config       *Config
+	userType     string
 }
 
 func newServer(sessionStore sessions.Store) *server {
 	s := &server{
-		mux: mux.NewRouter(),
-		usersdb: model.NewUsersDB(),
-		sessionStore:sessionStore,
+		mux:          mux.NewRouter(),
+		usersdb:      model.NewUsersDB(),
+		sessionStore: sessionStore,
 		//store: store,
 	}
 	s.ConfigureServer()
@@ -48,7 +49,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func (s * server) ConfigureStore() error {
+func (s *server) ConfigureStore() error {
 	cnfg := store.NewConfig()
 	st := store.New(cnfg)
 	if err := st.Open(); err != nil {
@@ -84,7 +85,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 }*/
 
 // СЮДА СВОИ ХАНДЛЕРЫ
-func (s * server) ConfigureServer() {
+func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
 	// only for authenticated users
@@ -102,6 +103,16 @@ func (s * server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
+
+	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/account", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/account/upload-avatar", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/account/settings/password", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/account/settings/notifications", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 }
 
 // error handlers
