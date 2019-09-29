@@ -174,9 +174,11 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
+	//s.respond(w,r, http.StatusOK, nil)
+	//return
 	// TODO check if input user type invalid
 	type Input struct {
-		UserType     string `json:"user_type"`
+		UserType     string `json:"type"`
 	}
 	defer func() {
 		// TODO: handle err

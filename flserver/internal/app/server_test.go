@@ -13,6 +13,21 @@ import (
 	"testing"
 )
 
+func (s * server) ConfigureTestServer() {
+	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
+	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
+	s.mux.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost)
+	s.mux.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
+	s.mux.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
+	s.mux.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
+	s.mux.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
+	s.mux.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
+	s.mux.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
+	s.mux.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)
+	s.mux.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
+}
+
+
 func TestServer_HandleCreateUser(t *testing.T) {
 	config := NewConfig()
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
@@ -164,10 +179,15 @@ func TestAuthenticateUser(t *testing.T) {
 	}
 }
 
-func TestServer_HandleLogout(t *testing.T) {
+func TestServer_HandleSetUserType(t *testing.T) {
 	/*config := NewConfig()
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	s := newServer(sessionStore)
+	s := &server{
+		mux: mux.NewRouter(),
+		usersdb: model.NewUsersDB(),
+		sessionStore:sessionStore,
+	}
+	s.ConfigureTestServer()
 
 	u := model.User{
 		ID:              0,
@@ -176,63 +196,42 @@ func TestServer_HandleLogout(t *testing.T) {
 		Password:        "secret",
 		EncryptPassword: "",
 	}
-
-	err:= u.BeforeCreate()
-	if err != nil {
-		t.Fail()
-	}
+	u.BeforeCreate()
 	s.usersdb.Users = append(s.usersdb.Users, u)
 
-	tc := struct {
+	testCases := []struct {
 		name         string
-		payload      interface{}
+		payload  map[interface{}]interface{}
 		expectedCode int
 	}{
-		name: "valid",
-		payload: map[string]interface{}{
-			"email":    "user@example.org",
-			"password": "secret",
+		{
+			name: "freelancer",
+			payload: map[interface{}]interface{}{
+				"type": "freelancer",
+			},
+			expectedCode: http.StatusOK,
 		},
-		expectedCode: http.StatusUnauthorized,
+		{
+			name: "hiremanager",
+			payload: map[interface{}]interface{}{
+				"type": "customer",
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "wrong input",
+			payload:  nil,
+			expectedCode: http.StatusBadRequest,
+		},
 	}
 
-	t.Run(tc.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		rec := httptest.NewRecorder()
 		b := &bytes.Buffer{}
 		json.NewEncoder(b).Encode(tc.payload)
-		rec := httptest.NewRecorder()
-
-
-		s.sessionStore.Save()
-		req, _ := http.NewRequest(http.MethodPost, "private/logout", b)
+		req, _ := http.NewRequest(http.MethodPost, "/setusertype", b)
 		s.ServeHTTP(rec, req)
 		assert.Equal(t, tc.expectedCode, rec.Code)
-	})*/
-
-	secretKey := []byte("secret")
-	s := newServer(sessions.NewCookieStore(secretKey))
-
-	u := model.User{
-		ID:              0,
-		FirstName:       "name",
-		Email:           "user@example.org",
-		Password:        "secret",
-		EncryptPassword: "",
-	}
-
-	err:= u.BeforeCreate()
-	if err != nil {
-		t.Fail()
-	}
-
-	s.usersdb.Users = append(s.usersdb.Users, u)
-
-	email := "user@example.org"
-	password := "secret"
-
-	b := &bytes.Buffer{}
-	r := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPost, "private/logout", b)
-
-	s.ServeHTTP(r, req)
-	assert.Equal(t, http.StatusUnauthorized, r.Code)
+	}*/
 }
+
