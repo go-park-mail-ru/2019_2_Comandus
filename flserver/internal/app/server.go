@@ -105,6 +105,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/roles", s.HandleRoles).Methods(http.MethodGet)
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
 	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost)
+	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet)
 
 	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)

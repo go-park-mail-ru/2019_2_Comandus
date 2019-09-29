@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"log"
@@ -508,4 +509,21 @@ func (s * server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.error(w,r,http.StatusInternalServerError, nil)
+}
+
+func (s * server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
+	}
+
+	for i := 0; i < len(s.usersdb.Jobs); i++ {
+		if id == s.usersdb.Jobs[i].ID {
+			s.respond(w,r,http.StatusOK, &s.usersdb.Jobs[i])
+			return
+		}
+	}
+	s.error(w, r, http.StatusNotFound, errors.New("job not found"))
 }
