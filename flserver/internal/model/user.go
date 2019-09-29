@@ -5,15 +5,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 )
-// Можно изменить на uint64
+
 type User struct {
-	ID int `json:"id"`
-	FreelancerID int `json:"freelancer"`
-	CustomerID int `json:"customer"`
-	Name     string `json:"name"`
-	Email string `json:"email"`
-	Password string `json:"password, omitempty"`
+	ID 				int64 `json:"id"`
+	FirstName 		string `json:"firstName"`
+	SecondName 		string `json:"secondName"`
+	UserName     	string `json:"username"`
+	Email 			string `json:"email"`
+	Password 		string `json:"password, omitempty"`
 	EncryptPassword string `json:"-"`
+	avatar 			string `json:"-"`
 }
 
 func (u *User) BeforeCreate() error {
@@ -42,10 +43,10 @@ func encryptString(s string) (string, error) {
 }
 
 type UserInput struct {
-	Name string `json:"name"`
-	Surname string `json:"surname"`
-	Email     string `json:"email"`
-	Password string `json:"password"`
+	Name 		string `json:"name"`
+	Surname 	string `json:"surname"`
+	Email   	string `json:"email"`
+	Password	string `json:"password"`
 }
 
 func (u *UserInput) CheckEmail() error {
