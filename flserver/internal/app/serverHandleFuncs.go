@@ -278,6 +278,22 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 
 // TODO:
 func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
+	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
+		return
+	}
+	userNotification := s.usersdb.GetNotificationsByUserID(user.ID)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(userNotification)
+	fmt.Println(user)
+	if err != nil {
+		log.Printf("error while marshalling JSON: %s", err)
+		SendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, SendErr)
+		return
+	}
+	s.respond(w, r, http.StatusOK, nil)
 
 }
 
