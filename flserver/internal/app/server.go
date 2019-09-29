@@ -59,16 +59,25 @@ func (s * server) ConfigureStore() error {
 
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s * server) ConfigureServer() {
-	s.mux.HandleFunc("/users", s.HandleCreateUser)//.Methods("POST")
-	s.mux.HandleFunc("/sessions", s.HandleSessionCreate).Methods("POST")
+	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
+	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
 	// only for authenticated users
 	private := s.mux.PathPrefix("/private").Subrouter()
 	private.Use(s.authenticateUser)
-	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods("POST")
-	private.HandleFunc("/profile", s.HandleShowProfile)
+	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost)
+	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
+	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
+	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
+	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
+	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
+	private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)
+	private.HandleFunc("/account/settings/security-question", s.HandleGetSecQuestion).Methods(http.MethodGet)
+	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut)
+	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut)
+
 	//private.HandleFunc("/whoami", s.handleWhoami).Methods("GET")
-	private.HandleFunc("/logout", s.HandleLogout).Methods("GET")
-	private.HandleFunc("/profile/edit", s.HandleEditProfile).Methods(http.MethodPost)
+	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
+	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
 }
 
 
