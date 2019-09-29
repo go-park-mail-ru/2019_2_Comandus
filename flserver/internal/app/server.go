@@ -78,7 +78,6 @@ func (s * server) ConfigureStore() error {
   </body>
 </html>
 `)
-
 func mainPage(w http.ResponseWriter, r *http.Request) {
 	w.Write(uploadFormTmpl)
 }*/

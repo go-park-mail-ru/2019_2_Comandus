@@ -41,7 +41,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
 		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
 		idc = s.usersdb.Customers[len(s.usersdb.Customers)-1].ID + 1
-		idp = s.usersdb.Profiles[len(s.usersdb.Profiles) - 1].ID + 1 // +
 	}
 
 	user := model.User{
@@ -51,12 +50,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		Name:            newUserInput.Name,
 		Email:           newUserInput.Email,
 		Password:        newUserInput.Password,
-	}
-	profile := model.Profile{
-		ID:idp,
-		ContactInformation: model.ContactInfo{},
-		AdditionalInfo: model.AdditionalInformation{},
-		InnerInformation: model.InnerInfo{},
 	}
 	err = user.BeforeCreate()
 	if err != nil {
@@ -204,68 +197,75 @@ func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SHOW PROFILE")
-	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
+	if SendErr != nil {
+		s.error(w, r, CodeStatus, SendErr)
 		return
 	}
-
-	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int)
-	utypeInteface := session.Values["user_type"]
-	utype := utypeInteface.(string)
-
-	user := s.usersdb.GetUserByID(uid)
-	if utype == userFreelancer {
-		fmt.Println(userFreelancer)
-		freelancer := s.usersdb.GetFreelancerByID(user.FreelancerID)
-		profile := s.usersdb.GetProfileByID(freelancer.ProfileID)
-		fmt.Println(*profile)
-		s.respond(w, r, http.StatusOK, *profile)//r.Context().Value(ctxKeyUser).(model.Freelancer))
-	} else if utype == userCustomer {
-		fmt.Println(userCustomer)
-		customer := s.usersdb.GetCustomerByID(user.CustomerID)
-		profile := s.usersdb.GetProfileByID(customer.ProfileID)
-		fmt.Println(*profile)
-		s.respond(w, r, http.StatusOK, profile)
-	} else {
-		s.error(w,r, http.StatusInternalServerError, errors.New("user type not set"))
-	}
+	s.respond(w, r, http.StatusOK, user)
 }
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Edit profile")
-	var profile *model.Profile
-	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
+	if SendErr != nil {
+		s.error(w, r, CodeStatus, SendErr)
 		return
-	}
-	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int)
-	utypeInteface := session.Values["user_type"]
-	utype := utypeInteface.(string)
-	user := s.usersdb.GetUserByID(uid)
-	if utype == userFreelancer {
-		fmt.Println(userFreelancer)
-		freelancer := s.usersdb.GetFreelancerByID(user.FreelancerID)
-		profile = s.usersdb.GetProfileByID(freelancer.ProfileID)
-	} else if utype == userCustomer {
-		fmt.Println(userCustomer)
-		customer := s.usersdb.GetCustomerByID(user.CustomerID)
-		profile = s.usersdb.GetProfileByID(customer.ProfileID)
-	} else {
-		s.error(w,r, http.StatusInternalServerError, errors.New("user type not set"))
 	}
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(profile)
-	fmt.Println(*profile)
+	err := decoder.Decode(user)
+	fmt.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
-		w.Write([]byte("{}"))
+		SendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, SendErr)
 		return
 	}
+	s.respond(w, r, http.StatusOK, nil)
+
+}
+
+func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request){
+	var err error
+	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
+		return
+	}
+	currPassword := r.FormValue("password")
+	newPassword := r.FormValue("newPassword")
+	newPasswordConfirmation := r.FormValue("newPasswordConfirmation")
+	if newPassword != newPasswordConfirmation {
+		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
+	}
+	if user.Password != currPassword {
+		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
+	}
+	newEncryptPassword , err := model.EncryptString(newPassword)
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError , fmt.Errorf("error in updating password"))
+	}
+	user.Password = newPassword
+	user.EncryptPassword = newEncryptPassword
+	s.respond(w, r, http.StatusOK, nil)
+}
+
+func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int) {
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		SendErr := fmt.Errorf( "user isn't authorized")
+		return nil , SendErr , http.StatusUnauthorized
+	}
+	uidInteface := session.Values["user_id"]
+	uid := uidInteface.(int64)
+	user := s.usersdb.GetUserByID(uid)
+	if user == nil {
+		SendErr := fmt.Errorf( "can't find user with id:" + strconv.Itoa(int(uid)))
+		return nil , SendErr , http.StatusBadRequest
+	}
+	return user, nil , http.StatusOK
+}
+
+func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -345,22 +345,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	Openfile.Seek(0, 0)
 	io.Copy(w, Openfile)
 }
-/*func (s * server) HandleListUsers(w http.ResponseWriter, r *http.Request) {
-	encoder := json.NewEncoder(w)
 
-	s.usersdb.mu.Lock()
-	err := encoder.Encode(s.usersdb.users)
-	s.usersdb.mu.Unlock()
-
-	if err != nil {
-		s.error(w, r, http.StatusUnprocessableEntity, err)
-		return
-	}
-}*/
-
-func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
-
-}
 
 func (s * server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
 
@@ -374,10 +359,20 @@ func (s * server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) 
 
 }
 
-func (s * server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func (s * server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
 
 }
+
+/*func (s * server) HandleListUsers(w http.ResponseWriter, r *http.Request) {
+	encoder := json.NewEncoder(w)
+
+	s.usersdb.mu.Lock()
+	err := encoder.Encode(s.usersdb.users)
+	s.usersdb.mu.Unlock()
+
+
+	if err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
+}*/
