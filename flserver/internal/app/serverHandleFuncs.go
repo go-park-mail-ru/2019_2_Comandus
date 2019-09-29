@@ -36,41 +36,39 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	var id int
 	var idf int
 	var idc int
-	var idp int = 1 //+
+
 	if len(s.usersdb.Users) > 0 {
 		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
 		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
-		idc = s.usersdb.Customers[len(s.usersdb.Customers)-1].ID + 1
+		idc = s.usersdb.HireManagers[len(s.usersdb.HireManagers)-1].ID + 1
 	}
 
 	user := model.User{
 		ID:              id,
-		FreelancerID:    idf,
-		CustomerID:      idc,
-		Name:            newUserInput.Name,
+		FirstName:            newUserInput.Name,
 		Email:           newUserInput.Email,
 		Password:        newUserInput.Password,
 	}
+
 	err = user.BeforeCreate()
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, newUserInput)
 	}
 	s.usersdb.Users = append(s.usersdb.Users, user)
 
+
 	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer {
 		ID:       idf,
-		ProfileID: idp,
+		AccountId: id,
 	})
-	s.usersdb.Customers = append(s.usersdb.Customers, model.Customer {
+
+	s.usersdb.HireManagers = append(s.usersdb.HireManagers, model.HireManager {
 		ID:       idc,
-		ProfileID: idp,
+		AccountID : id,
 	})
-	s.usersdb.Profiles = append(s.usersdb.Profiles, profile)
 
 	fmt.Println(s.usersdb.Users[id])
 	s.usersdb.Mu.Unlock()
-
-	// TODO
 	s.respond(w, r, http.StatusCreated, newUserInput)
 }
 
@@ -256,7 +254,7 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 		return nil , SendErr , http.StatusUnauthorized
 	}
 	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int64)
+	uid := uidInteface.(int)
 	user := s.usersdb.GetUserByID(uid)
 	if user == nil {
 		SendErr := fmt.Errorf( "can't find user with id:" + strconv.Itoa(int(uid)))

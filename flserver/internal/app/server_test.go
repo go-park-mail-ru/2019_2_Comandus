@@ -50,7 +50,7 @@ func TestServer_HandleCreateUser(t *testing.T) {
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
 			rec := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodPost, "/users", b)
+			req, _ := http.NewRequest(http.MethodPost, "/signup", b)
 			s.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 		})
@@ -64,9 +64,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 
 	u := model.User{
 		ID:              0,
-		FreelancerID:    0,
-		CustomerID:      0,
-		Name:            "name",
+		FirstName:            "name",
 		Email:           "user@example.org",
 		Password:        "secret",
 		EncryptPassword: "",
@@ -104,7 +102,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
 			rec := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodPost, "/sessions", b)
+			req, _ := http.NewRequest(http.MethodPost, "/login", b)
 			s.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 		})
@@ -136,9 +134,7 @@ func TestAuthenticateUser(t *testing.T) {
 
 	u := model.User{
 		ID:              0,
-		FreelancerID:    0,
-		CustomerID:      0,
-		Name:            "name",
+		FirstName:            "name",
 		Email:           "user@example.org",
 		Password:        "secret",
 		EncryptPassword: "",
