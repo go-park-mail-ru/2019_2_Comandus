@@ -57,7 +57,7 @@ func (s * server) ConfigureStore() error {
 	return nil
 }
 
-var uploadFormTmpl = []byte(`
+/*var uploadFormTmpl = []byte(`
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -81,7 +81,7 @@ var uploadFormTmpl = []byte(`
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
 	w.Write(uploadFormTmpl)
-}
+}*/
 
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s * server) ConfigureServer() {
@@ -97,6 +97,7 @@ func (s * server) ConfigureServer() {
 	//s.mux.HandleFunc("/", mainPage)
 	//s.mux.HandleFunc("/upload", s.HandleUploadAvatar)
 	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
+	private.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)

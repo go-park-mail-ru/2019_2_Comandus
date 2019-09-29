@@ -6,9 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 )
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	defer func() {
@@ -303,6 +306,44 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	uidInterface := session.Values["user_id"]
 	uid := uidInterface.(int)
 	s.usersdb.Users[uid].Avatar = tempFile.Name()
+}
+
+
+func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	uidInterface := session.Values["user_id"]
+	uid := uidInterface.(int)
+	Filename := s.usersdb.Users[uid].Avatar
+
+	if Filename == "" {
+		Filename = "/internal/store/avatars/default.png"
+	}
+	fmt.Println("Client requests: " + Filename)
+
+	Openfile, err := os.Open(Filename)
+	defer Openfile.Close()
+	if err != nil {
+		s.error(w,r,http.StatusNotFound, errors.New("cant open file"))
+		return
+	}
+
+	FileHeader := make([]byte, 100000) // max image size!!!
+	Openfile.Read(FileHeader)
+	FileContentType := http.DetectContentType(FileHeader)
+
+	FileStat, _ := Openfile.Stat()
+	FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+	w.Header().Set("Content-Type", FileContentType)
+	w.Header().Set("Content-Length", FileSize)
+
+	Openfile.Seek(0, 0)
+	io.Copy(w, Openfile)
 }
 /*func (s * server) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
