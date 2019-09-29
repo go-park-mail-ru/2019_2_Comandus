@@ -102,6 +102,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleGetSecQuestion).Methods(http.MethodGet)
 	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut)
+	private.HandleFunc("/roles", s.HandleRoles).Methods(http.MethodGet)
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
 	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost)
 

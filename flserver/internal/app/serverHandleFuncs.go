@@ -400,6 +400,29 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, Openfile)
 }
 
+func (s* server) HandleRoles (w http.ResponseWriter, r *http.Request) {
+	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
+		return
+	}
+	HireManager := s.usersdb.GetHireManagerByID(user.ID)
+	Company := s.usersdb.GetCompanyByID(HireManager.ID)
+	var Roles []*model.Role
+	clientRole := &model.Role{
+		Role:   "client",
+		Label:  Company.CompanyName,
+		Avatar: "/default.png",
+	}
+	freelanceRole := &model.Role{
+		Role:   "freelancer",
+		Label:  user.FirstName + " " + user.SecondName,
+		Avatar: "/default.png",
+	}
+	Roles = append(Roles, clientRole)
+	Roles = append(Roles, freelanceRole)
+	s.respond(w, r, http.StatusOK, Roles)
+}
 func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
 
 }
