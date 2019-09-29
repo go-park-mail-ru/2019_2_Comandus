@@ -46,6 +46,7 @@ type UserInput struct {
 	Surname 	string `json:"surname"`
 	Email   	string `json:"email"`
 	Password	string `json:"password"`
+	UserType 	string `json:"type"`
 }
 
 func (u *UserInput) CheckEmail() error {

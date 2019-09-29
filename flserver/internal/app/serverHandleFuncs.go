@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 )
+
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// TODO: handle err
@@ -30,6 +31,11 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
 		return
+	}
+
+	s.userType = newUserInput.UserType
+	if s.userType != userFreelancer && s.userType != userCustomer {
+		s.userType = userFreelancer
 	}
 
 	s.usersdb.Mu.Lock()
@@ -136,7 +142,8 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			session.Values["user_id"] = u.ID
-			session.Values["user_type"] = userFreelancer
+			session.Values["user_type"] = s.userType
+			//session.Values["user_type"] = userFreelancer
 			if err := s.sessionStore.Save(r, w, session); err != nil {
 				s.usersdb.Mu.Unlock()
 				s.error(w, r, http.StatusInternalServerError, err)

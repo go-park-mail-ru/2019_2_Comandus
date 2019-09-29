@@ -30,6 +30,7 @@ type server struct {
 	usersdb *model.UsersDB
 	sessionStore sessions.Store
 	config *Config
+	userType string
 }
 
 func newServer(sessionStore sessions.Store) *server {
