@@ -103,6 +103,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
+	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost)
 
 	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)

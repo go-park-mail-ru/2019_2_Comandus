@@ -9,6 +9,7 @@ type UsersDB struct {
 	Companies	 	[]Company
 	Notifications 	[]Notification
 	InnerInfos		[]InnerInfo
+	Jobs			[]Job
 	Mu    			*sync.Mutex
 }
 
@@ -20,6 +21,7 @@ func NewUsersDB() *UsersDB {
 		make([]Company,0),
 		make([]Notification,0),
 		make([]InnerInfo,0),
+		make([]Job,0),
 		&sync.Mutex{},
 	}
 }

@@ -438,3 +438,51 @@ func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }*/
+
+func (s * server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	if session == nil {
+		s.error(w, r, http.StatusNotFound, errors.New("failed to delete session"))
+		return
+	}
+
+	uti := session.Values["user_type"]
+	ut := uti.(string)
+
+	if ut != userCustomer {
+		s.error(w, r, http.StatusBadRequest, errors.New("current user is not a manager"))
+		return
+	}
+
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
+	decoder := json.NewDecoder(r.Body)
+	newJob := new(model.Job)
+	err = decoder.Decode(newJob)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	newJob.ID = len(s.usersdb.Jobs)
+
+	uidi := session.Values["user_id"]
+	uid := uidi.(int)
+
+	for i:=0; i < len(s.usersdb.HireManagers); i++ {
+		if s.usersdb.HireManagers[i].AccountID == uid {
+			newJob.HireManagerId = s.usersdb.HireManagers[i].ID
+			s.usersdb.Jobs = append(s.usersdb.Jobs, *newJob)
+			s.respond(w,r, http.StatusOK, newJob)
+			return
+		}
+	}
+	s.error(w,r,http.StatusInternalServerError, nil)
+}
