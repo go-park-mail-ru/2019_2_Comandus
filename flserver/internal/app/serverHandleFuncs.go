@@ -357,3 +357,23 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }*/
+
+func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleGetSecQuestion(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleEditPassword (w http.ResponseWriter, r *http.Request) {
+
+}
