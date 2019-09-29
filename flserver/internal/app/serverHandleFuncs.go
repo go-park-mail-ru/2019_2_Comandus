@@ -14,6 +14,7 @@ import (
 	"strconv"
 )
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	defer func() {
 		// TODO: handle err
 		r.Body.Close()
@@ -108,6 +109,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 }
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	defer func() {
 		// TODO: handle err
 		r.Body.Close()
@@ -174,6 +176,7 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	//s.respond(w,r, http.StatusOK, nil)
 	//return
 	// TODO check if input user type invalid
@@ -204,6 +207,7 @@ func (s * server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
 	if SendErr != nil {
 		s.error(w, r, CodeStatus, SendErr)
@@ -213,6 +217,7 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	user , SendErr , CodeStatus := s.GetUserFromRequest(r)
 	if SendErr != nil {
 		s.error(w, r, CodeStatus, SendErr)
@@ -232,6 +237,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
 	var err error
 	user , sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
@@ -278,6 +284,7 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 
 // TODO:
 func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	user , sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
 		s.error(w, r, codeStatus, sendErr)
@@ -298,6 +305,7 @@ func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request
 }
 
 func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("File Upload Endpoint Hit")
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
