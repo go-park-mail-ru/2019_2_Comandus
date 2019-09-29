@@ -374,6 +374,10 @@ func (s * server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) 
 
 }
 
-func (s * server) HandleEditPassword (w http.ResponseWriter, r *http.Request) {
+func (s * server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s * server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
 
 }

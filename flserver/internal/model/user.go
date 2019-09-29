@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID 				int64 `json:"id"`
+	ID 				int `json:"id"`
 	FirstName 		string `json:"firstName"`
 	SecondName 		string `json:"secondName"`
 	UserName     	string `json:"username"`
@@ -38,7 +38,6 @@ func encryptString(s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return string(b), nil
 }
 

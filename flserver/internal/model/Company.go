@@ -1,7 +1,7 @@
 package model
 
 type Company struct {
-	ID			int64    `json:"id"`
+	ID			int    `json:"id"`
 	CompanyName string `json:"companyName"`
 	Site 		string `json:"site"`
 	TagLine 	string `json:"tagline"`

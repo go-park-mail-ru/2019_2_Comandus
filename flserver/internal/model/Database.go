@@ -24,7 +24,7 @@ func NewUsersDB() *UsersDB {
 	}
 }
 
-func (db *UsersDB) GetUserByID (id int64) *User {
+func (db *UsersDB) GetUserByID (id int) *User {
 	for i := 0; i < len(db.Users); i++ {
 		if id == db.Users[i].ID {
 			return &db.Users[i]
@@ -33,7 +33,7 @@ func (db *UsersDB) GetUserByID (id int64) *User {
 	return nil
 }
 
-func (db *UsersDB) GetCompanyByID (id int64) *Company {
+func (db *UsersDB) GetCompanyByID (id int) *Company {
 	for i := 0; i < len(db.Companies); i++ {
 		if id == db.Companies[i].ID {
 			return &db.Companies[i]
@@ -42,7 +42,7 @@ func (db *UsersDB) GetCompanyByID (id int64) *Company {
 	return nil
 }
 
-func (db *UsersDB) GetFreelancerByID (id int64) *Freelancer {
+func (db *UsersDB) GetFreelancerByID (id int) *Freelancer {
 	for i := 0; i < len(db.Freelancers); i++ {
 		if id == db.Freelancers[i].ID {
 			return &db.Freelancers[i]
