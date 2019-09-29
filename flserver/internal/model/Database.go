@@ -51,14 +51,31 @@ func (db *UsersDB) GetFreelancerByID (id int) *Freelancer {
 	return nil
 }
 
-//func (db *UsersDB) GetProfileByID (id int64) *Profile {
-//	for i := 0; i < len(db.Profiles); i++ {
-//		if id == db.Profiles[i].ID {
-//			return &db.Profiles[i]
-//		}
-//	}
-//	return nil
-//}
+
+func (db *UsersDB) GetHireManagerByID (id int) *HireManager {
+	for i := 0; i < len(db.HireManagers); i++ {
+		if id == db.HireManagers[i].ID {
+			return &db.HireManagers[i]
+		}
+	}
+	return nil
+}
 
 
+func (db *UsersDB) GetInnerInfoByUserID (id int) *InnerInfo {
+	for i := 0; i < len(db.InnerInfos); i++ {
+		if id == db.InnerInfos[i].UserID {
+			return &db.InnerInfos[i]
+		}
+	}
+	return nil
+}
 
+func (db *UsersDB) GetNotificationsByUserID (id int) *Notification {
+	for i := 0; i < len(db.Notifications); i++ {
+		if id == db.Notifications[i].UserID {
+			return &db.Notifications[i]
+		}
+	}
+	return nil
+}

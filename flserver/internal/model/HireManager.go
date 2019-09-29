@@ -7,5 +7,5 @@ type HireManager struct {
 	AccountID 			int		`json:"accountId"`
 	RegistrationDate	time.Time	`json:"registrationDate"`
 	Location			string 		`json:"location"`
-	CompanyId			int 		`json:"companyId"`
+	CompanyID			int 		`json:"companyId"`
 }

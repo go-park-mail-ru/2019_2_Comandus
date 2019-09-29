@@ -93,9 +93,6 @@ func (s * server) ConfigureServer() {
 	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost)
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
 	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
-	//private
-	//s.mux.HandleFunc("/", mainPage)
-	//s.mux.HandleFunc("/upload", s.HandleUploadAvatar)
 	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
 	private.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
@@ -104,6 +101,7 @@ func (s * server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleGetSecQuestion).Methods(http.MethodGet)
 	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut)
+	private.HandleFunc("/roles", s.HandleRoles).Methods(http.MethodGet)
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
 }
 

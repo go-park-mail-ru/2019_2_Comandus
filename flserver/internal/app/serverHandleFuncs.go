@@ -105,7 +105,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request){
 	defer func() {
 		// TODO: handle err
 		r.Body.Close()
@@ -239,7 +239,7 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request){
 	if user.Password != currPassword {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 	}
-	newEncryptPassword , err := model.EncryptString(newPassword)
+	newEncryptPassword , err := model.EncryptString(newPasswordConfirmation)
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError , fmt.Errorf("error in updating password"))
 	}
@@ -359,7 +359,31 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, Openfile)
 }
 
+func (s* server) HandleRoles (w http.ResponseWriter, r *http.Request) {
+	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
+		return
+	}
+	HireManager := s.usersdb.GetHireManagerByID(user.ID)
+	Company := s.usersdb.GetCompanyByID(HireManager.ID)
+	var Roles []*model.Role
+	clientRole := &model.Role{
+		Role:   "client",
+		Label:  Company.CompanyName,
+		Avatar: "/default.png",
+	}
+	freelanceRole := &model.Role{
+		Role:   "freelancer",
+		Label:  user.FirstName + " " + user.SecondName,
+		Avatar: "/default.png",
+	}
+	Roles = append(Roles, clientRole)
+	Roles = append(Roles, freelanceRole)
+	s.respond(w, r, http.StatusOK, Roles)
+}
 func (s * server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
+
 
 }
 
