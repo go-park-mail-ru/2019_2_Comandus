@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 )
+
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// TODO: handle err
@@ -256,7 +257,7 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 		return nil , SendErr , http.StatusUnauthorized
 	}
 	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int64)
+	uid := uidInteface.(int)
 	user := s.usersdb.GetUserByID(uid)
 	if user == nil {
 		SendErr := fmt.Errorf( "can't find user with id:" + strconv.Itoa(int(uid)))
@@ -266,7 +267,22 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 }
 
 func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
-
+	user , sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
+		return
+	}
+	userNotification := s.usersdb.GetNotificationsByUserID(user.ID)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(userNotification)
+	fmt.Println(user)
+	if err != nil {
+		log.Printf("error while marshalling JSON: %s", err)
+		SendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, SendErr)
+		return
+	}
+	s.respond(w, r, http.StatusOK, nil)
 }
 
 func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
@@ -308,7 +324,6 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	s.usersdb.Users[uid].Avatar = tempFile.Name()
 }
 
-
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
@@ -345,7 +360,6 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	Openfile.Seek(0, 0)
 	io.Copy(w, Openfile)
 }
-
 
 func (s * server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
 
