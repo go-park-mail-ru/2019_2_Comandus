@@ -80,13 +80,5 @@ func (db *UsersDB) GetHireManagerByID (id int) *HireManager {
 	return nil
 }
 
-func (db *UsersDB) GetCompanyByID (id int) *Company {
-	for i := 0; i < len(db.Companies); i++ {
-		if id == db.Companies[i].ID {
-			return &db.Companies[i]
-		}
-	}
-	return nil
-}
 
 
