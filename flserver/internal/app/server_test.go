@@ -165,5 +165,74 @@ func TestAuthenticateUser(t *testing.T) {
 }
 
 func TestServer_HandleLogout(t *testing.T) {
-	// TODO:
+	/*config := NewConfig()
+	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
+	s := newServer(sessionStore)
+
+	u := model.User{
+		ID:              0,
+		FirstName:            "name",
+		Email:           "user@example.org",
+		Password:        "secret",
+		EncryptPassword: "",
+	}
+
+	err:= u.BeforeCreate()
+	if err != nil {
+		t.Fail()
+	}
+	s.usersdb.Users = append(s.usersdb.Users, u)
+
+	tc := struct {
+		name         string
+		payload      interface{}
+		expectedCode int
+	}{
+		name: "valid",
+		payload: map[string]interface{}{
+			"email":    "user@example.org",
+			"password": "secret",
+		},
+		expectedCode: http.StatusUnauthorized,
+	}
+
+	t.Run(tc.name, func(t *testing.T) {
+		b := &bytes.Buffer{}
+		json.NewEncoder(b).Encode(tc.payload)
+		rec := httptest.NewRecorder()
+
+
+		s.sessionStore.Save()
+		req, _ := http.NewRequest(http.MethodPost, "private/logout", b)
+		s.ServeHTTP(rec, req)
+		assert.Equal(t, tc.expectedCode, rec.Code)
+	})*/
+
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+
+	u := model.User{
+		ID:              0,
+		FirstName:       "name",
+		Email:           "user@example.org",
+		Password:        "secret",
+		EncryptPassword: "",
+	}
+
+	err:= u.BeforeCreate()
+	if err != nil {
+		t.Fail()
+	}
+
+	s.usersdb.Users = append(s.usersdb.Users, u)
+
+	email := "user@example.org"
+	password := "secret"
+
+	b := &bytes.Buffer{}
+	r := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPost, "private/logout", b)
+
+	s.ServeHTTP(r, req)
+	assert.Equal(t, http.StatusUnauthorized, r.Code)
 }

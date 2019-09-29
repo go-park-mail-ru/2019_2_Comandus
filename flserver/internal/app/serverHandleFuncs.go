@@ -88,12 +88,15 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 
 		var u *model.User
 		var found bool
+
+		s.usersdb.Mu.Lock()
 		for i := 0; i < len(s.usersdb.Users); i++ {
 			if id == s.usersdb.Users[i].ID {
 				u = &s.usersdb.Users[i]
 				found = true
 			}
 		}
+		s.usersdb.Mu.Unlock()
 
 		if !found {
 			s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
@@ -120,6 +123,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(newUserInput)
 
+	s.usersdb.Mu.Lock()
 	for i:=0; i < len(s.usersdb.Users); i++ {
 		if s.usersdb.Users[i].Email == newUserInput.Email &&
 			s.usersdb.Users[i].ComparePassword(newUserInput.Password) {
@@ -127,26 +131,29 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 			u := s.usersdb.Users[i]
 			session, err := s.sessionStore.Get(r, sessionName)
 			if err != nil {
+				s.usersdb.Mu.Unlock()
 				s.error(w, r, http.StatusInternalServerError, err)
 				return
 			}
 			session.Values["user_id"] = u.ID
 			session.Values["user_type"] = userFreelancer
 			if err := s.sessionStore.Save(r, w, session); err != nil {
+				s.usersdb.Mu.Unlock()
 				s.error(w, r, http.StatusInternalServerError, err)
 				return
 			}
-
+			s.usersdb.Mu.Unlock()
 			s.respond(w, r, http.StatusOK, nil)
 			return
 		}
 	}
+	s.usersdb.Mu.Unlock()
 	s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
-	return
 }
 
 func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
+	fmt.Println(session)
 	if err == http.ErrNoCookie {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -255,7 +262,11 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 	}
 	uidInteface := session.Values["user_id"]
 	uid := uidInteface.(int)
+
+	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
+	s.usersdb.Mu.Unlock()
+
 	if user == nil {
 		SendErr := fmt.Errorf( "can't find user with id:" + strconv.Itoa(int(uid)))
 		return nil , SendErr , http.StatusBadRequest
@@ -263,6 +274,7 @@ func (s *server) GetUserFromRequest (r *http.Request) (*model.User , error , int
 	return user, nil , http.StatusOK
 }
 
+// TODO:
 func (s * server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -303,7 +315,9 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	uidInterface := session.Values["user_id"]
 	uid := uidInterface.(int)
+	s.usersdb.Mu.Lock()
 	s.usersdb.Users[uid].Avatar = tempFile.Name()
+	s.usersdb.Mu.Unlock()
 }
 
 
@@ -315,7 +329,10 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	uidInterface := session.Values["user_id"]
 	uid := uidInterface.(int)
+
+	s.usersdb.Mu.Lock()
 	Filename := s.usersdb.Users[uid].Avatar
+	s.usersdb.Mu.Unlock()
 
 	if Filename == "" {
 		Filename = "/internal/store/avatars/default.png"

@@ -103,15 +103,7 @@ func (s * server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleGetSecQuestion).Methods(http.MethodGet)
 	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut)
 	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut)
-
-	//private.HandleFunc("/whoami", s.handleWhoami).Methods("GET")
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
-	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
-}
-
-
-func (s *server) handleWhoami(w http.ResponseWriter, r *http.Request)  {
-	s.respond(w, r, http.StatusOK, r.Context().Value(ctxKeyUser).(*model.User))
 }
 
 // error handlers
