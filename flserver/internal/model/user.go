@@ -42,8 +42,8 @@ func EncryptString(s string) (string, error) {
 }
 
 type UserInput struct {
-	Name 		string `json:"name"`
-	Surname 	string `json:"surname"`
+	Name 		string `json:"firstName"`
+	Surname 	string `json:"secondName"`
 	Email   	string `json:"email"`
 	Password	string `json:"password"`
 	UserType 	string `json:"type"`
