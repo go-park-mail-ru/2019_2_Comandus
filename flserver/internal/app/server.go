@@ -13,10 +13,12 @@ import (
 type ctxKey int8
 
 const (
-	sessionName           = "user-session"
-	ctxKeyUser     ctxKey = iota
-	userFreelancer        = "freelancer"
-	userCustomer          = "customer"
+	sessionName                    = "user-session"
+	ctxKeyUser              ctxKey = iota
+	userFreelancer                 = "freelancer"
+	userCustomer                   = "client"
+	userTypeCookieName             = "user_type"
+	hireManagerIdCookieName        = "hire-manager-id"
 )
 
 var (
@@ -109,13 +111,16 @@ func (s *server) ConfigureServer() {
 
 	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/account", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/account", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/account/upload-avatar", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/account/settings/password", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/account/settings/notifications", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/account/settings/password", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/account/settings/notifications", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)
 }
 
 // error handlers
