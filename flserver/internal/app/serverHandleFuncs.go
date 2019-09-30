@@ -15,7 +15,7 @@ import (
 	"strconv"
 )
 
-const clientUrl = "https://comandus.nozim.now.sh/"
+const clientUrl = "https://comandus.now.sh/"
 
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
