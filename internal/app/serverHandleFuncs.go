@@ -288,6 +288,11 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
+	type BodyPassword struct {
+		Password string
+		NewPassword string
+		NewPasswordConfirmation string
+	}
 	w.Header().Set("Content-Type", "application/json")
 	var err error
 	user, sendErr, codeStatus := s.GetUserFromRequest(r)
@@ -295,28 +300,22 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-	currPassword := r.FormValue("password")
-	newPassword := r.FormValue("newPassword")
-	newPasswordConfirmation := r.FormValue("newPasswordConfirmation")
-
-	if user.ComparePassword(currPassword) {
-		s.error(w,r, http.StatusBadRequest, fmt.Errorf("incorrect old password"))
-	}
-
-	if newPassword != newPasswordConfirmation {
+	bodyPassword := new(BodyPassword)
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(bodyPassword)
+	if bodyPassword.NewPassword != bodyPassword.NewPasswordConfirmation {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
 		return
 	}
-	if user.Password != currPassword {
+	if user.Password != bodyPassword.Password {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 		return
 	}
-	newEncryptPassword, err := model.EncryptString(newPassword)
+	newEncryptPassword, err := model.EncryptString(bodyPassword.NewPasswordConfirmation)
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, fmt.Errorf("error in updating password"))
 		return
 	}
-	user.Password = "" //newPassword
 	user.EncryptPassword = newEncryptPassword
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
