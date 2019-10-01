@@ -4,6 +4,7 @@ import (
 	"flag"
 	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
 	"log"
+	"os"
 )
 
 var (
@@ -22,7 +23,13 @@ func main() {
 	/*if err != nil {
 		log.Fatal(err)
 	}*/
-
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = ":8080"
+	} else {
+		port = ":" + port
+	}
+	config.BindAddr = port
 	if err := apiserver.Start(config); err != nil {
 		log.Fatal(err)
 	}
