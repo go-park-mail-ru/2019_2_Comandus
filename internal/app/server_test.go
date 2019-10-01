@@ -11,20 +11,65 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
-func (s * server) ConfigureTestServer() {
-	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
-	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
-	s.mux.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost)
-	s.mux.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
-	s.mux.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
-	s.mux.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
-	s.mux.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
-	s.mux.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
-	s.mux.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
-	s.mux.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)
-	s.mux.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
+func (s * server) addUser2Server() error{
+	u := model.User{
+		ID:              0,
+		FirstName:       "name",
+		Email:           "user@example.org",
+		Password:        "secret",
+		EncryptPassword: "",
+	}
+	
+	m := model.HireManager{
+		ID:               0,
+		AccountID:        0,
+		RegistrationDate: time.Now(),
+		Location:         "Russia/Moscow",
+		CompanyID:        0,
+	}
+
+	f := model.Freelancer{
+		ID:                0,
+		AccountId:         0,
+		RegistrationDate:  time.Now(),
+		Country:           "Russia",
+		City:              "Moscow",
+		Address:           "",
+		Phone:             "2723878",
+		TagLine:           "",
+		Overview:          "",
+		ExperienceLevelId: 0,
+		SpecialityId:      0,
+	}
+
+	err:= u.BeforeCreate()
+	if err != nil {
+		return err
+	}
+	s.usersdb.Users = append(s.usersdb.Users, u)
+	s.usersdb.HireManagers = append(s.usersdb.HireManagers, m)
+	s.usersdb.Freelancers = append(s.usersdb.Freelancers, f)
+	return nil
+}
+
+func (s * server) addJob2Server() {
+	j := model.Job{
+		ID:                0,
+		HireManagerId:     0,
+		Title:             "first job",
+		Description:       "work hard",
+		Files:             "",
+		SpecialityId:      0,
+		ExperienceLevelId: 0,
+		PaymentAmout:      0,
+		Country:           "Russia",
+		City:              "Moscow",
+		JobTypeId:         0,
+	}
+	s.usersdb.Jobs = append(s.usersdb.Jobs, j)
 }
 
 
@@ -77,20 +122,10 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	s := newServer(sessionStore)
 
-	u := model.User{
-		ID:              0,
-		FirstName:            "name",
-		Email:           "user@example.org",
-		Password:        "secret",
-		EncryptPassword: "",
-	}
-
-	err:= u.BeforeCreate()
+	err := s.addUser2Server()
 	if err != nil {
 		t.Fail()
 	}
-
-	s.usersdb.Users = append(s.usersdb.Users, u)
 
 	testCases := []struct {
 		name         string
@@ -124,7 +159,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 	}
 }
 
-func TestAuthenticateUser(t *testing.T) {
+func TestServer_AuthenticateUser(t *testing.T) {
 	testCases := []struct {
 		name         string
 		cookieValue  map[interface{}]interface{}
@@ -147,20 +182,10 @@ func TestAuthenticateUser(t *testing.T) {
 	secretKey := []byte("secret")
 	s := newServer(sessions.NewCookieStore(secretKey))
 
-	u := model.User{
-		ID:              0,
-		FirstName:            "name",
-		Email:           "user@example.org",
-		Password:        "secret",
-		EncryptPassword: "",
-	}
-
-	err:= u.BeforeCreate()
+	err := s.addUser2Server()
 	if err != nil {
 		t.Fail()
 	}
-
-	s.usersdb.Users = append(s.usersdb.Users, u)
 
 	sc := securecookie.New(secretKey, nil)
 	mw := s.authenticateUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -172,6 +197,7 @@ func TestAuthenticateUser(t *testing.T) {
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/", nil)
 			cookieStr, _ := sc.Encode(sessionName, tc.cookieValue)
+			fmt.Println(cookieStr)
 			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 			mw.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
@@ -180,58 +206,374 @@ func TestAuthenticateUser(t *testing.T) {
 }
 
 func TestServer_HandleSetUserType(t *testing.T) {
-	/*config := NewConfig()
-	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	s := &server{
-		mux: mux.NewRouter(),
-		usersdb: model.NewUsersDB(),
-		sessionStore:sessionStore,
-	}
-	s.ConfigureTestServer()
-
-	u := model.User{
-		ID:              0,
-		FirstName:            "name",
-		Email:           "user@example.org",
-		Password:        "secret",
-		EncryptPassword: "",
-	}
-	u.BeforeCreate()
-	s.usersdb.Users = append(s.usersdb.Users, u)
-
 	testCases := []struct {
 		name         string
-		payload  map[interface{}]interface{}
+		payload      interface{}
 		expectedCode int
 	}{
 		{
-			name: "freelancer",
-			payload: map[interface{}]interface{}{
-				"type": "freelancer",
+			name: "valid customer",
+			payload: map[string]interface{}{
+				"type":    "client",
 			},
 			expectedCode: http.StatusOK,
 		},
 		{
-			name: "hiremanager",
-			payload: map[interface{}]interface{}{
-				"type": "customer",
+			name: "valid",
+			payload: map[string]interface{}{
+				"type":    "freelancer",
 			},
 			expectedCode: http.StatusOK,
 		},
 		{
-			name:         "wrong input",
-			payload:  nil,
+			name: "invalid params",
+			payload: "invalid",
 			expectedCode: http.StatusBadRequest,
 		},
 	}
 
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+	sc := securecookie.New(secretKey, nil)
+
+	err := s.addUser2Server()
+	if err != nil {
+		t.Fail()
+	}
+
 	for _, tc := range testCases {
-		rec := httptest.NewRecorder()
-		b := &bytes.Buffer{}
-		json.NewEncoder(b).Encode(tc.payload)
-		req, _ := http.NewRequest(http.MethodPost, "/setusertype", b)
-		s.ServeHTTP(rec, req)
-		assert.Equal(t, tc.expectedCode, rec.Code)
-	}*/
+		t.Run(tc.name, func(t *testing.T) {
+			b := &bytes.Buffer{}
+			json.NewEncoder(b).Encode(tc.payload)
+
+			rec := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodPost, "/private/setusertype", b)
+			cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{
+				"user_id": 0,
+			})
+			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+			s.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedCode, rec.Code)
+		})
+	}
 }
 
+func TestServer_HandleCreateJob(t *testing.T) {
+	testCases := []struct {
+		name         string
+		payload      interface{}
+		cookie      interface{}
+		expectedCode int
+	}{
+		{
+			name: "correct user",
+			payload: map[string]interface{}{
+				"title": "golang server writing",
+				"description": "write server for fl.ru",
+				"files": "",
+				"specialityId": 1,
+				"experienceLevelId": 1,
+				"paymentAmount": 23000.34,
+				"country": "Russia",
+				"city": "Moscow",
+				"jobTypeId": 1,
+			},
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "user without user type",
+			payload: map[string]interface{}{
+				"title": "golang server writing",
+				"description": "write server for fl.ru",
+				"files": "",
+				"specialityId": 1,
+				"experienceLevelId": 1,
+				"paymentAmount": 23000.34,
+				"country": "Russia",
+				"city": "Moscow",
+				"jobTypeId": 1,
+			},
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+			},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			name: "not auth user",
+			payload: map[string]interface{}{
+				"title": "golang server writing",
+				"description": "write server for fl.ru",
+				"files": "",
+				"specialityId": 1,
+				"experienceLevelId": 1,
+				"paymentAmount": 23000.34,
+				"country": "Russia",
+				"city": "Moscow",
+				"jobTypeId": 1,
+			},
+			cookie : "nil",
+			expectedCode: http.StatusUnauthorized,
+		},
+	}
+
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+	sc := securecookie.New(secretKey, nil)
+
+	err := s.addUser2Server()
+	if err != nil {
+		t.Fail()
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			b := &bytes.Buffer{}
+			json.NewEncoder(b).Encode(tc.payload)
+
+			rec := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodPost, "/private/jobs", b)
+			cookieStr, _ := sc.Encode(sessionName, tc.cookie)
+			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+			s.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedCode, rec.Code)
+		})
+	}
+}
+
+func TestServer_HandleLogout(t *testing.T) {
+	testCases := []struct {
+		name         string
+		cookie      interface{}
+		expectedCode int
+	}{
+		{
+			name: "auth user",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "unauth user",
+			cookie : "invalid",
+			expectedCode: http.StatusUnauthorized,
+		},
+	}
+
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+	sc := securecookie.New(secretKey, nil)
+
+	err := s.addUser2Server()
+	if err != nil {
+		t.Fail()
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			b := &bytes.Buffer{}
+			rec := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodPost, "/private/logout", b)
+			cookieStr, _ := sc.Encode(sessionName, tc.cookie)
+			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+			s.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedCode, rec.Code)
+		})
+	}
+}
+
+func TestServer_HandleGetJob(t *testing.T) {
+	testCases := []struct {
+		name         string
+		cookie      interface{}
+		request 	string
+		expectedCode int
+	}{
+		{
+			name: "auth user",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			request : "/private/jobs/0",
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "unauth user",
+			cookie : "invalid",
+			request : "/private/jobs/0",
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name: "nonexistent job",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			request : "/private/jobs/1",
+			expectedCode: http.StatusNotFound,
+		},
+	}
+
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+	sc := securecookie.New(secretKey, nil)
+
+	err := s.addUser2Server()
+	if err != nil {
+		t.Fail()
+	}
+	s.addJob2Server()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodGet, tc.request, nil)
+			cookieStr, _ := sc.Encode(sessionName, tc.cookie)
+			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+			s.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedCode, rec.Code)
+		})
+	}
+}
+
+func TestServer_HandleShowProfile(t *testing.T) {
+	testCases := []struct {
+		name         string
+		cookie      interface{}
+		expectedCode int
+	}{
+		{
+			name: "auth user",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "unauth user",
+			cookie : "invalid",
+			expectedCode: http.StatusUnauthorized,
+		},
+	}
+
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+	sc := securecookie.New(secretKey, nil)
+
+	err := s.addUser2Server()
+	if err != nil {
+		t.Fail()
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodGet, "/private/account", nil)
+			cookieStr, _ := sc.Encode(sessionName, tc.cookie)
+			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+			s.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedCode, rec.Code)
+		})
+	}
+}
+
+func TestServer_HandleEditPassword(t *testing.T) {
+	testCases := []struct {
+		name         string
+		cookie      interface{}
+		passwords 	interface{}
+		expectedCode int
+	}{
+		{
+			name: "correct request",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			passwords : map[interface{}]interface{}{
+				"password":   "secret",
+				"newPassword": "1234",
+				"newPasswordConfirmation": "1234",
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "different new passwords",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			passwords : map[interface{}]interface{}{
+				"password":   "secret",
+				"newPassword": "1234",
+				"newPasswordConfirmation": "12345",
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "wrong old password",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			passwords : map[interface{}]interface{}{
+				"password":   "secret1",
+				"newPassword": "1234",
+				"newPasswordConfirmation": "1234",
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "some parameters not set",
+			cookie : map[interface{}]interface{}{
+				"user_id":   0,
+				"user_type": userCustomer,
+			},
+			passwords : map[interface{}]interface{}{
+				"password":   "secret",
+				"newPassword": "1234",
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "not auth user",
+			cookie : "invalid",
+			passwords : map[interface{}]interface{}{
+				"password":   "secret1",
+				"newPassword": "1234",
+				"newPasswordConfirmation": "1234",
+			},
+			expectedCode: http.StatusUnauthorized,
+		},
+	}
+
+	secretKey := []byte("secret")
+	s := newServer(sessions.NewCookieStore(secretKey))
+	sc := securecookie.New(secretKey, nil)
+
+	err := s.addUser2Server()
+	if err != nil {
+		t.Fail()
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			b := &bytes.Buffer{}
+
+			rec := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodPut, "/private/account/settings/password", b)
+			json.NewEncoder(b).Encode(tc.passwords)
+			cookieStr, _ := sc.Encode(sessionName, tc.cookie)
+			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+			s.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedCode, rec.Code)
+		})
+	}
+}

@@ -118,7 +118,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
-			s.error(w, r, http.StatusInternalServerError, err)
+			s.error(w, r, http.StatusUnauthorized, err)
 			return
 		}
 
@@ -203,9 +203,8 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	session, err := s.sessionStore.Get(r, sessionName)
-	fmt.Println(session)
-	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+	if err != nil {
+		s.error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -217,10 +216,8 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	session.Options.MaxAge = -1
 	err = session.Save(r, w)
 	if err != nil {
-		s.error(w, r, http.StatusExpectationFailed, errors.New("failed to delete session"))
+		s.error(w, r, http.StatusExpectationFailed, err)
 	}
-	fmt.Println("logout")
-	//http.Redirect(w, r, "/", http.StatusUnauthorized)
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
@@ -247,10 +244,13 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
 
+	if newInput.UserType != userCustomer && newInput.UserType != userFreelancer {
+		s.error(w,r, http.StatusBadRequest, errors.New("user type may be only customer or freelancer"))
+	}
 	session.Values["user_type"] = newInput.UserType
 	session.Save(r, w)
 }
@@ -298,17 +298,25 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	currPassword := r.FormValue("password")
 	newPassword := r.FormValue("newPassword")
 	newPasswordConfirmation := r.FormValue("newPasswordConfirmation")
+
+	if user.ComparePassword(currPassword) {
+		s.error(w,r, http.StatusBadRequest, fmt.Errorf("incorrect old password"))
+	}
+
 	if newPassword != newPasswordConfirmation {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
+		return
 	}
 	if user.Password != currPassword {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
+		return
 	}
 	newEncryptPassword, err := model.EncryptString(newPassword)
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, fmt.Errorf("error in updating password"))
+		return
 	}
-	user.Password = newPassword
+	user.Password = "" //newPassword
 	user.EncryptPassword = newEncryptPassword
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
@@ -390,7 +398,11 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uidInterface := session.Values["user_id"]
-	uid := uidInterface.(int)
+	uid, ok := uidInterface.(int)
+	if !ok {
+		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
+	}
+
 	s.usersdb.Mu.Lock()
 	s.usersdb.Users[uid].Avatar = tempFile.Name()
 	s.usersdb.Mu.Unlock()
@@ -403,7 +415,10 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uidInterface := session.Values["user_id"]
-	uid := uidInterface.(int)
+	uid, ok := uidInterface.(int)
+	if !ok {
+		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
+	}
 
 	s.usersdb.Mu.Lock()
 	Filename := s.usersdb.Users[uid].Avatar
@@ -462,20 +477,21 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	Roles = append(Roles, freelanceRole)
 	s.respond(w, r, http.StatusOK, Roles)
 }
-func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
 
+func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
+	// TODO: get auth history
 }
 
 func (s *server) HandleGetSecQuestion(w http.ResponseWriter, r *http.Request) {
-
+	// TODO: get sec question
 }
 
 func (s *server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) {
-
+	// TODO: edit sec question
 }
 
 func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
-
+	// TODO: check seq question
 }
 
 func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
@@ -483,40 +499,30 @@ func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST,PUT")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
 	s.respond(w, r, http.StatusOK, nil)
 }
-
-/*func (s * server) HandleListUsers(w http.ResponseWriter, r *http.Request) {
-	encoder := json.NewEncoder(w)
-
-	s.usersdb.mu.Lock()
-	err := encoder.Encode(s.usersdb.users)
-	s.usersdb.mu.Unlock()
-
-
-	if err != nil {
-		s.error(w, r, http.StatusUnprocessableEntity, err)
-		return
-	}
-}*/
 
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w, r, http.StatusNotFound, err)
 		return
 	}
 
 	if session == nil {
-		s.error(w, r, http.StatusNotFound, errors.New("failed to delete session"))
+		s.error(w, r, http.StatusNotFound, errors.New("session is nil"))
 		return
 	}
 
 	uti := session.Values["user_type"]
-	ut := uti.(string)
+	ut, ok := uti.(string)
+	if !ok {
+		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
+	}
+
 	log.Println(ut)
 
+	// TODO: add test for this case
 	//if ut != userCustomer {
 	//	s.error(w, r, http.StatusBadRequest, errors.New("current user is not a manager"))
 	//	return
@@ -537,8 +543,12 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	newJob.ID = len(s.usersdb.Jobs)
 
 	uidi := session.Values["user_id"]
-	uid := uidi.(int)
+	uid, ok := uidi.(int)
+	if !ok {
+		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
+	}
 
+	// TODO write getbyID func for Hire Manager
 	for i := 0; i < len(s.usersdb.HireManagers); i++ {
 		if s.usersdb.HireManagers[i].AccountID == uid {
 			newJob.HireManagerId = s.usersdb.HireManagers[i].ID
@@ -547,7 +557,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	s.error(w, r, http.StatusInternalServerError, nil)
+	s.error(w, r, http.StatusInternalServerError, errors.New("client not found"))
 }
 
 func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {

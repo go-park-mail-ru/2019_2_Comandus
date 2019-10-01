@@ -1,10 +1,10 @@
 #### Добавить пользователя:
-`$: http http://localhost:8080/users name=dasha password=1234 email=dasha@ya.ru`
+`$: http http://localhost:8080/signup name=dasha password=1234 email=dasha@ya.ru`
 
 `$ curl -XPOST http://127.0.0.1:8080/users --data '{"name" : "dasha" , "password" : "1234" , "email" : "dasha@ya.ru"}'`
 #### Создать сессию: 
 по умолчанию заходим как фрилансер   
-`$: http -v --session=user POST http://localhost:8080/sessions password=1234 email=dasha@ya.ru`
+`$: http -v --session=user POST http://localhost:8080/login password=1234 email=dasha@ya.ru`
 
 `$ 'curl -XPOST -v -c cookie.txt  http://127.0.0.1:8080/sessions --data '{"password" : "1234" , "email" : "dasha@ya.ru"}'`
 #### Задать тип пользователя в куки

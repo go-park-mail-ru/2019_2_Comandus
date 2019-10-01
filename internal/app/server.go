@@ -73,7 +73,7 @@ func (s *server) ConfigureStore() error {
   <body>
     <form
       enctype="multipart/form-data"
-      action="http://localhost:8080/upload"
+      action="http://localhost:8080/account/upload-avatar"
       method="post"
     >
       <input type="file" name="myFile" />
@@ -109,6 +109,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost)
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet)
 
+	// TODO: fix wrong paths
 	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
