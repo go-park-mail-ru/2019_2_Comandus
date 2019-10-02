@@ -308,7 +308,7 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
 		return
 	}
-	if user.ComparePassword(bodyPassword.Password) {
+	if !user.ComparePassword(bodyPassword.Password) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 		return
 	}
