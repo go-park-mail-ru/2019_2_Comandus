@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -407,6 +408,8 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	image, err := jpeg.Decode(file)
 	s.usersdb.Mu.Lock()
+	user := s.usersdb.GetUserByID(uid)
+	user.Avatar = true
 	s.usersdb.ImageStore[uid] = image
 	s.usersdb.Mu.Unlock()
 
@@ -427,34 +430,45 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
-	Filename := user.Avatar
 	s.usersdb.Mu.Unlock()
 
-	if Filename == "" {
-		Filename = "internal/store/avatars/default.png"
+	var Openfile *os.File
+	if user.Avatar {
+		s.usersdb.Mu.Lock()
+		image := s.usersdb.ImageStore[uid]
+		s.usersdb.Mu.Unlock()
+		buffer := new(bytes.Buffer)
+		if err := jpeg.Encode(buffer, image, nil); err != nil {
+			s.error(w,r,http.StatusInternalServerError, err)
+		}
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+		if _, err := w.Write(buffer.Bytes()); err != nil {
+			s.error(w,r,http.StatusInternalServerError, err)
+		}
+
+	} else {
+		Filename := "internal/store/avatars/default.png"
+		Openfile, err = os.Open(Filename)
+		defer Openfile.Close()
+		if err != nil {
+			s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
+			return
+		}
+		FileHeader := make([]byte, 100000) // max image size!!!
+		Openfile.Read(FileHeader)
+		FileContentType := http.DetectContentType(FileHeader)
+
+		FileStat, _ := Openfile.Stat()
+		FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+		w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+		w.Header().Set("Content-Type", FileContentType)
+		w.Header().Set("Content-Length", FileSize)
+
+		Openfile.Seek(0, 0)
+		io.Copy(w, Openfile)
 	}
-	log.Println("Client requests: " + Filename)
-
-	Openfile, err := os.Open(Filename)
-	defer Openfile.Close()
-	if err != nil {
-		s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
-		return
-	}
-
-	FileHeader := make([]byte, 100000) // max image size!!!
-	Openfile.Read(FileHeader)
-	FileContentType := http.DetectContentType(FileHeader)
-
-	FileStat, _ := Openfile.Stat()
-	FileSize := strconv.FormatInt(FileStat.Size(), 10)
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
-	w.Header().Set("Content-Type", FileContentType)
-	w.Header().Set("Content-Length", FileSize)
-
-	Openfile.Seek(0, 0)
-	io.Copy(w, Openfile)
 }
 
 func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
@@ -584,7 +598,7 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	/*vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
@@ -624,5 +638,5 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", FileSize)
 
 	Openfile.Seek(0, 0)
-	io.Copy(w, Openfile)
+	io.Copy(w, Openfile)*/
 }
