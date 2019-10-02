@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
+	"image/jpeg"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -308,10 +308,12 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
 		return
 	}
+
 	if !user.ComparePassword(bodyPassword.Password) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 		return
 	}
+
 	newEncryptPassword, err := model.EncryptString(bodyPassword.NewPasswordConfirmation)
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, fmt.Errorf("error in updating password"))
@@ -378,7 +380,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
+	/*tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
 		return
@@ -389,11 +391,11 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.error(w,r, http.StatusNotFound, err)
 	}
-	tempFile.Write(fileBytes)
+	tempFile.Write(fileBytes)*/
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -403,9 +405,9 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
+	image, err := jpeg.Decode(file)
 	s.usersdb.Mu.Lock()
-	user := s.usersdb.GetUserByID(uid)
-	user.Avatar = tempFile.Name()
+	s.imageStore[uid] = image
 	s.usersdb.Mu.Unlock()
 }
 
