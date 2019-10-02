@@ -44,8 +44,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if s.userType != userFreelancer && s.userType != userCustomer {
 		s.userType = userFreelancer
 	}
-	fmt.Println(s.userType)
-	fmt.Println(newUserInput)
+	log.Println(s.userType)
+	log.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
 	var id int
@@ -88,7 +88,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		CompanyName: "Company name",
 	})
 
-	fmt.Println(s.usersdb.Users[id])
+	log.Println(s.usersdb.GetUserByID(id))
 	s.usersdb.Mu.Unlock()
 
 	session, err := s.sessionStore.Get(r, sessionName)
@@ -166,7 +166,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(newUserInput)
+	log.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
 	for i := 0; i < len(s.usersdb.Users); i++ {
@@ -276,7 +276,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(user)
-	fmt.Println(user)
+	log.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
 		SendErr := fmt.Errorf("invalid format of data")
@@ -351,7 +351,7 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 	userNotification := s.usersdb.GetNotificationsByUserID(user.ID)
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userNotification)
-	fmt.Println(user)
+	log.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
 		SendErr := fmt.Errorf("invalid format of data")
@@ -386,7 +386,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		fmt.Println(err)
+		s.error(w,r, http.StatusNotFound, err)
 	}
 	tempFile.Write(fileBytes)
 
@@ -403,7 +403,8 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	s.usersdb.Users[uid].Avatar = tempFile.Name()
+	user := s.usersdb.GetUserByID(uid)
+	user.Avatar = tempFile.Name()
 	s.usersdb.Mu.Unlock()
 }
 
@@ -420,14 +421,14 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	// TODO: getting user incorrect
-	Filename := s.usersdb.Users[uid].Avatar
+	user := s.usersdb.GetUserByID(uid)
+	Filename := user.Avatar
 	s.usersdb.Mu.Unlock()
 
 	if Filename == "" {
 		Filename = "/internal/store/avatars/default.png"
 	}
-	fmt.Println("Client requests: " + Filename)
+	log.Println("Client requests: " + Filename)
 
 	Openfile, err := os.Open(Filename)
 	defer Openfile.Close()
