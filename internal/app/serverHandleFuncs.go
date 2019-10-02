@@ -363,7 +363,7 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 
 func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Println("File Upload Endpoint Hit")
+
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, errors.New("error retrieving the file"))
@@ -420,6 +420,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
+	// TODO: getting user incorrect
 	Filename := s.usersdb.Users[uid].Avatar
 	s.usersdb.Mu.Unlock()
 
@@ -574,4 +575,48 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.error(w, r, http.StatusNotFound, errors.New("job not found"))
+}
+
+func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
+	}
+
+	s.usersdb.Mu.Lock()
+	user := s.usersdb.GetUserByID(id)
+	if user == nil {
+		s.error(w, r, http.StatusNotFound, errors.New("no such user in database"))
+	}
+
+	Filename := user.Avatar
+	s.usersdb.Mu.Unlock()
+
+	if Filename == "" {
+		Filename = "/internal/store/avatars/default.png"
+	}
+	//fmt.Println("Client requests: " + Filename)
+
+	Openfile, err := os.Open(Filename)
+	defer Openfile.Close()
+	if err != nil {
+		s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
+		return
+	}
+
+	FileHeader := make([]byte, 100000) // max image size!!!
+	Openfile.Read(FileHeader)
+	FileContentType := http.DetectContentType(FileHeader)
+
+	FileStat, _ := Openfile.Stat()
+	FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+	w.Header().Set("Content-Type", FileContentType)
+	w.Header().Set("Content-Length", FileSize)
+
+	Openfile.Seek(0, 0)
+	io.Copy(w, Openfile)
 }

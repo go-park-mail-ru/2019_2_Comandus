@@ -97,7 +97,10 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
 	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
 	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
+
 	private.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
+	private.HandleFunc("/account/avatar/{id:[0-9]}", s.HandleGetAvatar).Methods(http.MethodGet)
+
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)
