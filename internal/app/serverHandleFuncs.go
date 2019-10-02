@@ -44,8 +44,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if s.userType != userFreelancer && s.userType != userCustomer {
 		s.userType = userFreelancer
 	}
-	log.Println(s.userType)
-	log.Println(newUserInput)
+	fmt.Println(s.userType)
+	fmt.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
 	var id int
@@ -63,6 +63,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	user := model.User{
 		ID:        id,
 		FirstName: newUserInput.Name,
+		SecondName: newUserInput.Surname,
 		Email:     newUserInput.Email,
 		Password:  newUserInput.Password,
 	}
@@ -88,7 +89,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		CompanyName: "Company name",
 	})
 
-	log.Println(s.usersdb.GetUserByID(id))
+	fmt.Println(s.usersdb.Users[id])
 	s.usersdb.Mu.Unlock()
 
 	session, err := s.sessionStore.Get(r, sessionName)

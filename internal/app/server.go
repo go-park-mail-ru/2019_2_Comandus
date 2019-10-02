@@ -114,7 +114,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet)
 
 	// TODO: fix wrong paths
-	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
+	/*s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
@@ -125,8 +125,8 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)
-	/*s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)*/
+	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
 
 	private.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
@@ -138,7 +138,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
 	private.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	private.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)*/
+	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)
 }
 
 func (s * server) HandleMain(w http.ResponseWriter, r *http.Request) {
