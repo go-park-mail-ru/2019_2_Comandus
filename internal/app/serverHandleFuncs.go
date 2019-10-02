@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"image/jpeg"
+	"image/png"
 	"io"
 	"log"
 	"net/http"
@@ -438,10 +439,14 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		image := s.usersdb.ImageStore[uid]
 		s.usersdb.Mu.Unlock()
 		buffer := new(bytes.Buffer)
-		if err := jpeg.Encode(buffer, image, nil); err != nil {
+
+		/*if err := jpeg.Encode(buffer, image, nil); err != nil {
+			s.error(w,r,http.StatusInternalServerError, err)
+		}*/
+		if err := png.Encode(buffer, image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
 		}
-		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
 		if _, err := w.Write(buffer.Bytes()); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
@@ -469,6 +474,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		Openfile.Seek(0, 0)
 		io.Copy(w, Openfile)
 	}
+	s.respond(w,r,http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
