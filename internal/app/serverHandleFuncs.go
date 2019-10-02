@@ -409,12 +409,14 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	s.usersdb.Mu.Lock()
 	s.usersdb.ImageStore[uid] = image
 	s.usersdb.Mu.Unlock()
+
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w,r,http.StatusUnauthorized, err)
 		return
 	}
 	uidInterface := session.Values["user_id"]
@@ -429,7 +431,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	s.usersdb.Mu.Unlock()
 
 	if Filename == "" {
-		Filename = "/internal/store/avatars/default.png"
+		Filename = "internal/store/avatars/default.png"
 	}
 	log.Println("Client requests: " + Filename)
 
