@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
-	"image/jpeg"
 	"image/png"
 	"io"
 	"log"
@@ -407,7 +406,9 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
-	image, err := jpeg.Decode(file)
+
+	image, err := png.Decode(file)
+
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
 	user.Avatar = true
