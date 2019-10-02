@@ -373,7 +373,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("File")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, errors.New("error retrieving the file"))
 		return
