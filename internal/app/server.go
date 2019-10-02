@@ -88,6 +88,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s *server) ConfigureServer() {
+	s.mux.HandleFunc("/", s.HandleMain)
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
 	// only for authenticated users
@@ -138,6 +139,10 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	private.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
 	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)
+}
+
+func (s * server) HandleMain(w http.ResponseWriter, r *http.Request) {
+	s.respond(w,r,http.StatusOK, "hello from server")
 }
 
 // error handlers
