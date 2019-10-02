@@ -7,7 +7,6 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"image"
 	"net/http"
 )
 
@@ -35,7 +34,7 @@ type server struct {
 	sessionStore sessions.Store
 	config       *Config
 	userType     string
-	imageStore 	map[int] image.Image
+	//imageStore 	map[int] image.Image
 }
 
 func newServer(sessionStore sessions.Store) *server {

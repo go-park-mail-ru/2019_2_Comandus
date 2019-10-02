@@ -407,7 +407,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	image, err := jpeg.Decode(file)
 	s.usersdb.Mu.Lock()
-	s.imageStore[uid] = image
+	s.usersdb.ImageStore[uid] = image
 	s.usersdb.Mu.Unlock()
 }
 
