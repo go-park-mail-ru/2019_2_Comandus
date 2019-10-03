@@ -108,10 +108,14 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodPost)
 	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost)
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet)
+	private.HandleFunc("/freelancer", s.HandleEditFreelancer).Methods(http.MethodPut)
+	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet)
+
 
 	// TODO: fix wrong paths
 	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/freelancer/{freelancerId}", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/private/account", s.HandleOptions).Methods(http.MethodOptions)

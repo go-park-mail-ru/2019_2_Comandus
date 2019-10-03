@@ -575,3 +575,43 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 	}
 	s.error(w, r, http.StatusNotFound, errors.New("job not found"))
 }
+
+
+func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	user, SendErr, CodeStatus := s.GetUserFromRequest(r)
+	if SendErr != nil {
+		s.error(w, r, CodeStatus, SendErr)
+		return
+	}
+	Profile := s.usersdb.GetFreelancerByUserID(user.ID)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(Profile)
+	fmt.Println(user)
+	if err != nil {
+		log.Printf("error while marshalling JSON: %s", err)
+		SendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, SendErr)
+		return
+	}
+	s.respond(w, r, http.StatusOK, struct{}{})
+}
+
+func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	vars := mux.Vars(r)
+	FreelancerIDStr := vars["freelancerId"]
+	FreelancerID, err := strconv.Atoi(FreelancerIDStr)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest , fmt.Errorf("id isn't number"))
+	}
+	Profile, err := s.usersdb.GetFreelancerByID(FreelancerID)
+	if err != nil {
+		s.error(w , r, http.StatusBadRequest , err)
+	}
+	s.respond(w, r, http.StatusOK, Profile)
+}

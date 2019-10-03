@@ -1,6 +1,9 @@
 package model
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type UsersDB struct {
 	Users 			[]User
@@ -44,14 +47,26 @@ func (db *UsersDB) GetCompanyByID (id int) *Company {
 	return nil
 }
 
-func (db *UsersDB) GetFreelancerByID (id int) *Freelancer {
+func (db *UsersDB) GetFreelancerByID (id int) (*Freelancer, error) {
 	for i := 0; i < len(db.Freelancers); i++ {
 		if id == db.Freelancers[i].ID {
+			return &db.Freelancers[i] , nil
+		}
+	}
+	return nil , fmt.Errorf("no profile with this id")
+}
+
+func (db *UsersDB) GetFreelancerByUserID (id int) *Freelancer {
+	for i := 0; i < len(db.Freelancers); i++ {
+		if id == db.Freelancers[i].AccountId {
 			return &db.Freelancers[i]
 		}
 	}
 	return nil
 }
+
+
+
 
 func (db *UsersDB) GetInnerInfoByUserID (id int) *InnerInfo {
 	for i := 0; i < len(db.InnerInfos); i++ {
