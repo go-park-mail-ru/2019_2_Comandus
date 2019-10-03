@@ -153,11 +153,6 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	defer func() {
-		// TODO: handle err
-		r.Body.Close()
-	}()
-
 	decoder := json.NewDecoder(r.Body)
 	newUserInput := new(model.UserInput)
 	err := decoder.Decode(newUserInput)
@@ -229,11 +224,6 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	type Input struct {
 		UserType string `json:"type"`
 	}
-	defer func() {
-		// TODO: handle err
-		r.Body.Close()
-	}()
-
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)
 	err := decoder.Decode(newInput)
@@ -257,9 +247,9 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user, SendErr, CodeStatus := s.GetUserFromRequest(r)
-	if SendErr != nil {
-		s.error(w, r, CodeStatus, SendErr)
+	user, sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
 		return
 	}
 	s.respond(w, r, http.StatusOK, user)
@@ -269,9 +259,9 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	user, SendErr, CodeStatus := s.GetUserFromRequest(r)
-	if SendErr != nil {
-		s.error(w, r, CodeStatus, SendErr)
+	user, sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
 		return
 	}
 	decoder := json.NewDecoder(r.Body)
@@ -325,8 +315,8 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		SendErr := fmt.Errorf("user isn't authorized")
-		return nil, SendErr, http.StatusUnauthorized
+		sendErr := fmt.Errorf("user isn't authorized")
+		return nil, sendErr, http.StatusUnauthorized
 	}
 	uidInteface := session.Values["user_id"]
 	uid := uidInteface.(int)
@@ -336,8 +326,8 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	s.usersdb.Mu.Unlock()
 
 	if user == nil {
-		SendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
-		return nil, SendErr, http.StatusBadRequest
+		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
+		return nil, sendErr, http.StatusBadRequest
 	}
 	return user, nil, http.StatusOK
 }
@@ -356,8 +346,8 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 	log.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
-		SendErr := fmt.Errorf("invalid format of data")
-		s.error(w, r, http.StatusBadRequest, SendErr)
+		sendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, sendErr)
 		return
 	}
 	s.respond(w, r, http.StatusOK, struct{}{})
@@ -432,38 +422,38 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	user := s.usersdb.GetUserByID(uid)
 	s.usersdb.Mu.Unlock()
 
-	var Openfile *os.File
+	var openfile *os.File
 	if user.Avatar {
 		s.usersdb.Mu.Lock()
 		image := s.usersdb.ImageStore[uid]
-		FileContentType := http.DetectContentType(image)
-		w.Header().Set("Content-Type", FileContentType)
+		fileContentType := http.DetectContentType(image)
+		w.Header().Set("Content-Type", fileContentType)
 		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
 		if _, err := w.Write(image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
 		}
 		s.usersdb.Mu.Unlock()
 	} else {
-		Filename := "internal/store/avatars/default.png"
-		Openfile, err = os.Open(Filename)
-		defer Openfile.Close()
+		filename := "internal/store/avatars/default.png"
+		openfile, err = os.Open(filename)
+		defer openfile.Close()
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
 			return
 		}
-		FileHeader := make([]byte, 100000) // max image size!!!
-		Openfile.Read(FileHeader)
-		FileContentType := http.DetectContentType(FileHeader)
+		fileHeader := make([]byte, 100000) // max image size!!!
+		openfile.Read(fileHeader)
+		fileContentType := http.DetectContentType(fileHeader)
 
-		FileStat, _ := Openfile.Stat()
-		FileSize := strconv.FormatInt(FileStat.Size(), 10)
+		fileStat, _ := openfile.Stat()
+		fileSize := strconv.FormatInt(fileStat.Size(), 10)
 
-		w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
-		w.Header().Set("Content-Type", FileContentType)
-		w.Header().Set("Content-Length", FileSize)
+		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+		w.Header().Set("Content-Type", fileContentType)
+		w.Header().Set("Content-Length", fileSize)
 
-		Openfile.Seek(0, 0)
-		io.Copy(w, Openfile)
+		openfile.Seek(0, 0)
+		io.Copy(w, openfile)
 	}
 	s.respond(w,r,http.StatusOK, struct{}{})
 }
@@ -477,12 +467,12 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-	HireManager := s.usersdb.GetHireManagerByID(user.ID)
-	Company := s.usersdb.GetCompanyByID(HireManager.ID)
-	var Roles []*model.Role
+	hireManager := s.usersdb.GetHireManagerByID(user.ID)
+	company := s.usersdb.GetCompanyByID(hireManager.ID)
+	var roles []*model.Role
 	clientRole := &model.Role{
 		Role:   "client",
-		Label:  Company.CompanyName,
+		Label:  company.CompanyName,
 		Avatar: "/default.png",
 	}
 	freelanceRole := &model.Role{
@@ -490,9 +480,9 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		Label:  user.FirstName + " " + user.SecondName,
 		Avatar: "/default.png",
 	}
-	Roles = append(Roles, clientRole)
-	Roles = append(Roles, freelanceRole)
-	s.respond(w, r, http.StatusOK, Roles)
+	roles = append(roles, clientRole)
+	roles = append(roles, freelanceRole)
+	s.respond(w, r, http.StatusOK, roles)
 }
 
 func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
@@ -599,19 +589,19 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	user, SendErr, CodeStatus := s.GetUserFromRequest(r)
-	if SendErr != nil {
-		s.error(w, r, CodeStatus, SendErr)
+	user, sendErr, codeStatus := s.GetUserFromRequest(r)
+	if sendErr != nil {
+		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-	Profile := s.usersdb.GetFreelancerByUserID(user.ID)
+	profile := s.usersdb.GetFreelancerByUserID(user.ID)
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(Profile)
+	err := decoder.Decode(profile)
 	fmt.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
-		SendErr := fmt.Errorf("invalid format of data")
-		s.error(w, r, http.StatusBadRequest, SendErr)
+		sendErr := fmt.Errorf("invalid format of data")
+		s.error(w, r, http.StatusBadRequest, sendErr)
 		return
 	}
 	s.respond(w, r, http.StatusOK, struct{}{})
@@ -622,16 +612,16 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	vars := mux.Vars(r)
-	FreelancerIDStr := vars["freelancerId"]
-	FreelancerID, err := strconv.Atoi(FreelancerIDStr)
+	freelancerIDStr := vars["freelancerId"]
+	freelancerID, err := strconv.Atoi(freelancerIDStr)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("id isn't number"))
 	}
-	Profile, err := s.usersdb.GetFreelancerByID(FreelancerID)
+	profile, err := s.usersdb.GetFreelancerByID(freelancerID)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, err)
 	}
-	s.respond(w, r, http.StatusOK, Profile)
+	s.respond(w, r, http.StatusOK, profile)
 }
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	/*vars := mux.Vars(r)
