@@ -1,7 +1,6 @@
 package model
 
 import (
-	"image"
 	"sync"
 )
 
@@ -14,7 +13,8 @@ type UsersDB struct {
 	InnerInfos		[]InnerInfo
 	Jobs			[]Job
 	Mu    			*sync.Mutex
-	ImageStore 	map[int] image.Image
+	//ImageStore 	map[int] image.Image
+	ImageStore 		map[int] []byte
 }
 
 func NewUsersDB() *UsersDB {
@@ -27,7 +27,7 @@ func NewUsersDB() *UsersDB {
 		make([]InnerInfo,0),
 		make([]Job,0),
 		&sync.Mutex{},
-		make(map[int]image.Image),
+		make(map[int][]byte),
 	}
 }
 

@@ -1,14 +1,12 @@
 package apiserver
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
-	"image/png"
 	"io"
 	"log"
 	"net/http"
@@ -406,8 +404,8 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
-
-	image, err := png.Decode(file)
+	var image []byte
+	file.Read(image)
 
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
@@ -439,17 +437,10 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.usersdb.Mu.Lock()
 		image := s.usersdb.ImageStore[uid]
 		s.usersdb.Mu.Unlock()
-		buffer := new(bytes.Buffer)
 
-		/*if err := jpeg.Encode(buffer, image, nil); err != nil {
-			s.error(w,r,http.StatusInternalServerError, err)
-		}*/
-		if err := png.Encode(buffer, image); err != nil {
-			s.error(w,r,http.StatusInternalServerError, err)
-		}
 		w.Header().Set("Content-Type", "image/png")
-		w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
-		if _, err := w.Write(buffer.Bytes()); err != nil {
+		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
+		if _, err := w.Write(image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
 		}
 
