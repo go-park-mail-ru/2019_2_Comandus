@@ -8,14 +8,13 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
 
-const clientUrl = "https://comandus.now.sh/"
+const clientUrl = "https://comandus.now.sh"
 
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -63,6 +62,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	user := model.User{
 		ID:        id,
 		FirstName: newUserInput.Name,
+		SecondName: newUserInput.Surname,
 		Email:     newUserInput.Email,
 		Password:  newUserInput.Password,
 	}
@@ -166,7 +166,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(newUserInput)
+	log.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
 	for i := 0; i < len(s.usersdb.Users); i++ {
@@ -276,7 +276,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(user)
-	fmt.Println(user)
+	log.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
 		SendErr := fmt.Errorf("invalid format of data")
@@ -307,10 +307,12 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
 		return
 	}
+
 	if !user.ComparePassword(bodyPassword.Password) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 		return
 	}
+
 	newEncryptPassword, err := model.EncryptString(bodyPassword.NewPasswordConfirmation)
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, fmt.Errorf("error in updating password"))
@@ -351,7 +353,7 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 	userNotification := s.usersdb.GetNotificationsByUserID(user.ID)
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userNotification)
-	fmt.Println(user)
+	log.Println(user)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
 		SendErr := fmt.Errorf("invalid format of data")
@@ -363,21 +365,21 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 
 func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Println("File Upload Endpoint Hit")
+
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, errors.New("error retrieving the file"))
 		return
 	}
 
-	file, _, err := r.FormFile("myFile")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, errors.New("error retrieving the file"))
 		return
 	}
 	defer file.Close()
 
-	tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
+	/*tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
 		return
@@ -386,13 +388,13 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		fmt.Println(err)
+		s.error(w,r, http.StatusNotFound, err)
 	}
-	tempFile.Write(fileBytes)
+	tempFile.Write(fileBytes)*/
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -402,15 +404,22 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
+	var image []byte
+	file.Read(image)
+
 	s.usersdb.Mu.Lock()
-	s.usersdb.Users[uid].Avatar = tempFile.Name()
+	user := s.usersdb.GetUserByID(uid)
+	user.Avatar = true
+	s.usersdb.ImageStore[uid] = image
 	s.usersdb.Mu.Unlock()
+
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w,r,http.StatusUnauthorized, err)
 		return
 	}
 	uidInterface := session.Values["user_id"]
@@ -420,34 +429,43 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	Filename := s.usersdb.Users[uid].Avatar
+	user := s.usersdb.GetUserByID(uid)
 	s.usersdb.Mu.Unlock()
 
-	if Filename == "" {
-		Filename = "/internal/store/avatars/default.png"
+	var Openfile *os.File
+	if user.Avatar {
+		s.usersdb.Mu.Lock()
+		image := s.usersdb.ImageStore[uid]
+		FileContentType := http.DetectContentType(image)
+		w.Header().Set("Content-Type", FileContentType)
+		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
+		if _, err := w.Write(image); err != nil {
+			s.error(w,r,http.StatusInternalServerError, err)
+		}
+		s.usersdb.Mu.Unlock()
+	} else {
+		Filename := "internal/store/avatars/default.png"
+		Openfile, err = os.Open(Filename)
+		defer Openfile.Close()
+		if err != nil {
+			s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
+			return
+		}
+		FileHeader := make([]byte, 100000) // max image size!!!
+		Openfile.Read(FileHeader)
+		FileContentType := http.DetectContentType(FileHeader)
+
+		FileStat, _ := Openfile.Stat()
+		FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+		w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+		w.Header().Set("Content-Type", FileContentType)
+		w.Header().Set("Content-Length", FileSize)
+
+		Openfile.Seek(0, 0)
+		io.Copy(w, Openfile)
 	}
-	fmt.Println("Client requests: " + Filename)
-
-	Openfile, err := os.Open(Filename)
-	defer Openfile.Close()
-	if err != nil {
-		s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
-		return
-	}
-
-	FileHeader := make([]byte, 100000) // max image size!!!
-	Openfile.Read(FileHeader)
-	FileContentType := http.DetectContentType(FileHeader)
-
-	FileStat, _ := Openfile.Stat()
-	FileSize := strconv.FormatInt(FileStat.Size(), 10)
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
-	w.Header().Set("Content-Type", FileContentType)
-	w.Header().Set("Content-Length", FileSize)
-
-	Openfile.Seek(0, 0)
-	io.Copy(w, Openfile)
+	s.respond(w,r,http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
@@ -599,7 +617,7 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
-func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request){
+func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -607,11 +625,54 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request){
 	FreelancerIDStr := vars["freelancerId"]
 	FreelancerID, err := strconv.Atoi(FreelancerIDStr)
 	if err != nil {
-		s.error(w, r, http.StatusBadRequest , fmt.Errorf("id isn't number"))
+		s.error(w, r, http.StatusBadRequest, fmt.Errorf("id isn't number"))
 	}
 	Profile, err := s.usersdb.GetFreelancerByID(FreelancerID)
 	if err != nil {
-		s.error(w , r, http.StatusBadRequest , err)
+		s.error(w, r, http.StatusBadRequest, err)
 	}
 	s.respond(w, r, http.StatusOK, Profile)
+}
+func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
+	/*vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
+	}
+
+	s.usersdb.Mu.Lock()
+	user := s.usersdb.GetUserByID(id)
+	if user == nil {
+		s.error(w, r, http.StatusNotFound, errors.New("no such user in database"))
+	}
+
+	Filename := user.Avatar
+	s.usersdb.Mu.Unlock()
+
+	if Filename == "" {
+		Filename = "/internal/store/avatars/default.png"
+	}
+	//fmt.Println("Client requests: " + Filename)
+
+	Openfile, err := os.Open(Filename)
+	defer Openfile.Close()
+	if err != nil {
+		s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
+		return
+	}
+
+	FileHeader := make([]byte, 100000) // max image size!!!
+	Openfile.Read(FileHeader)
+	FileContentType := http.DetectContentType(FileHeader)
+
+	FileStat, _ := Openfile.Stat()
+	FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+	w.Header().Set("Content-Type", FileContentType)
+	w.Header().Set("Content-Length", FileSize)
+
+	Openfile.Seek(0, 0)
+	io.Copy(w, Openfile)*/
 }

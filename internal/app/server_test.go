@@ -197,7 +197,6 @@ func TestServer_AuthenticateUser(t *testing.T) {
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/", nil)
 			cookieStr, _ := sc.Encode(sessionName, tc.cookieValue)
-			fmt.Println(cookieStr)
 			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 			mw.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)

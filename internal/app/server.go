@@ -34,6 +34,7 @@ type server struct {
 	sessionStore sessions.Store
 	config       *Config
 	userType     string
+	//imageStore 	map[int] image.Image
 }
 
 func newServer(sessionStore sessions.Store) *server {
@@ -88,6 +89,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s *server) ConfigureServer() {
+	s.mux.HandleFunc("/", s.HandleMain)
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
 	// only for authenticated users
@@ -97,7 +99,10 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet)
 	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut)
 	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost)
+
 	private.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet)
+	private.HandleFunc("/account/avatar/{id:[0-9]}", s.HandleGetAvatar).Methods(http.MethodGet)
+
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut)
 	private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet)
@@ -126,6 +131,23 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)
+	/*s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
+
+	private.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/account", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/account/upload-avatar", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/account/settings/password", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/account/settings/notifications", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)*/
+}
+
+func (s * server) HandleMain(w http.ResponseWriter, r *http.Request) {
+	s.respond(w,r,http.StatusOK, "hello from server")
 }
 
 // error handlers
