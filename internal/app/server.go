@@ -34,6 +34,7 @@ type server struct {
 	sessionStore sessions.Store
 	config       *Config
 	userType     string
+	//imageStore 	map[int] image.Image
 }
 
 func newServer(sessionStore sessions.Store) *server {
@@ -88,6 +89,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 
 // СЮДА СВОИ ХАНДЛЕРЫ
 func (s *server) ConfigureServer() {
+	s.mux.HandleFunc("/", s.HandleMain)
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
 	// only for authenticated users
@@ -113,7 +115,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet)
 
 	// TODO: fix wrong paths
-	/*s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
@@ -124,8 +126,8 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)*/
-	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)
+	/*s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
 
 	private.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
@@ -137,7 +139,11 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
 	private.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	private.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)
+	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)*/
+}
+
+func (s * server) HandleMain(w http.ResponseWriter, r *http.Request) {
+	s.respond(w,r,http.StatusOK, "hello from server")
 }
 
 // error handlers

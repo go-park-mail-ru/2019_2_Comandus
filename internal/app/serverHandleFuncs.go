@@ -8,7 +8,6 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -44,8 +43,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if s.userType != userFreelancer && s.userType != userCustomer {
 		s.userType = userFreelancer
 	}
-	log.Println(s.userType)
-	log.Println(newUserInput)
+	fmt.Println(s.userType)
+	fmt.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
 	var id int
@@ -63,6 +62,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	user := model.User{
 		ID:        id,
 		FirstName: newUserInput.Name,
+		SecondName: newUserInput.Surname,
 		Email:     newUserInput.Email,
 		Password:  newUserInput.Password,
 	}
@@ -88,7 +88,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		CompanyName: "Company name",
 	})
 
-	log.Println(s.usersdb.GetUserByID(id))
+	fmt.Println(s.usersdb.Users[id])
 	s.usersdb.Mu.Unlock()
 
 	session, err := s.sessionStore.Get(r, sessionName)
@@ -307,10 +307,12 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
 		return
 	}
-	if user.ComparePassword(bodyPassword.Password) {
+
+	if !user.ComparePassword(bodyPassword.Password) {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("wrong password"))
 		return
 	}
+
 	newEncryptPassword, err := model.EncryptString(bodyPassword.NewPasswordConfirmation)
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, fmt.Errorf("error in updating password"))
@@ -370,14 +372,14 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("myFile")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, errors.New("error retrieving the file"))
 		return
 	}
 	defer file.Close()
 
-	tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
+	/*tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
 	if err != nil {
 		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
 		return
@@ -388,11 +390,11 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.error(w,r, http.StatusNotFound, err)
 	}
-	tempFile.Write(fileBytes)
+	tempFile.Write(fileBytes)*/
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -402,16 +404,22 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
+	var image []byte
+	file.Read(image)
+
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
-	user.Avatar = tempFile.Name()
+	user.Avatar = true
+	s.usersdb.ImageStore[uid] = image
 	s.usersdb.Mu.Unlock()
+
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusFound)
+		s.error(w,r,http.StatusUnauthorized, err)
 		return
 	}
 	uidInterface := session.Values["user_id"]
@@ -422,34 +430,42 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
-	Filename := user.Avatar
 	s.usersdb.Mu.Unlock()
 
-	if Filename == "" {
-		Filename = "/internal/store/avatars/default.png"
+	var Openfile *os.File
+	if user.Avatar {
+		s.usersdb.Mu.Lock()
+		image := s.usersdb.ImageStore[uid]
+		FileContentType := http.DetectContentType(image)
+		w.Header().Set("Content-Type", FileContentType)
+		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
+		if _, err := w.Write(image); err != nil {
+			s.error(w,r,http.StatusInternalServerError, err)
+		}
+		s.usersdb.Mu.Unlock()
+	} else {
+		Filename := "internal/store/avatars/default.png"
+		Openfile, err = os.Open(Filename)
+		defer Openfile.Close()
+		if err != nil {
+			s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
+			return
+		}
+		FileHeader := make([]byte, 100000) // max image size!!!
+		Openfile.Read(FileHeader)
+		FileContentType := http.DetectContentType(FileHeader)
+
+		FileStat, _ := Openfile.Stat()
+		FileSize := strconv.FormatInt(FileStat.Size(), 10)
+
+		w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
+		w.Header().Set("Content-Type", FileContentType)
+		w.Header().Set("Content-Length", FileSize)
+
+		Openfile.Seek(0, 0)
+		io.Copy(w, Openfile)
 	}
-	log.Println("Client requests: " + Filename)
-
-	Openfile, err := os.Open(Filename)
-	defer Openfile.Close()
-	if err != nil {
-		s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
-		return
-	}
-
-	FileHeader := make([]byte, 100000) // max image size!!!
-	Openfile.Read(FileHeader)
-	FileContentType := http.DetectContentType(FileHeader)
-
-	FileStat, _ := Openfile.Stat()
-	FileSize := strconv.FormatInt(FileStat.Size(), 10)
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
-	w.Header().Set("Content-Type", FileContentType)
-	w.Header().Set("Content-Length", FileSize)
-
-	Openfile.Seek(0, 0)
-	io.Copy(w, Openfile)
+	s.respond(w,r,http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
@@ -579,7 +595,7 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	/*vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
@@ -619,5 +635,5 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", FileSize)
 
 	Openfile.Seek(0, 0)
-	io.Copy(w, Openfile)
+	io.Copy(w, Openfile)*/
 }
