@@ -379,19 +379,6 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	/*tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
-	if err != nil {
-		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
-		return
-	}
-	defer tempFile.Close()
-
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		s.error(w,r, http.StatusNotFound, err)
-	}
-	tempFile.Write(fileBytes)*/
-
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
 		s.error(w, r, http.StatusUnauthorized, err)
@@ -404,7 +391,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
-	var image []byte
+	image := make([]byte, 100000) // max image size!!!
 	file.Read(image)
 
 	s.usersdb.Mu.Lock()
