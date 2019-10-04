@@ -436,8 +436,8 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	if user.Avatar {
 		s.usersdb.Mu.Lock()
 		image := s.usersdb.ImageStore[uid]
-		FileContentType := http.DetectContentType(image)
-		w.Header().Set("Content-Type", FileContentType)
+		//FileContentType := http.DetectContentType(image)
+		w.Header().Set("Content-Type", "multipart/form-data")
 		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
 		if _, err := w.Write(image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
