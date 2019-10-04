@@ -458,6 +458,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		FileStat, _ := Openfile.Stat()
 		FileSize := strconv.FormatInt(FileStat.Size(), 10)
 
+		log.Println(FileContentType)
 		w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
 		w.Header().Set("Content-Type", FileContentType)
 		w.Header().Set("Content-Length", FileSize)
