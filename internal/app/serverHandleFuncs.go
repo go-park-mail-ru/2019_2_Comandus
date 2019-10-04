@@ -453,14 +453,14 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		}
 		FileHeader := make([]byte, 100000) // max image size!!!
 		Openfile.Read(FileHeader)
-		FileContentType := http.DetectContentType(FileHeader)
+		//FileContentType := http.DetectContentType(FileHeader)
 
 		FileStat, _ := Openfile.Stat()
 		FileSize := strconv.FormatInt(FileStat.Size(), 10)
 
 		log.Println(FileContentType)
 		w.Header().Set("Content-Disposition", "attachment; filename="+Filename)
-		w.Header().Set("Content-Type", FileContentType)
+		w.Header().Set("Content-Type", "multipart/form-data")
 		w.Header().Set("Content-Length", FileSize)
 
 		Openfile.Seek(0, 0)
