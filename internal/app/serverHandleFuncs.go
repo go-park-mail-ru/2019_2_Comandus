@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -369,19 +370,6 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	/*tempFile, err := ioutil.TempFile("internal/store/avatars", "upload-*.png")
-	if err != nil {
-		s.error(w, r, http.StatusInternalServerError, errors.New("error creating the file"))
-		return
-	}
-	defer tempFile.Close()
-
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		s.error(w,r, http.StatusNotFound, err)
-	}
-	tempFile.Write(fileBytes)*/
-
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
 		s.error(w, r, http.StatusUnauthorized, err)
@@ -394,13 +382,12 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
-	var image []byte
-	file.Read(image)
-
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
 	user.Avatar = true
-	s.usersdb.ImageStore[uid] = image
+	image := bytes.NewBuffer(nil)
+	io.Copy(image, file)
+	s.usersdb.ImageStore[uid] = image.Bytes()
 	s.usersdb.Mu.Unlock()
 
 	s.respond(w, r, http.StatusOK, struct{}{})
@@ -426,8 +413,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	if user.Avatar {
 		s.usersdb.Mu.Lock()
 		image := s.usersdb.ImageStore[uid]
-		fileContentType := http.DetectContentType(image)
-		w.Header().Set("Content-Type", fileContentType)
+		w.Header().Set("Content-Type", "multipart/form-data")
 		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
 		if _, err := w.Write(image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
