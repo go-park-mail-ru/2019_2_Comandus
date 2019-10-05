@@ -270,12 +270,12 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"title": "golang server writing",
 				"description": "write server for fl.ru",
 				"files": "",
-				"specialityId": 1,
-				"experienceLevelId": 1,
-				"paymentAmount": 23000.34,
+				"specialityId,string": "1",
+				"experienceLevelId,string": "1",
+				"paymentAmount,string": "23000.34",
 				"country": "Russia",
 				"city": "Moscow",
-				"jobTypeId": 1,
+				"jobTypeId,string": "1",
 			},
 			cookie : map[interface{}]interface{}{
 				"user_id":   0,
@@ -289,12 +289,12 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"title": "golang server writing",
 				"description": "write server for fl.ru",
 				"files": "",
-				"specialityId": 1,
-				"experienceLevelId": 1,
-				"paymentAmount": 23000.34,
+				"specialityId,string": "1",
+				"experienceLevelId,string": "1",
+				"paymentAmount,string": "23000.34",
 				"country": "Russia",
 				"city": "Moscow",
-				"jobTypeId": 1,
+				"jobTypeId,string": "1",
 			},
 			cookie : map[interface{}]interface{}{
 				"user_id":   0,
@@ -307,12 +307,12 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"title": "golang server writing",
 				"description": "write server for fl.ru",
 				"files": "",
-				"specialityId": 1,
-				"experienceLevelId": 1,
-				"paymentAmount": 23000.34,
+				"specialityId,string": "1",
+				"experienceLevelId,string": "1",
+				"paymentAmount,string": "23000.34",
 				"country": "Russia",
 				"city": "Moscow",
-				"jobTypeId": 1,
+				"jobTypeId,string": "1",
 			},
 			cookie : "nil",
 			expectedCode: http.StatusUnauthorized,
@@ -377,7 +377,7 @@ func TestServer_HandleLogout(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			b := &bytes.Buffer{}
 			rec := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodPost, "/private/logout", b)
+			req, _ := http.NewRequest(http.MethodDelete, "/private/logout", b)
 			cookieStr, _ := sc.Encode(sessionName, tc.cookie)
 			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 			s.ServeHTTP(rec, req)
