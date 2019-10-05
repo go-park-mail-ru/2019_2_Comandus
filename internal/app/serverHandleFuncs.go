@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -391,13 +392,17 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
 	}
 
-	image := make([]byte, 100000) // max image size!!!
-	file.Read(image)
+	//var buf bytes.Buffer
+
+	image := bytes.NewBuffer(nil)
+	io.Copy(image, file)
+	//image := make([]byte, 100000) // max image size!!!
+	//file.Read(image)
 
 	s.usersdb.Mu.Lock()
 	user := s.usersdb.GetUserByID(uid)
 	user.Avatar = true
-	s.usersdb.ImageStore[uid] = image
+	s.usersdb.ImageStore[uid] = image.Bytes()
 	s.usersdb.Mu.Unlock()
 
 	s.respond(w, r, http.StatusOK, struct{}{})
