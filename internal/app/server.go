@@ -96,7 +96,7 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/private/freelancer/{freelancerId}", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
+	s.mux.HandleFunc("/private/logout", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/private/account", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/account/upload-avatar", s.HandleOptions).Methods(http.MethodOptions)
