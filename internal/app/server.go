@@ -34,7 +34,7 @@ type server struct {
 	sessionStore sessions.Store
 	config       *Config
 	userType     string
-	//imageStore 	map[int] image.Image
+	clientUrl 	 string
 }
 
 func newServer(sessionStore sessions.Store) *server {
@@ -42,7 +42,7 @@ func newServer(sessionStore sessions.Store) *server {
 		mux:          mux.NewRouter(),
 		usersdb:      model.NewUsersDB(),
 		sessionStore: sessionStore,
-		//store: store,
+		clientUrl: 	"https://comandus.now.sh",
 	}
 	s.ConfigureServer()
 	return s
@@ -62,36 +62,11 @@ func (s *server) ConfigureStore() error {
 	return nil
 }
 
-/*var uploadFormTmpl = []byte(`
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Document</title>
-  </head>
-  <body>
-    <form
-      enctype="multipart/form-data"
-      action="http://localhost:8080/account/upload-avatar"
-      method="post"
-    >
-      <input type="file" name="myFile" />
-      <input type="submit" value="upload" />
-    </form>
-  </body>
-</html>
-`)
-func mainPage(w http.ResponseWriter, r *http.Request) {
-	w.Write(uploadFormTmpl)
-}*/
-
-// СЮДА СВОИ ХАНДЛЕРЫ
 func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/", s.HandleMain)
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost)
+
 	// only for authenticated users
 	private := s.mux.PathPrefix("/private").Subrouter()
 	private.Use(s.authenticateUser)
@@ -131,19 +106,6 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
 	s.mux.HandleFunc("/private/jobs", s.HandleOptions).Methods(http.MethodOptions)
-	/*s.mux.HandleFunc("/signup", s.HandleOptions).Methods(http.MethodOptions)
-	s.mux.HandleFunc("/login", s.HandleOptions).Methods(http.MethodOptions)
-
-	private.HandleFunc("/logout", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/setusertype", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/account", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/account/upload-avatar", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/account/settings/password", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/account/settings/notifications", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/account/settings/security-question", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/account/check-security-question", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/roles", s.HandleOptions).Methods(http.MethodOptions)
-	private.HandleFunc("/jobs", s.HandleOptions).Methods(http.MethodOptions)*/
 }
 
 func (s * server) HandleMain(w http.ResponseWriter, r *http.Request) {
