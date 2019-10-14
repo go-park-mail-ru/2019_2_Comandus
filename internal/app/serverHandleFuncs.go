@@ -140,6 +140,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 	decoder := json.NewDecoder(r.Body)
 	newUserInput := new(model.UserInput)
 	err := decoder.Decode(newUserInput)
@@ -150,34 +151,28 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 
 	log.Println(newUserInput)
 
-	s.usersdb.Mu.Lock()
-	for _, v := range s.usersdb.Users {
-	//for i := 0; i < len(s.usersdb.Users); i++ {
-		if v.Email == newUserInput.Email &&
-			v.ComparePassword(newUserInput.Password) {
-
-			u := v
-			session, err := s.sessionStore.Get(r, sessionName)
-			if err != nil {
-				s.usersdb.Mu.Unlock()
-				s.error(w, r, http.StatusInternalServerError, err)
-				return
-			}
-			session.Values["user_id"] = u.ID
-			session.Values["user_type"] = s.userType
-			if err := s.sessionStore.Save(r, w, session); err != nil {
-				s.usersdb.Mu.Unlock()
-				s.error(w, r, http.StatusInternalServerError, err)
-				return
-			}
-			s.usersdb.Mu.Unlock()
-			s.respond(w, r, http.StatusOK, struct {
-			}{})
-			return
-		}
+	u, err := s.store.User().FindByEmail(newUserInput.Email)
+	if err != nil {
+		s.error(w, r, http.StatusNotFound, err)
+		return
 	}
-	s.usersdb.Mu.Unlock()
-	s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
+
+	session, err := s.sessionStore.Get(r, sessionName)
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	session.Values["user_id"] = u.ID
+	session.Values["user_type"] = s.userType
+
+	if err := s.sessionStore.Save(r, w, session); err != nil {
+		s.usersdb.Mu.Unlock()
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.respond(w, r, http.StatusOK, struct {}{})
 }
 
 func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {

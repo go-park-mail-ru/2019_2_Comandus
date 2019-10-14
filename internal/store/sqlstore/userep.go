@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"log"
 )
 
 type UserRepository struct {
@@ -30,7 +31,7 @@ func (r *UserRepository) Create(u *model.User) error {
 func (r *UserRepository) Find(id int) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT accountId, email, encrypted_password FROM users WHERE accountId = $1",
+		"SELECT accountId, email, encryptPassword FROM users WHERE accountId = $1",
 		id,
 	).Scan(
 		&u.ID,
@@ -49,13 +50,14 @@ func (r *UserRepository) Find(id int) (*model.User, error) {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT accountId, email, encrypted_password FROM users WHERE email = $1",
+		"SELECT accountId, email, encryptPassword FROM users WHERE email = $1",
 		email,
 	).Scan(
 		&u.ID,
 		&u.Email,
 		&u.EncryptPassword,
 	); err != nil {
+		log.Println("hello find by email func", err)
 		return nil, err
 	}
 	return u, nil
