@@ -8,5 +8,5 @@ CREATE TABLE managers (
     accountId bigserial references users,
     registrationDate timestamp,
     location varchar,
-    companyId bigserial references  companies
+    companyId bigserial --references  companies
 );

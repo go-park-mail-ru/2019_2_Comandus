@@ -74,14 +74,14 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		s.respond(w, r, http.StatusInternalServerError, err)
 	}
 
-	/*m := model.HireManager{
+	m := model.HireManager{
 		AccountID:        user.ID,
 		RegistrationDate: time.Now(),
 	}
 	err = s.store.Manager().Create(&m)
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
-	}*/
+	}
 
 	s.usersdb.Mu.Unlock()
 
