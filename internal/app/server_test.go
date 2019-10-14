@@ -49,9 +49,10 @@ func (s * server) addUser2Server() error{
 	if err != nil {
 		return err
 	}
-	s.usersdb.Users = append(s.usersdb.Users, u)
-	s.usersdb.HireManagers = append(s.usersdb.HireManagers, m)
-	s.usersdb.Freelancers = append(s.usersdb.Freelancers, f)
+	s.usersdb.Users[0] = u
+	s.usersdb.HireManagers[0] = m
+	s.usersdb.Freelancers[0] = f
+
 	return nil
 }
 
@@ -69,7 +70,7 @@ func (s * server) addJob2Server() {
 		City:              "Moscow",
 		JobTypeId:         0,
 	}
-	s.usersdb.Jobs = append(s.usersdb.Jobs, j)
+	s.usersdb.Jobs[0] = j
 }
 
 

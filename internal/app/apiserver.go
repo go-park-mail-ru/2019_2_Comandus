@@ -29,10 +29,12 @@ func Start(config *Config) error {
 
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	srv := newServer(sessionStore)
-	//err := srv.ConfigureStore()
-	//if err != nil {
-	//	return err
-	//}
+
+
+	err := srv.ConfigureStore()
+	if err != nil {
+		return err
+	}
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 func newDB(dbURL string) (*sql.DB, error) {

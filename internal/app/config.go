@@ -1,13 +1,15 @@
 package apiserver
 
-import "github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
+import (
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
+)
 
 type Config struct {
 	BindAddr    string
 	LogLevel    string
 	DatabaseURL string
 	SessionKey  string
-	Store *store.Config
+	Store *sqlstore.Config
 }
 
 // NewConfig ...
@@ -16,7 +18,7 @@ func NewConfig() *Config {
 		BindAddr: ":8080",
 		LogLevel: "debug",
 		SessionKey: "jdfhdfdj",
-		DatabaseURL: "host=localhost dbname=flapi sslmode=disable", // ??
-		//Store: store.NewConfig(),
+		//DatabaseURL: "host=localhost dbname=restapi_dev sslmode=disable port=8080 password=1234 user=d", // ??
+		Store: sqlstore.NewConfig(),
 	}
 }

@@ -12,9 +12,9 @@ type User struct {
 	SecondName 		string `json:"secondName"`
 	UserName     	string `json:"username"`
 	Email 			string `json:"email"`
-	Password 		string `json:"-"`
+	Password		string `json:"password"`
 	EncryptPassword string `json:"-"`
-	Avatar bool `json:"-"`
+	Avatar 			[]byte `json:"-"`
 }
 
 func (u *User) BeforeCreate() error {

@@ -1,18 +1,17 @@
 package model
 
 import (
-	"fmt"
 	"sync"
 )
 
 type UsersDB struct {
-	Users 			[]User
-	Freelancers 	[]Freelancer
-	HireManagers 	[]HireManager
-	Companies	 	[]Company
-	Notifications 	[]Notification
-	InnerInfos		[]InnerInfo
-	Jobs			[]Job
+	Users 			map[int] User
+	Freelancers 	map[int] Freelancer
+	HireManagers 	map[int] HireManager
+	Companies	 	map[int] Company
+	Notifications 	map[int] Notification
+	InnerInfos		map[int] InnerInfo
+	Jobs			map[int] Job
 	Mu    			*sync.Mutex
 	//ImageStore 	map[int] image.Image
 	ImageStore 		map[int] []byte
@@ -20,28 +19,28 @@ type UsersDB struct {
 
 func NewUsersDB() *UsersDB {
 	return &UsersDB{
-		make([]User, 0),
-		make([]Freelancer, 0),
-		make([]HireManager, 0),
-		make([]Company,0),
-		make([]Notification,0),
-		make([]InnerInfo,0),
-		make([]Job,0),
+		make(map[int]User, 0),
+		make(map[int]Freelancer, 0),
+		make(map[int]HireManager, 0),
+		make(map[int]Company,0),
+		make(map[int]Notification,0),
+		make(map[int]InnerInfo,0),
+		make(map[int]Job,0),
 		&sync.Mutex{},
 		make(map[int][]byte),
 	}
 }
 
-func (db *UsersDB) GetUserByID (id int) *User {
+/*func (db *UsersDB) GetUserByID (id int) *User {
 	for i := 0; i < len(db.Users); i++ {
 		if id == db.Users[i].ID {
 			return &db.Users[i]
 		}
 	}
 	return nil
-}
+}*/
 
-func (db *UsersDB) GetCompanyByID (id int) *Company {
+/*func (db *UsersDB) GetCompanyByID (id int) *Company {
 	for i := 0; i < len(db.Companies); i++ {
 		if id == db.Companies[i].ID {
 			return &db.Companies[i]
@@ -96,7 +95,7 @@ func (db *UsersDB) GetHireManagerByID (id int) *HireManager {
 		}
 	}
 	return nil
-}
+}*/
 
 
 

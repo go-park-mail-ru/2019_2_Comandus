@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -42,52 +43,46 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if s.userType != userFreelancer && s.userType != userCustomer {
 		s.userType = userFreelancer
 	}
-	fmt.Println(s.userType)
 	fmt.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
-	var id int
-	var idf int
-	var idc int
-	var idCompany int
-
-	if len(s.usersdb.Users) > 0 {
-		id = s.usersdb.Users[len(s.usersdb.Users)-1].ID + 1
-		idf = s.usersdb.Freelancers[len(s.usersdb.Freelancers)-1].ID + 1
-		idc = s.usersdb.HireManagers[len(s.usersdb.HireManagers)-1].ID + 1
-		idCompany = s.usersdb.Companies[len(s.usersdb.Companies)-1].ID + 1
-	}
 
 	user := model.User{
-		ID:        id,
 		FirstName: newUserInput.Name,
 		SecondName: newUserInput.Surname,
 		Email:     newUserInput.Email,
-		Password:  newUserInput.Password,
 	}
 
 	err = user.BeforeCreate()
 	if err != nil {
-		s.respond(w, r, http.StatusInternalServerError, newUserInput)
+		s.respond(w, r, http.StatusInternalServerError, err)
 	}
-	s.usersdb.Users = append(s.usersdb.Users, user)
 
-	s.usersdb.Freelancers = append(s.usersdb.Freelancers, model.Freelancer{
-		ID:        idf,
-		AccountId: id,
-	})
+	err = s.store.User().Create(&user)
+	if err != nil {
+		s.respond(w, r, http.StatusInternalServerError, err)
+	}
 
-	s.usersdb.HireManagers = append(s.usersdb.HireManagers, model.HireManager{
-		ID:        idc,
-		AccountID: id,
-	})
+	fmt.Println("user id: ", user.ID)
 
-	s.usersdb.Companies = append(s.usersdb.Companies, model.Company{
-		ID:          idCompany,
-		CompanyName: "Company name",
-	})
+	f := model.Freelancer{
+		AccountId:        user.ID,
+		RegistrationDate: time.Now(),
+	}
+	err = s.store.Freelancer().Create(&f)
+	if err != nil {
+		s.respond(w, r, http.StatusInternalServerError, err)
+	}
 
-	fmt.Println(s.usersdb.Users[id])
+	/*m := model.HireManager{
+		AccountID:        user.ID,
+		RegistrationDate: time.Now(),
+	}
+	err = s.store.Manager().Create(&m)
+	if err != nil {
+		s.respond(w, r, http.StatusInternalServerError, err)
+	}*/
+
 	s.usersdb.Mu.Unlock()
 
 	session, err := s.sessionStore.Get(r, sessionName)
@@ -103,8 +98,9 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: rename cookie2
 	cookie := http.Cookie{Name: userTypeCookieName, Value: s.userType}
-	cookie2 := http.Cookie{Name: hireManagerIdCookieName, Value: strconv.Itoa(idc)}
+	cookie2 := http.Cookie{Name: hireManagerIdCookieName, Value: strconv.Itoa(1)} // m.Id
 	http.SetCookie(w, &cookie)
 	http.SetCookie(w, &cookie2)
 
@@ -127,24 +123,16 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		var u *model.User
-		var found bool
-
 		s.usersdb.Mu.Lock()
-		for i := 0; i < len(s.usersdb.Users); i++ {
-			if id == s.usersdb.Users[i].ID {
-				u = &s.usersdb.Users[i]
-				found = true
-			}
+
+		u, err := s.store.User().Find(id.(int))
+		if err != nil {
+			s.error(w,r,http.StatusNotFound, err)
 		}
+
 		s.usersdb.Mu.Unlock()
 
-		if !found {
-			s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
-			return
-		}
-
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, u)))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, &u)))
 	})
 }
 
@@ -163,11 +151,12 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	log.Println(newUserInput)
 
 	s.usersdb.Mu.Lock()
-	for i := 0; i < len(s.usersdb.Users); i++ {
-		if s.usersdb.Users[i].Email == newUserInput.Email &&
-			s.usersdb.Users[i].ComparePassword(newUserInput.Password) {
+	for _, v := range s.usersdb.Users {
+	//for i := 0; i < len(s.usersdb.Users); i++ {
+		if v.Email == newUserInput.Email &&
+			v.ComparePassword(newUserInput.Password) {
 
-			u := s.usersdb.Users[i]
+			u := v
 			session, err := s.sessionStore.Get(r, sessionName)
 			if err != nil {
 				s.usersdb.Mu.Unlock()
@@ -176,7 +165,6 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 			}
 			session.Values["user_id"] = u.ID
 			session.Values["user_type"] = s.userType
-			//session.Values["user_type"] = userFreelancer
 			if err := s.sessionStore.Save(r, w, session); err != nil {
 				s.usersdb.Mu.Unlock()
 				s.error(w, r, http.StatusInternalServerError, err)
@@ -321,14 +309,14 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	uid := uidInteface.(int)
 
 	s.usersdb.Mu.Lock()
-	user := s.usersdb.GetUserByID(uid)
+	user, ok := s.usersdb.Users[uid]
 	s.usersdb.Mu.Unlock()
 
-	if user == nil {
+	if !ok {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
 		return nil, sendErr, http.StatusBadRequest
 	}
-	return user, nil, http.StatusOK
+	return &user, nil, http.StatusOK
 }
 
 // TODO:
@@ -339,7 +327,7 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-	userNotification := s.usersdb.GetNotificationsByUserID(user.ID)
+	userNotification := s.usersdb.Notifications[user.ID]
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userNotification)
 	log.Println(user)
@@ -381,18 +369,21 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	//user := s.usersdb.GetUserByID(uid)
-	//user.Avatar = true
 
-	for i:=0; i < len(s.usersdb.Users); i++ {
-		if s.usersdb.Users[i].ID == uid {
-			s.usersdb.Users[i].Avatar = true
-		}
+	u, ok := s.usersdb.Users[uid]
+	if !ok {
+		s.error(w,r,http.StatusNotFound, errors.New("no such "))
 	}
+
+	//u.Avatar = true
+	delete(s.usersdb.Users, uid)
+	s.usersdb.Users[uid] = u
 
 	image := bytes.NewBuffer(nil)
 	io.Copy(image, file)
 	s.usersdb.ImageStore[uid] = image.Bytes()
+	u.Avatar = image.Bytes()
+
 	s.usersdb.Mu.Unlock()
 
 	s.respond(w, r, http.StatusOK, struct{}{})
@@ -411,11 +402,11 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	user := s.usersdb.GetUserByID(uid)
+	user := s.usersdb.Users[uid]
 	s.usersdb.Mu.Unlock()
 
 	var openfile *os.File
-	if user.Avatar {
+	if user.Avatar != nil {
 		s.usersdb.Mu.Lock()
 		image := s.usersdb.ImageStore[uid]
 		w.Header().Set("Content-Type", "multipart/form-data")
@@ -458,8 +449,8 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-	hireManager := s.usersdb.GetHireManagerByID(user.ID)
-	company := s.usersdb.GetCompanyByID(hireManager.ID)
+	hireManager := s.usersdb.HireManagers[user.ID]
+	company := s.usersdb.Companies[hireManager.ID]
 	var roles []*model.Role
 	clientRole := &model.Role{
 		Role:   "client",
@@ -550,7 +541,9 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(s.usersdb.HireManagers); i++ {
 		if s.usersdb.HireManagers[i].AccountID == uid {
 			newJob.HireManagerId = s.usersdb.HireManagers[i].ID
-			s.usersdb.Jobs = append(s.usersdb.Jobs, *newJob)
+			//s.usersdb.Jobs = append(s.usersdb.Jobs, *newJob)
+			id := len(s.usersdb.Jobs) + 1
+			s.usersdb.Jobs[id] = *newJob
 			s.respond(w, r, http.StatusOK, newJob)
 			return
 		}
@@ -566,13 +559,12 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
 	}
 
-	for i := 0; i < len(s.usersdb.Jobs); i++ {
-		if id == s.usersdb.Jobs[i].ID {
-			s.respond(w, r, http.StatusOK, &s.usersdb.Jobs[i])
-			return
-		}
+	job, ok := s.usersdb.Jobs[id]
+	if !ok {
+		s.error(w, r, http.StatusNotFound, errors.New("job not found"))
 	}
-	s.error(w, r, http.StatusNotFound, errors.New("job not found"))
+
+	s.respond(w, r, http.StatusOK, &job)
 }
 
 
@@ -585,7 +577,11 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-	profile := s.usersdb.GetFreelancerByUserID(user.ID)
+	profile, ok := s.usersdb.Freelancers[user.ID]
+	if !ok {
+		s.error(w,r,http.StatusNotFound, errors.New("no such freelancer"))
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(profile)
 	fmt.Println(user)
@@ -608,11 +604,11 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("id isn't number"))
 	}
-	profile, err := s.usersdb.GetFreelancerByID(freelancerID)
-	if err != nil {
+	profile, ok := s.usersdb.Freelancers[freelancerID]
+	if !ok {
 		s.error(w, r, http.StatusBadRequest, err)
 	}
-	s.respond(w, r, http.StatusOK, profile)
+	s.respond(w, r, http.StatusOK, &profile)
 }
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -623,10 +619,13 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.usersdb.Mu.Lock()
-	user := s.usersdb.GetUserByID(id)
+	user, ok := s.usersdb.Users[id]
+	if !ok {
+		s.error(w,r,http.StatusNotFound, errors.New("no such user in database"))
+	}
 
 	var openfile *os.File
-	if user.Avatar {
+	if user.Avatar != nil {
 		s.usersdb.Mu.Lock()
 		image := s.usersdb.ImageStore[id]
 		w.Header().Set("Content-Type", "multipart/form-data")

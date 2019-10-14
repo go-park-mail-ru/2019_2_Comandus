@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"net/http"
@@ -29,7 +29,7 @@ var (
 type server struct {
 	mux *mux.Router
 	// store
-	store        *store.Store
+	store        *sqlstore.Store
 	usersdb      *model.UsersDB
 	sessionStore sessions.Store
 	config       *Config
@@ -53,8 +53,8 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) ConfigureStore() error {
-	cnfg := store.NewConfig()
-	st := store.New(cnfg)
+	cnfg := sqlstore.NewConfig()
+	st := sqlstore.New(cnfg)
 	if err := st.Open(); err != nil {
 		return err
 	}
