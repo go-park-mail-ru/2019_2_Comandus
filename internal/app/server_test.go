@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-func (s * server) addUser2Server() error{
+func (s * server) addUser2Server(t *testing.T) error{
+	t.Helper()
 	u := model.User{
 		ID:              0,
 		FirstName:       "name",
@@ -49,10 +50,21 @@ func (s * server) addUser2Server() error{
 	if err != nil {
 		return err
 	}
-	s.usersdb.Users[0] = u
-	s.usersdb.HireManagers[0] = m
-	s.usersdb.Freelancers[0] = f
 
+	err = s.store.User().Create(&u)
+	if err != nil {
+		return err
+	}
+
+	err = s.store.Manager().Create(&m)
+	if err != nil {
+		return err
+	}
+
+	err = s.store.Freelancer().Create(&f)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -70,7 +82,8 @@ func (s * server) addJob2Server() {
 		City:              "Moscow",
 		JobTypeId:         0,
 	}
-	s.usersdb.Jobs[0] = j
+
+	// TODO: add to db when jobs create func is impl
 }
 
 
@@ -123,7 +136,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	s := newServer(sessionStore)
 
-	err := s.addUser2Server()
+	err := s.addUser2Server(t)
 	if err != nil {
 		t.Fail()
 	}

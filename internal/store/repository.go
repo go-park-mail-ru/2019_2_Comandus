@@ -6,17 +6,20 @@ import (
 )
 
 type UserRepository interface {
-	Create(*model.User) error
+	Create(user *model.User) error
 	Find(int) (*model.User, error)
 	FindByEmail(string) (*model.User, error)
+	Edit(user *model.User) error
 }
 
 type FreelancerRepository interface {
 	Create(freelancer *model.Freelancer) error
 	Find(int) (*model.Freelancer, error)
+	Edit(freelancer *model.Freelancer) error
 }
 
 type ManagerRepository interface {
 	Create(manager *model.HireManager) error
 	Find(int) (*model.Freelancer, error)
+	Edit(manager *model.HireManager) error
 }

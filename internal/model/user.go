@@ -1,9 +1,11 @@
 package model
 
 import (
-	"errors"
+	"github.com/go-ozzo/ozzo-validation/is"
+	//"errors"
 	"golang.org/x/crypto/bcrypt"
-	"regexp"
+	//"regexp"
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 type User struct {
@@ -15,6 +17,7 @@ type User struct {
 	Password		string `json:"password"`
 	EncryptPassword string `json:"-"`
 	Avatar 			[]byte `json:"-"`
+	UserType 		string `json:"type"`
 }
 
 func (u *User) BeforeCreate() error {
@@ -41,18 +44,20 @@ func EncryptString(s string) (string, error) {
 	return string(b), nil
 }
 
-type UserInput struct {
-	Name 		string `json:"firstName"`
-	Surname 	string `json:"secondName"`
-	Email   	string `json:"email"`
-	Password	string `json:"password"`
-	UserType 	string `json:"type"`
+func (u *User) Validate() error {
+	return validation.ValidateStruct(
+		u,
+		validation.Field(&u.Email, validation.Required, is.Email),
+		validation.Field(&u.Password, validation.Required, validation.Length(6, 100)),
+	)
 }
 
-func (u *UserInput) CheckEmail() error {
-	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	if valid := re.MatchString(u.Email); valid == false {
-		return errors.New("invalid email")
+func requiredIf(cond bool) validation.RuleFunc {
+	return func(value interface{}) error {
+		if cond {
+			return validation.Validate(value, validation.Required)
+		}
+		return nil
 	}
-	return nil
 }
+

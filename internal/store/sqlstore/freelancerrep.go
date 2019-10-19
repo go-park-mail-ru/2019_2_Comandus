@@ -47,3 +47,41 @@ func (r *FreelancerRepository) Find(id int) (*model.Freelancer, error) {
 	}
 	return f, nil
 }
+
+func (r *FreelancerRepository) FindByUser(accountId int) (*model.Freelancer, error) {
+	f := &model.Freelancer{}
+	if err := r.store.db.QueryRow(
+		"SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+			"overview, experienceLevelId, specialityId FROM freelancers WHERE accountId = $1",
+		accountId,
+	).Scan(
+		&f.AccountId,
+		&f.RegistrationDate,
+		&f.Country,
+		&f.City,
+		&f.Address,
+		&f.Phone,
+		&f.TagLine,
+		&f.Overview,
+		&f.ExperienceLevelId,
+		&f.SpecialityId,
+	); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (r *FreelancerRepository) Edit(f * model.Freelancer) error {
+	return r.store.db.QueryRow("UPDATE freelancers SET country = $1, city = $2, address = $3" +
+		"phone = $4, tagLine = $5, overview = $5, experienceLevelId = $6, specialityId = $7 WHERE id = $8",
+		f.Country,
+		f.City,
+		f.Address,
+		f.Phone,
+		f.TagLine,
+		f.Overview,
+		f.ExperienceLevelId,
+		f.SpecialityId,
+		f.ID,
+	).Scan(&f.ID)
+}

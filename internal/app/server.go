@@ -13,8 +13,8 @@ import (
 type ctxKey int8
 
 const (
+	ctxKeyUser ctxKey = iota
 	sessionName                    = "user-session"
-	ctxKeyUser              ctxKey = iota
 	userFreelancer                 = "freelancer"
 	userCustomer                   = "client"
 	userTypeCookieName             = "user_type"
@@ -28,7 +28,6 @@ var (
 
 type server struct {
 	mux *mux.Router
-	// store
 	store        *sqlstore.Store
 	usersdb      *model.UsersDB
 	sessionStore sessions.Store
@@ -37,12 +36,13 @@ type server struct {
 	clientUrl 	 string
 }
 
-func newServer(sessionStore sessions.Store) *server {
+func newServer(sessionStore sessions.Store, store *sqlstore.Store) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		usersdb:      model.NewUsersDB(),
 		sessionStore: sessionStore,
 		clientUrl: 	"https://comandus.now.sh",
+		store: store,
 	}
 	s.ConfigureServer()
 	return s
@@ -50,16 +50,6 @@ func newServer(sessionStore sessions.Store) *server {
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
-}
-
-func (s *server) ConfigureStore() error {
-	cnfg := sqlstore.NewConfig()
-	st := sqlstore.New(cnfg)
-	if err := st.Open(); err != nil {
-		return err
-	}
-	s.store = st
-	return nil
 }
 
 func (s *server) ConfigureServer() {

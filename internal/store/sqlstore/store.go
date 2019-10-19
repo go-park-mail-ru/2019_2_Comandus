@@ -3,42 +3,26 @@ package sqlstore
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
+	"sync"
 )
 
 // Store ...
 type Store struct {
-	db             *sql.DB
-	userRepository *UserRepository
+	db                   *sql.DB
+	userRepository       *UserRepository
 	freelancerRepository *FreelancerRepository
-	managerRepository *ManagerRepository
-	config *Config
+	managerRepository    *ManagerRepository
+	config               *Config
+	Mu                   *sync.Mutex
 }
 
 
-func New(config *Config) *Store {
+func New(db *sql.DB) *Store {
 	return &Store{
-		config: config,
+		db: db,
+		Mu: new(sync.Mutex),
 	}
 }
-
-func (s * Store) Open() error {
-	db, err := sql.Open("postgres", s.config.DatabaseURL)
-	if err != nil {
-		return err
-	}
-
-	if err := db.Ping(); err != nil {
-		return err
-	}
-
-	s.db = db
-	return nil
-}
-
-func (s * Store) Close() {
-	s.db.Close()
-}
-
 
 func (s *Store) User() *UserRepository {
 	if s.userRepository != nil {

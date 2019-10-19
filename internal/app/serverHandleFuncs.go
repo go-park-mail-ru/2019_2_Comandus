@@ -25,45 +25,29 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		// TODO: handle err
 		r.Body.Close()
 	}()
+
 	decoder := json.NewDecoder(r.Body)
-	newUserInput := new(model.UserInput)
-	err := decoder.Decode(newUserInput)
+	user := new(model.User)
+	err := decoder.Decode(user)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	err = newUserInput.CheckEmail()
-	if err != nil {
-		s.error(w, r, http.StatusUnprocessableEntity, err)
-		return
-	}
-
-	s.userType = newUserInput.UserType
+	s.userType = user.UserType
 	if s.userType != userFreelancer && s.userType != userCustomer {
 		s.userType = userFreelancer
 	}
-	fmt.Println(newUserInput)
+	fmt.Println(user)
 
-	s.usersdb.Mu.Lock()
+	s.store.Mu.Lock()
+	err = s.store.User().Create(user)
+	s.store.Mu.Unlock()
 
-	user := model.User{
-		FirstName: newUserInput.Name,
-		SecondName: newUserInput.Surname,
-		Email:     newUserInput.Email,
-	}
-
-	err = user.BeforeCreate()
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
+		return
 	}
-
-	err = s.store.User().Create(&user)
-	if err != nil {
-		s.respond(w, r, http.StatusInternalServerError, err)
-	}
-
-	fmt.Println("user id: ", user.ID)
 
 	f := model.Freelancer{
 		AccountId:        user.ID,
@@ -72,6 +56,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	err = s.store.Freelancer().Create(&f)
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
+		return
 	}
 
 	m := model.HireManager{
@@ -81,9 +66,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	err = s.store.Manager().Create(&m)
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
+		return
 	}
-
-	s.usersdb.Mu.Unlock()
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
@@ -104,13 +88,14 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	http.SetCookie(w, &cookie2)
 
-	s.respond(w, r, http.StatusCreated, newUserInput)
+	s.respond(w, r, http.StatusCreated, user)
 }
 
 func (s *server) authenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
 			s.error(w, r, http.StatusUnauthorized, err)
@@ -123,14 +108,14 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		s.usersdb.Mu.Lock()
-
+		s.store.Mu.Lock()
 		u, err := s.store.User().Find(id.(int))
+		s.store.Mu.Unlock()
+
 		if err != nil {
 			s.error(w,r,http.StatusNotFound, err)
 		}
 
-		s.usersdb.Mu.Unlock()
 
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, &u)))
 	})
@@ -142,16 +127,19 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	decoder := json.NewDecoder(r.Body)
-	newUserInput := new(model.UserInput)
-	err := decoder.Decode(newUserInput)
+	user := new(model.User)
+	err := decoder.Decode(user)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	log.Println(newUserInput)
+	log.Println("input user:", user)
 
-	u, err := s.store.User().FindByEmail(newUserInput.Email)
+	s.store.Mu.Lock()
+	u, err := s.store.User().FindByEmail(user.Email)
+	s.store.Mu.Unlock()
+
 	if err != nil {
 		s.error(w, r, http.StatusNotFound, err)
 		return
@@ -163,11 +151,14 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if s.userType == "" {
+		s.userType = userFreelancer
+	}
+
 	session.Values["user_id"] = u.ID
 	session.Values["user_type"] = s.userType
 
 	if err := s.sessionStore.Save(r, w, session); err != nil {
-		s.usersdb.Mu.Unlock()
 		s.error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -185,11 +176,6 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session == nil {
-		s.error(w, r, http.StatusNotFound, errors.New("failed to delete session"))
-		return
-	}
-
 	session.Options.MaxAge = -1
 	err = session.Save(r, w)
 	if err != nil {
@@ -200,12 +186,11 @@ func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	//s.respond(w,r, http.StatusOK, nil)
-	//return
-	// TODO check if input user type invalid
+
 	type Input struct {
 		UserType string `json:"type"`
 	}
+
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)
 	err := decoder.Decode(newInput)
@@ -214,24 +199,32 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if newInput.UserType != userCustomer && newInput.UserType != userFreelancer {
+		s.error(w, r, http.StatusBadRequest, errors.New("user type may be only customer or freelancer"))
+	}
+
 	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	if err != nil {
+		s.error(w, r,http.StatusUnauthorized, err)
 		return
 	}
 
-	if newInput.UserType != userCustomer && newInput.UserType != userFreelancer {
-		s.error(w,r, http.StatusBadRequest, errors.New("user type may be only customer or freelancer"))
-	}
+	// TODO: delete cookie or not
 	session.Values["user_type"] = newInput.UserType
-	session.Save(r, w)
+
+	s.userType = newInput.UserType
+
+	err = session.Save(r, w)
+	if err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+	}
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	user, sendErr, codeStatus := s.GetUserFromRequest(r)
-	if sendErr != nil {
-		s.error(w, r, codeStatus, sendErr)
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
 	s.respond(w, r, http.StatusOK, user)
@@ -241,40 +234,56 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	user, sendErr, codeStatus := s.GetUserFromRequest(r)
-	if sendErr != nil {
-		s.error(w, r, codeStatus, sendErr)
+
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
+
+	// TODO: validate edited user
+
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(user)
-	log.Println(user)
+	err = decoder.Decode(user)
+
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
-		SendErr := fmt.Errorf("invalid format of data")
-		s.error(w, r, http.StatusBadRequest, SendErr)
+		s.error(w, r, http.StatusBadRequest, errors.New("invalid format of data"))
 		return
 	}
-	s.respond(w, r, http.StatusOK, struct{}{})
 
+	s.store.Mu.Lock()
+	err = s.store.User().Edit(user)
+	s.store.Mu.Unlock()
+
+	if err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	log.Println("edited profile: ", user)
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	type BodyPassword struct {
 		Password string
 		NewPassword string
 		NewPasswordConfirmation string
 	}
-	w.Header().Set("Content-Type", "application/json")
-	var err error
-	user, sendErr, codeStatus := s.GetUserFromRequest(r)
-	if sendErr != nil {
-		s.error(w, r, codeStatus, sendErr)
+
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
+
 	bodyPassword := new(BodyPassword)
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(bodyPassword)
+
 	if bodyPassword.NewPassword != bodyPassword.NewPasswordConfirmation {
 		s.error(w, r, http.StatusBadRequest, fmt.Errorf("new Passwords are different"))
 		return
@@ -291,30 +300,41 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.EncryptPassword = newEncryptPassword
+
+	s.store.Mu.Lock()
+	err = s.store.User().Edit(user)
+	s.store.Mu.Unlock()
+
+	if err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
+
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
+	if err != nil {
 		sendErr := fmt.Errorf("user isn't authorized")
 		return nil, sendErr, http.StatusUnauthorized
 	}
-	uidInteface := session.Values["user_id"]
-	uid := uidInteface.(int)
 
-	s.usersdb.Mu.Lock()
-	user, ok := s.usersdb.Users[uid]
-	s.usersdb.Mu.Unlock()
+	uidInterface := session.Values["user_id"]
+	uid := uidInterface.(int)
 
-	if !ok {
+	s.store.Mu.Lock()
+	user, err := s.store.User().Find(uid)
+	s.store.Mu.Unlock()
+
+	if err != nil {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
 		return nil, sendErr, http.StatusBadRequest
 	}
-	return &user, nil, http.StatusOK
+	return user, nil, http.StatusOK
 }
 
-// TODO:
+// TODO: fix after creating Notifications table
 func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	user, sendErr, codeStatus := s.GetUserFromRequest(r)
@@ -351,86 +371,88 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		s.error(w, r, http.StatusUnauthorized, err)
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
 
-	uidInterface := session.Values["user_id"]
-	uid, ok := uidInterface.(int)
-	if !ok {
-		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
-	}
-
-	s.usersdb.Mu.Lock()
-
-	u, ok := s.usersdb.Users[uid]
-	if !ok {
-		s.error(w,r,http.StatusNotFound, errors.New("no such "))
-	}
-
-	//u.Avatar = true
-	delete(s.usersdb.Users, uid)
-	s.usersdb.Users[uid] = u
-
 	image := bytes.NewBuffer(nil)
-	io.Copy(image, file)
-	s.usersdb.ImageStore[uid] = image.Bytes()
-	u.Avatar = image.Bytes()
+	_, err = io.Copy(image, file)
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+	user.Avatar = image.Bytes()
 
+	s.store.Mu.Lock()
+	err = s.store.User().Edit(user)
 	s.usersdb.Mu.Unlock()
+
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
 
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
-	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		s.error(w,r,http.StatusUnauthorized, err)
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
-	uidInterface := session.Values["user_id"]
-	uid, ok := uidInterface.(int)
-	if !ok {
-		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
-	}
 
-	s.usersdb.Mu.Lock()
-	user := s.usersdb.Users[uid]
-	s.usersdb.Mu.Unlock()
 
-	var openfile *os.File
 	if user.Avatar != nil {
-		s.usersdb.Mu.Lock()
-		image := s.usersdb.ImageStore[uid]
-		w.Header().Set("Content-Type", "multipart/form-data")
-		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
+		image := user.Avatar
 		if _, err := w.Write(image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
+			return
 		}
-		s.usersdb.Mu.Unlock()
+
+		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
+		w.Header().Set("Content-Type", "multipart/form-data")
+
 	} else {
 		filename := "internal/store/avatars/default.png"
-		openfile, err = os.Open(filename)
-		defer openfile.Close()
+
+		var openFile *os.File
+		openFile, err = os.Open(filename)
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
 			return
 		}
-		fileHeader := make([]byte, 100000) // max image size!!!
-		openfile.Read(fileHeader)
-		fileContentType := http.DetectContentType(fileHeader)
 
-		fileStat, _ := openfile.Stat()
+		defer func(){
+			if err := openFile.Close(); err != nil {
+				s.error(w, r, http.StatusInternalServerError, err)
+			}
+		}()
+
+		fileHeader := make([]byte, 100000) // max image size!!!
+		if _, err := openFile.Read(fileHeader); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		fileContentType := http.DetectContentType(fileHeader)
+		fileStat, _ := openFile.Stat()
 		fileSize := strconv.FormatInt(fileStat.Size(), 10)
 
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 		w.Header().Set("Content-Type", fileContentType)
 		w.Header().Set("Content-Length", fileSize)
 
-		openfile.Seek(0, 0)
-		io.Copy(w, openfile)
+		if _, err := openFile.Seek(0, 0); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		if _, err := io.Copy(w, openFile); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}
 	s.respond(w,r,http.StatusOK, struct{}{})
 }
@@ -439,12 +461,18 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	user, sendErr, codeStatus := s.GetUserFromRequest(r)
-	if sendErr != nil {
-		s.error(w, r, codeStatus, sendErr)
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
-	hireManager := s.usersdb.HireManagers[user.ID]
+
+	hireManager, err := s.store.Manager().Find(user.ID)
+	if err != nil {
+		s.error(w, r, http.StatusNotFound, err)
+	}
+
+	// TODO: rewrite after Roles and Companies db interfaces realization
 	company := s.usersdb.Companies[hireManager.ID]
 	var roles []*model.Role
 	clientRole := &model.Role{
@@ -486,6 +514,7 @@ func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, nil)
 }
 
+// TODO: rewrite after Jobs db realization
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err == http.ErrNoCookie {
@@ -546,6 +575,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	s.error(w, r, http.StatusInternalServerError, errors.New("client not found"))
 }
 
+// TODO: rewrite after jobs
 func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	ids := vars["id"]
@@ -567,23 +597,31 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	user, sendErr, codeStatus := s.GetUserFromRequest(r)
-	if sendErr != nil {
-		s.error(w, r, codeStatus, sendErr)
+
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
 		return
 	}
-	profile, ok := s.usersdb.Freelancers[user.ID]
-	if !ok {
+
+	freelancer, err := s.store.Freelancer().FindByUser(user.ID)
+	if err != nil {
 		s.error(w,r,http.StatusNotFound, errors.New("no such freelancer"))
+		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(profile)
-	fmt.Println(user)
+	err = decoder.Decode(freelancer)
+
 	if err != nil {
-		log.Printf("error while marshalling JSON: %s", err)
-		sendErr := fmt.Errorf("invalid format of data")
-		s.error(w, r, http.StatusBadRequest, sendErr)
+		s.error(w, r, http.StatusBadRequest, errors.New("invalid format of data"))
+		return
+	}
+	// TODO: validate freelancer
+
+	err = s.store.Freelancer().Edit(freelancer)
+	if err != nil {
+		s.error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 	s.respond(w, r, http.StatusOK, struct{}{})
@@ -593,19 +631,7 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	vars := mux.Vars(r)
-	freelancerIDStr := vars["freelancerId"]
-	freelancerID, err := strconv.Atoi(freelancerIDStr)
-	if err != nil {
-		s.error(w, r, http.StatusBadRequest, fmt.Errorf("id isn't number"))
-	}
-	profile, ok := s.usersdb.Freelancers[freelancerID]
-	if !ok {
-		s.error(w, r, http.StatusBadRequest, err)
-	}
-	s.respond(w, r, http.StatusOK, &profile)
-}
-func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -613,45 +639,80 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
 	}
 
-	s.usersdb.Mu.Lock()
-	user, ok := s.usersdb.Users[id]
-	if !ok {
-		s.error(w,r,http.StatusNotFound, errors.New("no such user in database"))
+	freelancer, err := s.store.Freelancer().Find(id)
+	if err != nil {
+		s.error(w, r, http.StatusNotFound, err)
 	}
 
-	var openfile *os.File
+	s.respond(w, r, http.StatusOK, &freelancer)
+}
+
+
+func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
+		return
+	}
+
+	user, err := s.store.User().Find(id)
+	if err != nil {
+		s.error(w,r,http.StatusNotFound, errors.New("no such user in database"))
+		return
+	}
+
 	if user.Avatar != nil {
-		s.usersdb.Mu.Lock()
-		image := s.usersdb.ImageStore[id]
-		w.Header().Set("Content-Type", "multipart/form-data")
-		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
+		image := user.Avatar
 		if _, err := w.Write(image); err != nil {
 			s.error(w,r,http.StatusInternalServerError, err)
+			return
 		}
-		s.usersdb.Mu.Unlock()
+
+		w.Header().Set("Content-Type", "multipart/form-data")
+		w.Header().Set("Content-Length", strconv.Itoa(len(image)))
 	} else {
 		filename := "internal/store/avatars/default.png"
-		openfile, err = os.Open(filename)
+
+		var openFile *os.File
+		openFile, err = os.Open(filename)
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, errors.New("cant open file"))
 			return
 		}
-		defer openfile.Close()
+		defer func() {
+			if err := openFile.Close(); err != nil {
+				s.error(w, r, http.StatusInternalServerError, err)
+			}
+		}()
 
 		fileHeader := make([]byte, 100000)
-		openfile.Read(fileHeader)
+		_, err := openFile.Read(fileHeader)
+		if err !=  nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
 
 		fileContentType := http.DetectContentType(fileHeader)
-		fileStat, _ := openfile.Stat()
+		fileStat, _ := openFile.Stat()
 		fileSize := strconv.FormatInt(fileStat.Size(), 10)
 
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 		w.Header().Set("Content-Type", fileContentType)
 		w.Header().Set("Content-Length", fileSize)
 
-		openfile.Seek(0, 0)
-		io.Copy(w, openfile)
+		_, err = openFile.Seek(0, 0)
+		if err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		_, err = io.Copy(w, openFile)
+		if err != nil {
+			s.error(w,r, http.StatusInternalServerError, err)
+			return
+		}
 	}
-	s.usersdb.Mu.Unlock()
 	s.respond(w,r,http.StatusOK, struct{}{})
 }

@@ -2,7 +2,6 @@ package sqlstore
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"log"
 )
 
 type UserRepository struct {
@@ -10,9 +9,9 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) Create(u *model.User) error {
-	/*if err := u.Validate(); err != nil {
+	if err := u.Validate(); err != nil {
 		return err
-	}*/
+	}
 
 	if err := u.BeforeCreate(); err != nil {
 		return err
@@ -31,7 +30,7 @@ func (r *UserRepository) Create(u *model.User) error {
 func (r *UserRepository) Find(id int) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT accountId, email, encryptPassword FROM users WHERE accountId = $1",
+		"SELECT accountId, firstName, secondName, username, email, encryptPassword, avatar FROM users WHERE accountId = $1",
 		id,
 	).Scan(
 		&u.ID,
@@ -57,8 +56,20 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 		&u.Email,
 		&u.EncryptPassword,
 	); err != nil {
-		log.Println("hello find by email func", err)
 		return nil, err
 	}
 	return u, nil
+}
+
+//TODO: validate user
+func (r *UserRepository) Edit(u * model.User) error {
+	return r.store.db.QueryRow("UPDATE users SET firstName = $1, secondName = $2, userName = $3" +
+		"encryptPassword = $4, avatar = $5 WHERE id = $6",
+		u.FirstName,
+		u.SecondName,
+		u.UserName,
+		u.EncryptPassword,
+		u.Avatar,
+		u.ID,
+	).Scan(&u.ID)
 }
