@@ -4,7 +4,7 @@ CREATE TABLE jobs (
     title varchar not null,
     description varchar not null,
     files varchar,
-    specialityId bigserial references specialities,
+    specialityId bigserial,  --references specialities,
     experienceLevelId bigserial,
     paymentAmount float8,
     country varchar,

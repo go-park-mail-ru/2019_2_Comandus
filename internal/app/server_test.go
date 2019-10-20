@@ -220,10 +220,11 @@ func TestServer_HandleSetUserType(t *testing.T) {
 
 func TestServer_HandleCreateJob(t *testing.T) {
 	testCases := []struct {
-		name         string
-		payload      interface{}
-		cookie      interface{}
-		expectedCode int
+		name         	string
+		payload      	interface{}
+		cookie      	interface{}
+		expectedCode 	int
+		userType		string
 	}{
 		{
 			name: "correct user",
@@ -243,6 +244,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"user_type": userCustomer,
 			},
 			expectedCode: http.StatusOK,
+			userType: userCustomer,
 		},
 		{
 			name: "user without user type",
@@ -261,6 +263,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"user_id":   1,
 			},
 			expectedCode: http.StatusInternalServerError,
+			userType: userFreelancer,
 		},
 		{
 			name: "not auth user",
@@ -277,6 +280,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 			},
 			cookie : "nil",
 			expectedCode: http.StatusUnauthorized,
+			userType: "",
 		},
 	}
 
@@ -293,6 +297,8 @@ func TestServer_HandleCreateJob(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			s.userType = tc.userType
+
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
 

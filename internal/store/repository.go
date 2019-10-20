@@ -23,3 +23,9 @@ type ManagerRepository interface {
 	Find(int) (*model.Freelancer, error)
 	Edit(manager *model.HireManager) error
 }
+
+type JobRepository interface {
+	Create(job *model.Job) error
+	Find(int) (*model.Job, error)
+	Edit(job *model.Job) error
+}

@@ -4,4 +4,5 @@ type Store interface {
 	User() UserRepository
 	Manager() ManagerRepository
 	Freelancer() FreelancerRepository
+	Job() JobRepository
 }

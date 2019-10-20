@@ -12,6 +12,7 @@ type Store struct {
 	userRepository       *UserRepository
 	freelancerRepository *FreelancerRepository
 	managerRepository    *ManagerRepository
+	jobRepository 		 *JobRepository
 	config               *Config
 	Mu                   *sync.Mutex
 }
@@ -58,4 +59,16 @@ func (s *Store) Freelancer() *FreelancerRepository {
 	}
 
 	return s.freelancerRepository
+}
+
+func (s *Store) Job() *JobRepository {
+	if s.jobRepository != nil {
+		return s.jobRepository
+	}
+
+	s.jobRepository = &JobRepository{
+		store: s,
+	}
+
+	return s.jobRepository
 }

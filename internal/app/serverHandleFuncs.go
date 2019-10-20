@@ -134,6 +134,10 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
 	decoder := json.NewDecoder(r.Body)
 	user := new(model.User)
 	err := decoder.Decode(user)
@@ -199,6 +203,10 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		UserType string `json:"type"`
 	}
 
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)
 	err := decoder.Decode(newInput)
@@ -251,6 +259,10 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: validate edited user
 
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(user)
 
@@ -287,6 +299,11 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, err)
 		return
 	}
+
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
 
 	bodyPassword := new(BodyPassword)
 	decoder := json.NewDecoder(r.Body)
@@ -350,6 +367,12 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
+
+	defer func() {
+		// TODO: handle err
+		r.Body.Close()
+	}()
+
 	userNotification := s.usersdb.Notifications[user.ID]
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userNotification)
@@ -524,63 +547,49 @@ func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
 
 // TODO: rewrite after Jobs db realization
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
-	session, err := s.sessionStore.Get(r, sessionName)
-	if err == http.ErrNoCookie {
-		s.error(w, r, http.StatusNotFound, err)
-		return
-	}
-
-	if session == nil {
-		s.error(w, r, http.StatusNotFound, errors.New("session is nil"))
-		return
-	}
-
-	uti := session.Values["user_type"]
-	ut, ok := uti.(string)
-	if !ok {
-		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
-	}
-
-	log.Println(ut)
-
-	// TODO: add test for this case
-	//if ut != userCustomer {
-	//	s.error(w, r, http.StatusBadRequest, errors.New("current user is not a manager"))
-	//	return
-	//}
-
 	defer func() {
 		// TODO: handle err
 		r.Body.Close()
 	}()
+
 	decoder := json.NewDecoder(r.Body)
-	newJob := new(model.Job)
-	err = decoder.Decode(newJob)
+	job := new(model.Job)
+	err := decoder.Decode(job)
 	if err != nil {
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	newJob.ID = len(s.usersdb.Jobs)
-
-	uidi := session.Values["user_id"]
-	uid, ok := uidi.(int)
-	if !ok {
-		s.error(w,r, http.StatusInternalServerError, errors.New("cookie value not set"))
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
+		return
 	}
 
-	// TODO write getbyID func for Hire Manager
-	for i := 0; i < len(s.usersdb.HireManagers); i++ {
-		if s.usersdb.HireManagers[i].AccountID == uid {
-			newJob.HireManagerId = s.usersdb.HireManagers[i].ID
-			//s.usersdb.Jobs = append(s.usersdb.Jobs, *newJob)
-			id := len(s.usersdb.Jobs) + 1
-			s.usersdb.Jobs[id] = *newJob
-			s.respond(w, r, http.StatusOK, newJob)
-			return
-		}
+	if s.userType != userCustomer {
+		s.error(w, r, http.StatusInternalServerError, errors.New("current user is not a manager"))
+		return
 	}
-	s.error(w, r, http.StatusInternalServerError, errors.New("client not found"))
+
+	s.store.Mu.Lock()
+	manager, err := s.store.Manager().FindByUSer(user.ID)
+	s.store.Mu.Unlock()
+
+	if err != nil {
+		log.Println("fail find manager", err)
+		s.error(w, r, http.StatusNotFound, err)
+	}
+
+	s.store.Mu.Lock()
+	err = s.store.Job().Create(job, manager)
+	s.store.Mu.Unlock()
+
+	if err != nil {
+		log.Println("fail create job", err)
+		s.error(w, r, http.StatusInternalServerError, err)
+	}
+
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 // TODO: rewrite after jobs
