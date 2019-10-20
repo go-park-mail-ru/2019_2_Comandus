@@ -32,6 +32,7 @@ func (r *FreelancerRepository) Find(id int) (*model.Freelancer, error) {
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE id = $1",
 		id,
 	).Scan(
+		&f.ID,
 		&f.AccountId,
 		&f.RegistrationDate,
 		&f.Country,
@@ -55,6 +56,7 @@ func (r *FreelancerRepository) FindByUser(accountId int) (*model.Freelancer, err
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE accountId = $1",
 		accountId,
 	).Scan(
+		&f.ID,
 		&f.AccountId,
 		&f.RegistrationDate,
 		&f.Country,
@@ -72,8 +74,8 @@ func (r *FreelancerRepository) FindByUser(accountId int) (*model.Freelancer, err
 }
 
 func (r *FreelancerRepository) Edit(f * model.Freelancer) error {
-	return r.store.db.QueryRow("UPDATE freelancers SET country = $1, city = $2, address = $3" +
-		"phone = $4, tagLine = $5, overview = $5, experienceLevelId = $6, specialityId = $7 WHERE id = $8",
+	return r.store.db.QueryRow("UPDATE freelancers SET country = $1, city = $2, address = $3, " +
+		"phone = $4, tagLine = $5, overview = $6, experienceLevelId = $7, specialityId = $8 WHERE id = $9 RETURNING id",
 		f.Country,
 		f.City,
 		f.Address,

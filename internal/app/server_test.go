@@ -288,7 +288,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer truncate("users", "managers", "freelancers")
+	defer truncate("users", "managers", "freelancers", "jobs")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)

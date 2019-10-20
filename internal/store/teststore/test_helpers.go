@@ -16,6 +16,18 @@ func testManager(t *testing.T, user * model.User) *model.HireManager {
 	}
 }
 
+func testFreelancer(t *testing.T, user *model.User) *model.Freelancer {
+	t.Helper()
+	return &model.Freelancer{
+		AccountId:         user.ID,
+		RegistrationDate:  time.Now(),
+		Country:           "Russia",
+		City:              "Moscow",
+		Address:           "moscow",
+		Phone:             "111111111",
+	}
+}
+
 func testJob(t *testing.T, manager * model.HireManager) *model.Job {
 	t.Helper()
 	return &model.Job{
