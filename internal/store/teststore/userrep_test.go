@@ -22,7 +22,7 @@ func TestUserRepository_Create(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u := testUser(t)
-	u.Email = "user1@example.org"
+	u.Email = "userrep1@example.org"
 	assert.NoError(t, store.User().Create(u))
 	assert.NotNil(t, u)
 }
@@ -34,7 +34,7 @@ func TestUserRepository_Find(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u1 := testUser(t)
-	u1.Email = "user2322@example.org"
+	u1.Email = "userrep2@example.org"
 
 	err := store.User().Create(u1)
 	if err != nil {
@@ -55,7 +55,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 
 
 	u1 := testUser(t)
-	u1.Email = "user233@example.org"
+	u1.Email = "userrep3@example.org"
 	_, err := store.User().FindByEmail(u1.Email)
 	assert.EqualError(t, err, "sql: no rows in result set")//store.ErrRecordNotFound.Error())
 
@@ -76,7 +76,7 @@ func TestUserRepository_Edit(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u := testUser(t)
-	u.Email = "user24@example.org"
+	u.Email = "userrep4@example.org"
 	if err := store.User().Create(u); err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,4 @@ func TestUserRepository_Edit(t *testing.T) {
 	if err := store.User().Edit(u); err != nil {
 		t.Fatal(err)
 	}
-
-	//assert.NoError(t, err)
-	//assert.NotNil(t, m1)
 }
