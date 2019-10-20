@@ -7,22 +7,12 @@ import (
 	"testing"
 )
 
-var (
-	databaseURL string
+const (
+	databaseURL = "host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d"
 )
-
-/*func testUser(t *testing.T) *model.User {
-	t.Helper()
-	return &model.User{
-		Email:    "user@example.org",
-		Password: "password",
-	}
-}*/
 
 func testStore(t *testing.T, databaseURL string) (*sql.DB, func(...string)) {
 	t.Helper()
-	databaseURL = "host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d"
-
 	db, err := sql.Open("postgres", databaseURL)
 	if err != nil {
 		t.Fatal(err)

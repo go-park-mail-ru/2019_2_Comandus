@@ -1,2 +1,2 @@
---DROP TABLE managers;
---DROP TABLE companies;
+DROP TABLE managers;
+DROP TABLE companies;

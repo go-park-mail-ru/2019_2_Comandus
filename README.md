@@ -39,3 +39,5 @@
 #### Сделать up или down
 `$: migrate -path migrations -database "postgres://localhost/restapi_dev?sslmode=disable&user=d&password=1234" up`
 `$: migrate -path migrations -database "postgres://localhost/restapi_dev?sslmode=disable&user=d&password=1234" down`
+#### Зайти в бд
+`$: psql restapi_dev`

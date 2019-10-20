@@ -1,2 +1,2 @@
---DROP TABLE freelancers;
---DROP TABLE specialities;
+DROP TABLE freelancers;
+DROP TABLE specialities;

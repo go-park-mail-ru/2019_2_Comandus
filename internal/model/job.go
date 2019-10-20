@@ -8,7 +8,7 @@ type Job struct {
 	Files             string  `json:"files"`
 	SpecialityId      int     `json:"specialityId,string"`
 	ExperienceLevelId int     `json:"experienceLevelId,string"`
-	PaymentAmout      float64 `json:"paymentAmount,string"`
+	PaymentAmount      float64 `json:"paymentAmount,string"`
 	Country           string  `json:"country"`
 	City              string  `json:"city"`
 	JobTypeId         int     `json:"jobTypeId,string"`

@@ -44,6 +44,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	err = s.store.User().Create(user)
 	s.store.Mu.Unlock()
 
+	log.Println("USER ID: ", user.ID)
+
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
 		return
@@ -53,7 +55,11 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		AccountId:        user.ID,
 		RegistrationDate: time.Now(),
 	}
+
+	s.store.Mu.Lock()
 	err = s.store.Freelancer().Create(&f)
+	s.store.Mu.Unlock()
+
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
 		return
@@ -63,7 +69,11 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		AccountID:        user.ID,
 		RegistrationDate: time.Now(),
 	}
+
+	s.store.Mu.Lock()
 	err = s.store.Manager().Create(&m)
+	s.store.Mu.Unlock()
+
 	if err != nil {
 		s.respond(w, r, http.StatusInternalServerError, err)
 		return
@@ -115,8 +125,6 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 		if err != nil {
 			s.error(w,r,http.StatusNotFound, err)
 		}
-
-
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, &u)))
 	})
 }
