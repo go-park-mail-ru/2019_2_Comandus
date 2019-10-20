@@ -67,8 +67,8 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 
 //TODO: validate user
 func (r *UserRepository) Edit(u * model.User) error {
-	return r.store.db.QueryRow("UPDATE users SET firstName = $1, secondName = $2, userName = $3" +
-		"encryptPassword = $4, avatar = $5 WHERE id = $6",
+	return r.store.db.QueryRow("UPDATE users SET firstName = $1, secondName = $2, userName = $3, " +
+		"encryptPassword = $4, avatar = $5 WHERE accountId = $6 RETURNING accountId",
 		u.FirstName,
 		u.SecondName,
 		u.UserName,

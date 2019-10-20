@@ -22,8 +22,9 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 
 	decoder := json.NewDecoder(r.Body)
@@ -135,8 +136,9 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 	decoder := json.NewDecoder(r.Body)
 	user := new(model.User)
@@ -204,8 +206,9 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)
@@ -260,8 +263,9 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	// TODO: validate edited user
 
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(user)
@@ -301,8 +305,9 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 
 	bodyPassword := new(BodyPassword)
@@ -369,8 +374,9 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 	}
 
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 
 	userNotification := s.usersdb.Notifications[user.ID]
@@ -545,11 +551,11 @@ func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, nil)
 }
 
-// TODO: rewrite after Jobs db realization
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	defer func() {
-		// TODO: handle err
-		r.Body.Close()
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
 	}()
 
 	decoder := json.NewDecoder(r.Body)
@@ -572,7 +578,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.Mu.Lock()
-	manager, err := s.store.Manager().FindByUSer(user.ID)
+	manager, err := s.store.Manager().FindByUser(user.ID)
 	s.store.Mu.Unlock()
 
 	if err != nil {
@@ -592,7 +598,6 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
-// TODO: rewrite after jobs
 func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	ids := vars["id"]
@@ -601,8 +606,8 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, errors.New("wrong id"))
 	}
 
-	job, ok := s.usersdb.Jobs[id]
-	if !ok {
+	job, err := s.store.Job().Find(id)
+	if err != nil {
 		s.error(w, r, http.StatusNotFound, errors.New("job not found"))
 	}
 
@@ -627,6 +632,11 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
+	}()
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(freelancer)
 

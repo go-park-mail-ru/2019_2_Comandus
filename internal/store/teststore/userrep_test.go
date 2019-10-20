@@ -68,3 +68,25 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, u2)
 }
+
+func TestUserRepository_Edit(t *testing.T) {
+	db, teardown := testStore(t, databaseURL)
+	defer teardown("users")
+
+	store := sqlstore.New(db)
+
+	u := testUser(t)
+	u.Email = "user24@example.org"
+	if err := store.User().Create(u); err != nil {
+		t.Fatal(err)
+	}
+
+	u.SecondName = "Second name"
+
+	if err := store.User().Edit(u); err != nil {
+		t.Fatal(err)
+	}
+
+	//assert.NoError(t, err)
+	//assert.NotNil(t, m1)
+}

@@ -45,7 +45,7 @@ func (r *ManagerRepository) Find(id int) (*model.HireManager, error) {
 	return m, nil
 }
 
-func (r *ManagerRepository) FindByUSer(accountId int) (*model.HireManager, error) {
+func (r *ManagerRepository) FindByUser(accountId int) (*model.HireManager, error) {
 	m := &model.HireManager{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE accountId = $1",
@@ -63,10 +63,10 @@ func (r *ManagerRepository) FindByUSer(accountId int) (*model.HireManager, error
 }
 
 func (r *ManagerRepository) Edit(m * model.HireManager) error {
-	return r.store.db.QueryRow("UPDATE managers SET location = $1, companyId = $2 WHERE id = $1",
+	return r.store.db.QueryRow("UPDATE managers SET location = $1, companyId = $2 WHERE id = $3 RETURNING id",
 		m.Location,
 		m.CompanyID,
-		m.AccountID,
+		m.ID,
 	).Scan(&m.ID)
 }
 
