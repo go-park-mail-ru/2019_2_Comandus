@@ -27,7 +27,7 @@ func (r *JobRepository) Find(id int) (*model.Job, error) {
 	j := &model.Job{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"overview, experienceLevelId, specialityId FROM jobs WHERE id = $1",
+			"country, city, jobTypeId FROM jobs WHERE id = $1",
 		id,
 	).Scan(
 		&j.ID,
@@ -50,7 +50,7 @@ func (r *JobRepository) Find(id int) (*model.Job, error) {
 func (r *JobRepository) Edit(j *model.Job) error {
 	return r.store.db.QueryRow("UPDATE jobs SET title = $1, description = $2, files = $3, " +
 		"specialityId = $4, experienceLevelId = $5, paymentAmount = $6, country = $7, city = $8, " +
-		"jobTypeId = $9 WHERE id = $10",
+		"jobTypeId = $9 WHERE id = $10 RETURNING id",
 		j.Title,
 		j.Description,
 		j.Files,

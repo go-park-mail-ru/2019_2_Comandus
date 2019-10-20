@@ -1,21 +1,10 @@
 package teststore
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
-
-func testManager(t *testing.T, user * model.User) *model.HireManager {
-	t.Helper()
-	return &model.HireManager{
-		AccountID: 			user.ID,
-		RegistrationDate:	time.Now(),
-		Location:			"Moscow",
-	}
-}
 
 func TestManagerRepository_Create(t *testing.T) {
 	db, teardown := testStore(t, databaseURL)
