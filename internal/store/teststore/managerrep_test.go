@@ -24,7 +24,7 @@ func TestManagerRepository_Create(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u := testUser(t)
-	u.Email = "user231@example.org"
+	u.Email = "managerrep1@example.org"
 
 	assert.NoError(t, store.User().Create(u))
 
@@ -40,7 +40,7 @@ func TestManagerRepository_Find(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u := testUser(t)
-	u.Email = "user2@example.org"
+	u.Email = "managerrep2@example.org"
 	err := store.User().Create(u)
 	if err != nil {
 		t.Fatal(err)
@@ -65,7 +65,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u := testUser(t)
-	u.Email = "user3@example.org"
+	u.Email = "managerrep3@example.org"
 	if err := store.User().Create(u); err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestManagerRepository_Edit(t *testing.T) {
 	store := sqlstore.New(db)
 
 	u := testUser(t)
-	u.Email = "user4@example.org"
+	u.Email = "managerrep4@example.org"
 	if err := store.User().Create(u); err != nil {
 		t.Fatal(err)
 	}
