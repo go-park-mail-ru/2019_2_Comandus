@@ -19,7 +19,6 @@ import (
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
@@ -105,7 +104,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 func (s *server) authenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
@@ -131,9 +129,9 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 }
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Content-Type", "application/json")
+
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
@@ -182,7 +180,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
@@ -241,6 +239,7 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
 		s.error(w, r, codeStatus, err)
@@ -250,9 +249,9 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Content-Type", "application/json")
+
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
@@ -367,6 +366,7 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 // TODO: fix after creating Notifications table
 func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	user, sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
 		s.error(w, r, codeStatus, sendErr)
@@ -435,6 +435,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
+
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
 		s.error(w, r, codeStatus, err)
@@ -496,7 +497,6 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
@@ -543,15 +543,22 @@ func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) 
 	// TODO: check seq question
 }
 
-func (s *server) HandleOptions(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Methods", "POST,PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	s.respond(w, r, http.StatusOK, nil)
+func (s *server)CORSMiddleware (next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions{
+			w.Header().Set("Access-Control-Allow-Methods", "POST,PUT")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			s.respond(w , r , http.StatusOK, nil)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			s.error(w, r, http.StatusInternalServerError, err)
@@ -599,6 +606,8 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -618,7 +627,6 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
@@ -655,9 +663,8 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
 	ids := vars["id"]
@@ -676,6 +683,8 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 
 
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
