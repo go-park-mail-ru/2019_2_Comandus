@@ -546,7 +546,7 @@ func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) 
 func (s *server)CORSMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodOptions{
-			w.Header().Set("Access-Control-Allow-Methods", "POST,PUT")
+			w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			s.respond(w , r , http.StatusOK, nil)
