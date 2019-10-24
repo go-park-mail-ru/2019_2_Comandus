@@ -39,6 +39,9 @@ func newDB(dbURL string) (*sql.DB, error) {
 		return nil, err
 	}
 
+	// MAX CONNECTIONS
+	db.SetMaxOpenConns(10)
+
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}

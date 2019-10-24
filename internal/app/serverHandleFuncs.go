@@ -41,6 +41,16 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(user)
 
+	if err := user.Validate(); err != nil {
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := user.BeforeCreate(); err != nil {
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
 	s.store.Mu.Lock()
 	err = s.store.User().Create(user)
 	s.store.Mu.Unlock()

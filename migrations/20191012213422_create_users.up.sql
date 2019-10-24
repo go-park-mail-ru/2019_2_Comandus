@@ -5,5 +5,6 @@ CREATE TABLE users (
     userName varchar not null,
     email varchar not null unique,
     encryptPassword varchar not null,
-    avatar bytea
+    avatar bytea,
+    userType varchar --not null
 );
