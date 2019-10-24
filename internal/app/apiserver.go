@@ -40,11 +40,8 @@ func newDB(dbURL string) (*sql.DB, error) {
 	}
 
 	// MAX CONNECTIONS
-	db.SetMaxOpenConns(10)
+	db.SetMaxOpenConns(20)
 
-	/*if err := db.Ping(); err != nil {
-		return nil, err
-	}*/
 	if err := createTables(db); err != nil {
 		return nil, err
 	}
@@ -95,5 +92,73 @@ func createTables(db *sql.DB) error {
 		return err
 	}
 
+	jobsQuery := `CREATE TABLE IF NOT EXISTS jobs (
+		id bigserial not null primary key,
+		managerId bigserial not null references managers,
+		title varchar not null,
+		description varchar not null,
+		files varchar,
+		specialityId bigserial,  --references specialities,
+		experienceLevelId bigserial,
+		paymentAmount float8,
+		country varchar,
+		city varchar,
+		jobTypeId bigserial
+	);`
+	if _, err := db.Exec(jobsQuery); err != nil {
+		return err
+	}
+
+	specialitiesQuery := `CREATE TABLE IF NOT EXISTS specialities (
+		id bigserial not null primary key,
+		name varchar
+	);`
+	if _, err := db.Exec(specialitiesQuery); err != nil {
+		return err
+	}
+
+	companiesQuery := `CREATE TABLE IF NOT EXISTS companies (
+		id bigserial not null primary key,
+		name varchar
+	);`
+
+	if _, err := db.Exec(companiesQuery); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func dropAllTables(db *sql.DB) error {
+	query := `DROP TABLE IF EXISTS users;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	query = `DROP TABLE IF EXISTS managers;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	query = `DROP TABLE IF EXISTS freelancers;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	query = `DROP TABLE IF EXISTS jobs;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	query = `DROP TABLE IF EXISTS companies;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	query = `DROP TABLE IF EXISTS specialities;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+	
 	return nil
 }
