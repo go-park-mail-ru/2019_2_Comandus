@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"io"
 	"log"
 	"net/http"
@@ -733,7 +733,6 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 		fileContentType := http.DetectContentType(fileHeader)
 		fileStat, _ := openFile.Stat()
 		fileSize := strconv.FormatInt(fileStat.Size(), 10)
-
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 		w.Header().Set("Content-Type", fileContentType)
 		w.Header().Set("Content-Length", fileSize)
