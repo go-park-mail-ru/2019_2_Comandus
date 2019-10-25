@@ -3,6 +3,7 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"net/http"
 )
@@ -30,7 +31,8 @@ func Start(config *Config) error {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	srv := newServer(sessionStore, store)
 
-	return http.ListenAndServe(config.BindAddr, srv)
+	CSRF := csrf.Protect([]byte("32-byte-long-auth-key"))
+	return http.ListenAndServe(config.BindAddr, CSRF(srv))
 }
 
 func newDB(dbURL string) (*sql.DB, error) {
@@ -159,6 +161,6 @@ func dropAllTables(db *sql.DB) error {
 	if _, err := db.Exec(query); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
