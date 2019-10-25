@@ -26,6 +26,11 @@ func main() {
 	}
 	config.BindAddr = port
 
+	url :=  os.Getenv("DATABASE_URL")
+	if len(url) != 0 {
+		config.DatabaseURL = url
+	}
+
 	if err := apiserver.Start(config); err != nil {
 		log.Fatal(err)
 	}

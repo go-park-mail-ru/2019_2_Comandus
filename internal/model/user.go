@@ -1,12 +1,18 @@
 package model
 
 import (
+	"errors"
 	"github.com/go-ozzo/ozzo-validation/is"
 	//"errors"
 	"golang.org/x/crypto/bcrypt"
 	//"regexp"
 	validation "github.com/go-ozzo/ozzo-validation"
 )
+
+const (
+	userFreelancer = "freelancer"
+	userCustomer   = "client"
+	)
 
 type User struct {
 	ID 				int `json:"id"`
@@ -21,6 +27,10 @@ type User struct {
 }
 
 func (u *User) BeforeCreate() error {
+	if len(u.UserType) == 0 || u.UserType != userFreelancer && u.UserType != userCustomer {
+		u.UserType = userFreelancer
+	}
+
 	if len(u.Password) > 0 {
 		enc, err := EncryptString(u.Password)
 		if err != nil {
@@ -30,6 +40,18 @@ func (u *User) BeforeCreate() error {
 	}
 	u.Password = ""
 	return nil
+}
+
+func (u *User) SetUserType(userType string) error {
+	if userType == userFreelancer || userType == userCustomer {
+		u.UserType = userType
+		return nil
+	}
+	return errors.New("wrong user type")
+}
+
+func (u *User) IsManager() bool {
+	return u.UserType == userCustomer
 }
 
 func (u *User) ComparePassword(password string) bool {

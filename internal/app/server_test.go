@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,7 +19,7 @@ func TestServer_HandleCreateUser(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer truncate()
+	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)
@@ -70,15 +71,15 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer truncate()
+	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)
 
-	/*err := s.addUser2Server(t)
+	err := s.addUser2Server(t)
 	if err != nil {
 		t.Fatal()
-	}*/
+	}
 
 	testCases := []struct {
 		name         string
@@ -121,7 +122,7 @@ func TestServer_AuthenticateUser(t *testing.T) {
 		{
 			name: "authenticated",
 			cookieValue: map[interface{}]interface{}{
-				"user_id": 1,
+				"user_id": 3,
 			},
 			expectedCode: http.StatusOK,
 		},
@@ -136,15 +137,15 @@ func TestServer_AuthenticateUser(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer truncate()
+	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)
 
-	/*err := s.addUser2Server(t)
+	err := s.addUser2Server(t)
 	if err != nil {
 		t.Fail()
-	}*/
+	}
 
 	sc := securecookie.New([]byte(config.SessionKey), nil)
 	mw := s.authenticateUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -194,10 +195,16 @@ func TestServer_HandleSetUserType(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer truncate()
+	defer  truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)
+
+	err := s.addUser2Server(t)
+	if err != nil {
+		log.Println(err)
+		t.Fatal()
+	}
 
 	sc := securecookie.New([]byte(config.SessionKey), nil)
 
@@ -209,7 +216,7 @@ func TestServer_HandleSetUserType(t *testing.T) {
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodPost, "/private/setusertype", b)
 			cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{
-				"user_id": 1,
+				"user_id": 4,
 			})
 			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 			s.ServeHTTP(rec, req)
@@ -240,7 +247,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"jobTypeId,string": "1",
 			},
 			cookie : map[interface{}]interface{}{
-				"user_id":   1,
+				"user_id":   5,
 				"user_type": userCustomer,
 			},
 			expectedCode: http.StatusOK,
@@ -260,7 +267,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 				"jobTypeId,string": "1",
 			},
 			cookie : map[interface{}]interface{}{
-				"user_id":   1,
+				"user_id":   5,
 			},
 			expectedCode: http.StatusInternalServerError,
 			userType: userFreelancer,
@@ -288,10 +295,15 @@ func TestServer_HandleCreateJob(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer truncate("users", "managers", "freelancers", "jobs")
+	defer truncate("users", "freelancers", "jobs")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)
+
+	err := s.addUser2Server(t)
+	if err != nil {
+		t.Fatal()
+	}
 
 	sc := securecookie.New([]byte(config.SessionKey), nil)
 

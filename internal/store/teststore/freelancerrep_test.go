@@ -27,7 +27,7 @@ func TestFreelancerRep_Create(t *testing.T) {
 // TODO: add not found case
 func TestFreelancerRep_Find(t *testing.T) {
 	db, teardown := testStore(t, databaseURL)
-	defer teardown("users", "freelancers")
+	defer teardown("freelancers")
 
 	store := sqlstore.New(db)
 

@@ -9,28 +9,30 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) Create(u *model.User) error {
-	if err := u.Validate(); err != nil {
+	/*if err := u.Validate(); err != nil {
 		return err
 	}
 
 	if err := u.BeforeCreate(); err != nil {
 		return err
-	}
+	}*/
 
 	return r.store.db.QueryRow(
-		"INSERT INTO users (firstName, secondName, username, email, encryptPassword) VALUES ($1, $2, $3, $4, $5) RETURNING accountId",
+		"INSERT INTO users (firstName, secondName, username, email, encryptPassword, userType) " +
+			"VALUES ($1, $2, $3, $4, $5, $6) RETURNING accountId",
 		u.FirstName,
 		u.SecondName,
 		u.UserName,
 		u.Email,
 		u.EncryptPassword,
+		u.UserType,
 	).Scan(&u.ID)
 }
 
 func (r *UserRepository) Find(id int) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT accountId, firstName, secondName, username, email, encryptPassword, avatar FROM users WHERE accountId = $1",
+		"SELECT accountId, firstName, secondName, username, email, '' as password, encryptPassword, avatar, userType FROM users WHERE accountId = $1",
 		id,
 	).Scan(
 		&u.ID,
@@ -38,8 +40,10 @@ func (r *UserRepository) Find(id int) (*model.User, error) {
 		&u.SecondName,
 		&u.UserName,
 		&u.Email,
+		&u.Password,
 		&u.EncryptPassword,
 		&u.Avatar,
+		&u.UserType,
 	); err != nil {
 		return nil, err
 	}
@@ -49,7 +53,7 @@ func (r *UserRepository) Find(id int) (*model.User, error) {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT accountId, firstName, secondName, username, email, encryptPassword, avatar FROM users WHERE email = $1",
+		"SELECT accountId, firstName, secondName, username, email, encryptPassword, avatar, userType FROM users WHERE email = $1",
 		email,
 	).Scan(
 		&u.ID,
@@ -59,6 +63,7 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 		&u.Email,
 		&u.EncryptPassword,
 		&u.Avatar,
+		&u.UserType,
 	); err != nil {
 		return nil, err
 	}

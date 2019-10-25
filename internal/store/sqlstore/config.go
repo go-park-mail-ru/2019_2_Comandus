@@ -1,7 +1,7 @@
 package sqlstore
 
 type Config struct {
-	DatabaseURL string //`toml:"database_url"`
+	DatabaseURL string
 }
 
 func NewConfig() *Config {
