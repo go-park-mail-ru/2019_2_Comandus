@@ -173,20 +173,20 @@ func TestServer_HandleSetUserType(t *testing.T) {
 		{
 			name: "valid customer",
 			payload: map[string]interface{}{
-				"type":    "client",
+				"type": "client",
 			},
 			expectedCode: http.StatusOK,
 		},
 		{
 			name: "valid",
 			payload: map[string]interface{}{
-				"type":    "freelancer",
+				"type": "freelancer",
 			},
 			expectedCode: http.StatusOK,
 		},
 		{
-			name: "invalid params",
-			payload: "invalid",
+			name:         "invalid params",
+			payload:      "invalid",
 			expectedCode: http.StatusBadRequest,
 		},
 	}
@@ -195,7 +195,7 @@ func TestServer_HandleSetUserType(t *testing.T) {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
 	db, truncate := testStore(t, databaseURL)
-	defer  truncate("users", "managers", "freelancers")
+	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
 	s := newServer(sessionStore, store)
@@ -227,67 +227,67 @@ func TestServer_HandleSetUserType(t *testing.T) {
 
 func TestServer_HandleCreateJob(t *testing.T) {
 	testCases := []struct {
-		name         	string
-		payload      	interface{}
-		cookie      	interface{}
-		expectedCode 	int
-		userType		string
+		name         string
+		payload      interface{}
+		cookie       interface{}
+		expectedCode int
+		userType     string
 	}{
 		{
 			name: "correct user",
 			payload: map[string]interface{}{
-				"title": "golang server writing",
-				"description": "write server for fl.ru",
-				"files": "",
-				"specialityId,string": "1",
+				"title":                    "golang server writing",
+				"description":              "write server for fl.ru",
+				"files":                    "",
+				"specialityId,string":      "1",
 				"experienceLevelId,string": "1",
-				"paymentAmount,string": "23000.34",
-				"country": "Russia",
-				"city": "Moscow",
-				"jobTypeId,string": "1",
+				"paymentAmount,string":     "23000.34",
+				"country":                  "Russia",
+				"city":                     "Moscow",
+				"jobTypeId,string":         "1",
 			},
-			cookie : map[interface{}]interface{}{
+			cookie: map[interface{}]interface{}{
 				"user_id":   5,
 				"user_type": userCustomer,
 			},
 			expectedCode: http.StatusOK,
-			userType: userCustomer,
+			userType:     userCustomer,
 		},
 		{
 			name: "user without user type",
 			payload: map[string]interface{}{
-				"title": "golang server writing",
-				"description": "write server for fl.ru",
-				"files": "",
-				"specialityId,string": "1",
+				"title":                    "golang server writing",
+				"description":              "write server for fl.ru",
+				"files":                    "",
+				"specialityId,string":      "1",
 				"experienceLevelId,string": "1",
-				"paymentAmount,string": "23000.34",
-				"country": "Russia",
-				"city": "Moscow",
-				"jobTypeId,string": "1",
+				"paymentAmount,string":     "23000.34",
+				"country":                  "Russia",
+				"city":                     "Moscow",
+				"jobTypeId,string":         "1",
 			},
-			cookie : map[interface{}]interface{}{
-				"user_id":   5,
+			cookie: map[interface{}]interface{}{
+				"user_id": 5,
 			},
 			expectedCode: http.StatusInternalServerError,
-			userType: userFreelancer,
+			userType:     userFreelancer,
 		},
 		{
 			name: "not auth user",
 			payload: map[string]interface{}{
-				"title": "golang server writing",
-				"description": "write server for fl.ru",
-				"files": "",
-				"specialityId,string": "1",
+				"title":                    "golang server writing",
+				"description":              "write server for fl.ru",
+				"files":                    "",
+				"specialityId,string":      "1",
 				"experienceLevelId,string": "1",
-				"paymentAmount,string": "23000.34",
-				"country": "Russia",
-				"city": "Moscow",
-				"jobTypeId,string": "1",
+				"paymentAmount,string":     "23000.34",
+				"country":                  "Russia",
+				"city":                     "Moscow",
+				"jobTypeId,string":         "1",
 			},
-			cookie : "nil",
+			cookie:       "nil",
 			expectedCode: http.StatusUnauthorized,
-			userType: "",
+			userType:     "",
 		},
 	}
 

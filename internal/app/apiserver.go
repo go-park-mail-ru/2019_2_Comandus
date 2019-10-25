@@ -63,7 +63,6 @@ func createTables(db *sql.DB) error {
 		return err
 	}
 
-
 	managersQuery := `CREATE TABLE IF NOT EXISTS managers (
 		id bigserial not null primary key,
 		accountId bigserial references users,
@@ -159,6 +158,6 @@ func dropAllTables(db *sql.DB) error {
 	if _, err := db.Exec(query); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
