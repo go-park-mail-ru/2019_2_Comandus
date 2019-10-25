@@ -15,8 +15,6 @@ type ctxKey int8
 const (
 	ctxKeyUser ctxKey = iota
 	sessionName                    = "user-session"
-	userFreelancer                 = "freelancer"
-	userCustomer                   = "client"
 	userTypeCookieName             = "user_type"
 	hireManagerIdCookieName        = "hire-manager-id"
 )
@@ -32,7 +30,6 @@ type server struct {
 	usersdb      *model.UsersDB
 	sessionStore sessions.Store
 	config       *Config
-	userType     string
 	clientUrl 	 string
 }
 
@@ -57,8 +54,9 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost, http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost , http.MethodOptions)
 	s.mux.Use(s.CORSMiddleware)
+
 	// only for authenticated users
-	private := s.mux.PathPrefix("/private").Subrouter()
+	private := s.mux.PathPrefix("").Subrouter()
 	private.Use(s.authenticateUser)
 	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet, http.MethodOptions)

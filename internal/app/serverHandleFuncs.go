@@ -34,10 +34,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.userType = user.UserType
-	if s.userType != userFreelancer && s.userType != userCustomer {
-		s.userType = userFreelancer
-	}
 	fmt.Println(user)
 
 	if err := user.Validate(); err != nil {
@@ -95,18 +91,15 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	session.Values["user_id"] = user.ID
-	session.Values["user_type"] = s.userType
 
 	if err := s.sessionStore.Save(r, w, session); err != nil {
 		s.error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	// TODO: rename cookie2
-	cookie := http.Cookie{Name: userTypeCookieName, Value: s.userType}
-	cookie2 := http.Cookie{Name: hireManagerIdCookieName, Value: strconv.Itoa(1)} // m.Id
+	// TODO: why we need manager cookie?
+	cookie := http.Cookie{Name: hireManagerIdCookieName, Value: strconv.Itoa(1)} // m.Id
 	http.SetCookie(w, &cookie)
-	http.SetCookie(w, &cookie2)
 
 	s.respond(w, r, http.StatusCreated, user)
 }
@@ -173,13 +166,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.userType == "" {
-		s.userType = userFreelancer
-	}
-
 	session.Values["user_id"] = u.ID
-	session.Values["user_type"] = s.userType
-
 	if err := s.sessionStore.Save(r, w, session); err != nil {
 		s.error(w, r, http.StatusInternalServerError, err)
 		return
@@ -226,9 +213,27 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if newInput.UserType != userCustomer && newInput.UserType != userFreelancer {
-		s.error(w, r, http.StatusBadRequest, errors.New("user type may be only customer or freelancer"))
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		s.error(w, r, codeStatus, err)
+		return
 	}
+
+	err = user.SetUserType(newInput.UserType)
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	s.store.Mu.Lock()
+	err = s.store.User().Edit(user)
+	s.store.Mu.Unlock()
+
+	if err != nil {
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
 
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
@@ -236,14 +241,10 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: delete cookie or not
-	session.Values["user_type"] = newInput.UserType
-
-	s.userType = newInput.UserType
-
 	err = session.Save(r, w)
 	if err != nil {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
 	}
 }
 
@@ -589,7 +590,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.userType != userCustomer {
+	if !user.IsManager() {
 		s.error(w, r, http.StatusInternalServerError, errors.New("current user is not a manager"))
 		return
 	}
