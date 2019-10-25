@@ -2,11 +2,9 @@ package model
 
 import (
 	"errors"
-	"github.com/go-ozzo/ozzo-validation/is"
-	//"errors"
-	"golang.org/x/crypto/bcrypt"
-	//"regexp"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
