@@ -18,7 +18,6 @@ import (
 
 func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
@@ -115,8 +114,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) authenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
 			s.error(w, r, http.StatusUnauthorized, err)
@@ -141,7 +138,6 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 }
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Content-Type", "application/json")
 
 	defer func() {
@@ -189,8 +185,6 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleLogout<-sessionGet:")
@@ -269,7 +263,6 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Content-Type", "application/json")
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
@@ -282,7 +275,6 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Content-Type", "application/json")
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
@@ -551,8 +543,6 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleRoles<-GetUserFromRequest:")
@@ -600,13 +590,14 @@ func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) 
 	// TODO: check seq question
 }
 
-func (s *server) CORSMiddleware(next http.Handler) http.Handler {
+func (s *server)CORSMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
-			s.respond(w, r, http.StatusOK, nil)
+		w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
+		if r.Method == http.MethodOptions{
+			s.respond(w , r , http.StatusOK, nil)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -690,7 +681,6 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
@@ -732,7 +722,6 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
@@ -753,7 +742,6 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 
 	vars := mux.Vars(r)
 	ids := vars["id"]
