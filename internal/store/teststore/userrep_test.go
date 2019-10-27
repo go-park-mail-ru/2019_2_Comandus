@@ -2,6 +2,7 @@ package teststore
 
 import (
 	"fmt"
+	"github.com/DATA-DOG/go-sqlmock"
 	//"database/sql"
 	//"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -11,7 +12,6 @@ import (
 	//"net/http/httptest"
 	"reflect"
 	"testing"
-	"github.com/DATA-DOG/go-sqlmock"
 )
 
 func testUser(t *testing.T) *model.User {
