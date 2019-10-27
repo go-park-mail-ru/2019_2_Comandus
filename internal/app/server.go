@@ -2,18 +2,19 @@ package apiserver
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 type ctxKey int8
 
 const (
-	ctxKeyUser ctxKey = iota
+	ctxKeyUser              ctxKey = iota
 	sessionName                    = "user-session"
 	userTypeCookieName             = "user_type"
 	hireManagerIdCookieName        = "hire-manager-id"
@@ -25,21 +26,23 @@ var (
 )
 
 type server struct {
-	mux *mux.Router
+	mux          *mux.Router
 	store        *sqlstore.Store
 	usersdb      *model.UsersDB
 	sessionStore sessions.Store
 	config       *Config
-	clientUrl 	 string
+	Logger    	 *zap.SugaredLogger
+	clientUrl    string
 }
 
-func newServer(sessionStore sessions.Store, store *sqlstore.Store) *server {
+func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.SugaredLogger) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		usersdb:      model.NewUsersDB(),
 		sessionStore: sessionStore,
-		clientUrl: 	"https://comandus.now.sh",
-		store: store,
+		Logger:		  logger,
+		clientUrl:    "https://comandus.now.sh",
+		store:        store,
 	}
 	s.ConfigureServer()
 	return s
@@ -52,8 +55,8 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/", s.HandleMain)
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost, http.MethodOptions)
-	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost , http.MethodOptions)
-	s.mux.Use(s.CORSMiddleware)
+	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost, http.MethodOptions)
+	s.mux.Use(s.RequestIDMiddleware, s.CORSMiddleware, s.AccessLogMiddleware)
 
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
@@ -80,13 +83,16 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 }
 
-func (s * server) HandleMain(w http.ResponseWriter, r *http.Request) {
-	s.respond(w,r,http.StatusOK, "hello from server")
+func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {
+	s.respond(w, r, http.StatusOK, "hello from server")
 }
 
-// error handlers
+// error handler
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
-	s.respond(w, r, code, map[string]string{"error": err.Error()})
+	ctx := r.Context()
+	reqID := ctx.Value("rIDKey").(string)
+	s.Logger.Infof("Request ID: %s | error : %s", reqID , err.Error())
+	s.respond(w, r, code, map[string]string{"error": errors.Cause(err).Error()})
 }
 
 func (s *server) respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {

@@ -51,29 +51,29 @@ func testUser(t *testing.T) *model.User {
 	}
 }
 
-func testFreelancer(t *testing.T, user * model.User) *model.Freelancer {
+func testFreelancer(t *testing.T, user *model.User) *model.Freelancer {
 	t.Helper()
 	return &model.Freelancer{
-		AccountId:         	user.ID,
-		RegistrationDate:  	time.Now(),
-		Country:			"Russia",
-		City:        		"Moscow",
-		Address:      		"my address",
-		Phone:         		"my phone",
-		Overview:       	"overview",
+		AccountId:        user.ID,
+		RegistrationDate: time.Now(),
+		Country:          "Russia",
+		City:             "Moscow",
+		Address:          "my address",
+		Phone:            "my phone",
+		Overview:         "overview",
 	}
 }
 
-func testManager(t *testing.T, user * model.User) *model.HireManager {
+func testManager(t *testing.T, user *model.User) *model.HireManager {
 	t.Helper()
 	return &model.HireManager{
-		AccountID: 			user.ID,
-		RegistrationDate:	time.Now(),
-		Location:			"Moscow",
+		AccountID:        user.ID,
+		RegistrationDate: time.Now(),
+		Location:         "Moscow",
 	}
 }
 
-func (s * server) addUser2Server(t *testing.T) error{
+func (s *server) addUser2Server(t *testing.T) error {
 	t.Helper()
 
 	u := testUser(t)
@@ -99,7 +99,7 @@ func (s * server) addUser2Server(t *testing.T) error{
 	return nil
 }
 
-func (s * server) addJob2Server(t *testing.T) {
+func (s *server) addJob2Server(t *testing.T) {
 	t.Helper()
 
 	/*j := model.Job{
