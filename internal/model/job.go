@@ -13,3 +13,10 @@ type Job struct {
 	City              string  `json:"city"`
 	JobTypeId         int     `json:"jobTypeId,string"`
 }
+
+//curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "USANews", "description" : "bbbbbbb",
+//"country" : "USA"}'
+// curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "RussianNews", "description" : "aaaaaaa",
+// "country" : "russia"}'
+// curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "ArmeniaNews", "description" : "armyDeth",
+// "country" : "armenia"}'

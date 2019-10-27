@@ -260,6 +260,7 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
 		return
 	}
+	s.respond(w, r, http.StatusOK,user.UserType)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
