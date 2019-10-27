@@ -3,8 +3,9 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
-	"github.com/gorilla/csrf"
+	//"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -20,19 +21,23 @@ func (w *responseWriter) WriteHeader(statusCode int) {
 }
 
 func Start(config *Config) error {
+	zapLogger, _ := zap.NewProduction()
+	sugaredLogger := zapLogger.Sugar()
 	db, err := newDB(config.DatabaseURL)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
+	defer zapLogger.Sync()
 
 	store := sqlstore.New(db)
 
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	srv := newServer(sessionStore, store)
+	srv := newServer(sessionStore, store, sugaredLogger)
 
-	CSRF := csrf.Protect([]byte("32-byte-long-auth-key"))
-	return http.ListenAndServe(config.BindAddr, CSRF(srv))
+	//CSRF := csrf.Protect([]byte("32-byte-long-auth-key"))
+	//return http.ListenAndServe(config.BindAddr, CSRF(srv))
+	return http.ListenAndServe(config.BindAddr, srv)
 }
 
 func newDB(dbURL string) (*sql.DB, error) {

@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -30,14 +31,16 @@ type server struct {
 	usersdb      *model.UsersDB
 	sessionStore sessions.Store
 	config       *Config
+	Logger    	 *zap.SugaredLogger
 	clientUrl    string
 }
 
-func newServer(sessionStore sessions.Store, store *sqlstore.Store) *server {
+func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.SugaredLogger) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		usersdb:      model.NewUsersDB(),
 		sessionStore: sessionStore,
+		Logger:		  logger,
 		clientUrl:    "https://comandus.now.sh",
 		store:        store,
 	}
@@ -53,7 +56,7 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/", s.HandleMain)
 	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost, http.MethodOptions)
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost, http.MethodOptions)
-	s.mux.Use(s.CORSMiddleware)
+	s.mux.Use(s.RequestIDMiddleware, s.CORSMiddleware, s.AccessLogMiddleware)
 
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
@@ -86,6 +89,9 @@ func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {
 
 // error handler
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
+	ctx := r.Context()
+	reqID := ctx.Value("rIDKey").(string)
+	s.Logger.Infof("Request ID: %s | error : %s", reqID , err.Error())
 	s.respond(w, r, code, map[string]string{"error": errors.Cause(err).Error()})
 }
 
