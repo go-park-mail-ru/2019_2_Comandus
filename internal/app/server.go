@@ -80,6 +80,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/jobs", s.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/freelancer", s.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 }

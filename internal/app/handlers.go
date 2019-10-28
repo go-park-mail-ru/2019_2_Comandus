@@ -260,7 +260,7 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
 		return
 	}
-	s.respond(w, r, http.StatusOK,user.UserType)
+	s.respond(w, r, http.StatusOK, user.UserType)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
@@ -819,3 +819,34 @@ func (s *server) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, &jobs)
 }
 
+func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	decoder := json.NewDecoder(r.Body)
+	inputJob := new(model.Job)
+	err := decoder.Decode(inputJob)
+
+	// Validate Job
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id): ")
+		s.error(w, r, http.StatusBadRequest, err)
+	}
+
+	job, err := s.store.Job().Find(id)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
+		s.error(w, r, http.StatusNotFound, err)
+	}
+	inputJob.ID = job.ID
+	inputJob.HireManagerId = job.HireManagerId
+	err = s.store.Job().Edit(inputJob)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditProfile<-JobEdit")
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
+	s.respond(w, r, http.StatusOK, struct {}{})
+}
