@@ -3,7 +3,6 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
 	"net/http"
@@ -35,8 +34,10 @@ func Start(config *Config) error {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	srv := newServer(sessionStore, store, sugaredLogger)
 
-	CSRF := csrf.Protect([]byte("32-byte-long-auth-key"))
-	return http.ListenAndServe(config.BindAddr, CSRF(srv))
+	//CSRF := csrf.Protect([]byte("32-byte-long-auth-key"))
+	//return http.ListenAndServe(config.BindAddr, CSRF(srv))
+	return http.ListenAndServe(config.BindAddr, srv)
+
 }
 
 func newDB(dbURL string) (*sql.DB, error) {

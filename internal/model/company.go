@@ -1,14 +1,14 @@
 package model
 
 type Company struct {
-	ID			int    `json:"id"`
-	CompanyName string `json:"companyName"`
-	Site 		string `json:"site"`
-	TagLine 	string `json:"tagline"`
-	Description string `json:"description"`
-	Country 	string `json:"country"`
-	City 		string `json:"city"`
-	Address 	string `json:"address"`
-	Phone 		string `json:"phone"`
+	ID			int    `json:"id" valid:"int , optional"`
+	CompanyName string `json:"companyName" valid:"utfletternum, required"`
+	Site 		string `json:"site" valid:"url"`
+	TagLine 	string `json:"tagline" valid:"- , optional"`
+	Description string `json:"description" valid:"-"`
+	Country 	string `json:"country" valid:"utfletter"`
+	City 		string `json:"city" valid:"utfletter"`
+	Address 	string `json:"address" valid:"-"`
+	Phone 		string `json:"phone" valid:"- , optional"`
 }
 

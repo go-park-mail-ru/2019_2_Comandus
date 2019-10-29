@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -37,8 +38,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(user)
 
-	if err := user.Validate(); err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-Validate:")
+	if 	_, err = govalidator.ValidateStruct(user); err != nil {
+		err = errors.Wrapf(err, "HandleCreateUser<-ValidateStruct:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}

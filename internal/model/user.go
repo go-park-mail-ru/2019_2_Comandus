@@ -13,15 +13,15 @@ const (
 	)
 
 type User struct {
-	ID 				int64 `json:"id"`
-	FirstName 		string `json:"firstName"`
-	SecondName 		string `json:"secondName"`
-	UserName     	string `json:"username"`
-	Email 			string `json:"email"`
-	Password		string `json:"password"`
-	EncryptPassword string `json:"-"`
-	Avatar 			[]byte `json:"-"`
-	UserType 		string `json:"type"`
+	ID 				int64 `json:"id" valid:"int, optional"`
+	FirstName 		string `json:"firstName" valid:"utfletter, required"`
+	SecondName 		string `json:"secondName" valid:"utfletter"`
+	UserName     	string `json:"username" valid:"alphanum"`
+	Email 			string `json:"email" valid:"email"`
+	Password		string `json:"password" valid:"-"`
+	EncryptPassword string `json:"-" valid:"-"`
+	Avatar 			[]byte `json:"-" valid:"-"`
+	UserType 		string `json:"type" valid:"in(client|freelancer)"`
 }
 
 func (u *User) BeforeCreate() error {
