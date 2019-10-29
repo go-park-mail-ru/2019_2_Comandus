@@ -9,7 +9,7 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) Create(u *model.User) error {
-	return r.store.db.QueryRow(
+	result, err := r.store.db.Exec(
 		"INSERT INTO users (firstName, secondName, username, email, encryptPassword, userType) " +
 			"VALUES ($1, $2, $3, $4, $5, $6) RETURNING accountId",
 		u.FirstName,
@@ -18,7 +18,12 @@ func (r *UserRepository) Create(u *model.User) error {
 		u.Email,
 		u.EncryptPassword,
 		u.UserType,
-	).Scan(&u.ID)
+	)
+	n, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	return n, err
 }
 
 func (r *UserRepository) Find(id int) (*model.User, error) {
