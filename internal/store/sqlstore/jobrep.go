@@ -6,8 +6,8 @@ type JobRepository struct {
 	store *Store
 }
 
-func (r *JobRepository) Create(j *model.Job, m *model.HireManager) error {
-	return r.store.db.QueryRow(
+func (r *JobRepository) Create(j *model.Job, m *model.HireManager) (int64, error) {
+	result, err := r.store.db.Exec(
 		"INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 			"country, city, jobTypeId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
 		m.ID,
@@ -20,10 +20,14 @@ func (r *JobRepository) Create(j *model.Job, m *model.HireManager) error {
 		j.Country,
 		j.City,
 		j.JobTypeId,
-	).Scan(&j.ID)
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-func (r *JobRepository) Find(id int) (*model.Job, error) {
+func (r *JobRepository) Find(id int64) (*model.Job, error) {
 	j := &model.Job{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
@@ -68,8 +72,8 @@ func (r *JobRepository) GetAllJobs() ([]model.Job, error) {
 	return jobs, nil
 }
 
-func (r *JobRepository) Edit(j *model.Job) error {
-	return r.store.db.QueryRow("UPDATE jobs SET title = $1, description = $2, files = $3, " +
+func (r *JobRepository) Edit(j *model.Job) (int64, error) {
+	result, err := r.store.db.Exec("UPDATE jobs SET title = $1, description = $2, files = $3, " +
 		"specialityId = $4, experienceLevelId = $5, paymentAmount = $6, country = $7, city = $8, " +
 		"jobTypeId = $9 WHERE id = $10 RETURNING id",
 		j.Title,
@@ -82,6 +86,10 @@ func (r *JobRepository) Edit(j *model.Job) error {
 		j.City,
 		j.JobTypeId,
 		j.ID,
-	).Scan(&j.ID)
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 

@@ -19,11 +19,11 @@ func (r *UserRepository) Create(u *model.User) (int64, error) {
 		u.EncryptPassword,
 		u.UserType,
 	)
-	n, err := result.LastInsertId()
+
 	if err != nil {
 		return 0, err
 	}
-	return n, err
+	return result.LastInsertId()
 }
 
 func (r *UserRepository) Find(id int) (*model.User, error) {
@@ -68,8 +68,8 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 }
 
 //TODO: validate user
-func (r *UserRepository) Edit(u * model.User) error {
-	return r.store.db.QueryRow("UPDATE users SET firstName = $1, secondName = $2, userName = $3, " +
+func (r *UserRepository) Edit(u * model.User) (int64, error) {
+	result, err := r.store.db.Exec("UPDATE users SET firstName = $1, secondName = $2, userName = $3, " +
 		"encryptPassword = $4, avatar = $5, usertype = $6 WHERE accountId = $7 RETURNING accountId",
 		u.FirstName,
 		u.SecondName,
@@ -78,5 +78,10 @@ func (r *UserRepository) Edit(u * model.User) error {
 		u.Avatar,
 		u.UserType,
 		u.ID,
-	).Scan(&u.ID)
+	)
+
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }

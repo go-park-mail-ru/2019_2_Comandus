@@ -67,9 +67,10 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.Mu.Lock()
-	err = s.store.Freelancer().Create(&f)
+	lastId, err := s.store.Freelancer().Create(&f)
 	s.store.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateFreelancer:")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -82,9 +83,10 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	//Здесь нужны Мьютексы ?
 	s.store.Mu.Lock()
-	err = s.store.Manager().Create(&m)
+	lastId, err = s.store.Manager().Create(&m)
 	s.store.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateManager:")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -238,9 +240,10 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.Mu.Lock()
-	err = s.store.User().Edit(user)
+	lastId, err := s.store.User().Edit(user)
 	s.store.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSetUserType<-sessionEdit:")
 		s.error(w, r, http.StatusBadRequest, err)
@@ -304,9 +307,10 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.Mu.Lock()
-	err = s.store.User().Edit(user)
+	lastId, err := s.store.User().Edit(user)
 	s.store.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-userEdit")
 		s.error(w, r, http.StatusUnprocessableEntity, err)
@@ -365,9 +369,10 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	user.EncryptPassword = newEncryptPassword
 
 	s.store.Mu.Lock()
-	err = s.store.User().Edit(user)
+	lastId, err := s.store.User().Edit(user)
 	s.store.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditPassword<-userEdit:")
 		s.error(w, r, http.StatusUnprocessableEntity, err)
@@ -464,9 +469,10 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	user.Avatar = image.Bytes()
 
 	//s.store.Mu.Lock()
-	err = s.store.User().Edit(user)
+	lastId, err := s.store.User().Edit(user)
 	//s.usersdb.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-userEdit:")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -551,14 +557,14 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hireManager, err := s.store.Manager().FindByUser(user.ID)
+	_, err = s.store.Manager().FindByUser(user.ID)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleRoles<-ManagerFind:")
 		s.error(w, r, http.StatusNotFound, err)
 	}
 
 	// TODO: rewrite after Roles and Companies db interfaces realization
-	company := s.usersdb.Companies[hireManager.ID]
+	/*company := s.usersdb.Companies[hireManager.ID]
 	var roles []*model.Role
 	clientRole := &model.Role{
 		Role:   "client",
@@ -572,7 +578,7 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	}
 	roles = append(roles, clientRole)
 	roles = append(roles, freelanceRole)
-	s.respond(w, r, http.StatusOK, roles)
+	s.respond(w, r, http.StatusOK, roles)*/
 }
 
 func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
@@ -634,9 +640,10 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.Mu.Lock()
-	err = s.store.Job().Create(job, manager)
+	lastId, err := s.store.Job().Create(job, manager)
 	s.store.Mu.Unlock()
 
+	log.Println(lastId)
 	if err != nil {
 		log.Println("fail create job", err)
 		err = errors.Wrapf(err, "HandleCreateJob<-Create: ")
@@ -657,7 +664,7 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, err)
 	}
 
-	job, err := s.store.Job().Find(id)
+	job, err := s.store.Job().Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
@@ -699,7 +706,8 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	}
 	// TODO: validate freelancer
 
-	err = s.store.Freelancer().Edit(freelancer)
+	lastId, err := s.store.Freelancer().Edit(freelancer)
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -719,7 +727,7 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, err)
 	}
 
-	freelancer, err := s.store.Freelancer().Find(id)
+	freelancer, err := s.store.Freelancer().Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
@@ -835,14 +843,15 @@ func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, err)
 	}
 
-	job, err := s.store.Job().Find(id)
+	job, err := s.store.Job().Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
 	}
 	inputJob.ID = job.ID
 	inputJob.HireManagerId = job.HireManagerId
-	err = s.store.Job().Edit(inputJob)
+	lastId, err := s.store.Job().Edit(inputJob)
+	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-JobEdit")
 		s.error(w, r, http.StatusUnprocessableEntity, err)

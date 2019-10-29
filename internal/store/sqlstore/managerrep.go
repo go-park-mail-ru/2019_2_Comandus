@@ -17,18 +17,22 @@ type HireManager struct {
 	CompanyID			int 		`json:"companyId"`
 }
 
-func (r *ManagerRepository) Create(m *model.HireManager) error {
-	return r.store.db.QueryRow(
+func (r *ManagerRepository) Create(m *model.HireManager) (int64, error) {
+	result, err := r.store.db.Exec(
 		"INSERT INTO managers (accountId, registrationDate, location, companyId) " +
 			"VALUES ($1, $2, $3, $4) RETURNING id",
 		m.AccountID,
 		m.RegistrationDate,
 		m.Location,
 		m.CompanyID,
-	).Scan(&m.ID)
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-func (r *ManagerRepository) Find(id int) (*model.HireManager, error) {
+func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
 	m := &model.HireManager{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE id = $1",
@@ -62,11 +66,17 @@ func (r *ManagerRepository) FindByUser(accountId int64) (*model.HireManager, err
 	return m, nil
 }
 
-func (r *ManagerRepository) Edit(m * model.HireManager) error {
-	return r.store.db.QueryRow("UPDATE managers SET location = $1, companyId = $2 WHERE id = $3 RETURNING id",
+func (r *ManagerRepository) Edit(m * model.HireManager) (int64, error) {
+	result, err := r.store.db.Exec(
+		"UPDATE managers SET location = $1, companyId = $2 WHERE id = $3 RETURNING id",
 		m.Location,
 		m.CompanyID,
 		m.ID,
-	).Scan(&m.ID)
+	)
+
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 

@@ -86,13 +86,15 @@ func (s *server) addUser2Server(t *testing.T) error {
 	log.Println("ID: ", u.ID)
 
 	m := testManager(t, u)
-	err = s.store.Manager().Create(m)
+	lastId, err := s.store.Manager().Create(m)
+	log.Println(lastId)
 	if err != nil {
 		return err
 	}
 
 	f := testFreelancer(t, u)
-	err = s.store.Freelancer().Create(f)
+	lastId, err = s.store.Freelancer().Create(f)
+	log.Println(lastId)
 	if err != nil {
 		return err
 	}
