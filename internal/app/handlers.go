@@ -35,7 +35,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(user)
+	//fmt.Println(user)
 
 	if err := user.Validate(); err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-Validate:")
@@ -260,6 +260,8 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
 		return
 	}
+
+	log.Println(user)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
@@ -386,9 +388,9 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	uidInterface := session.Values["user_id"]
 	uid := uidInterface.(int)
 
-	s.store.Mu.Lock()
+	//s.store.Mu.Lock()
 	user, err := s.store.User().Find(uid)
-	s.store.Mu.Unlock()
+	//s.store.Mu.Unlock()
 
 	if err != nil {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
@@ -462,9 +464,9 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Avatar = image.Bytes()
 
-	s.store.Mu.Lock()
+	//s.store.Mu.Lock()
 	err = s.store.User().Edit(user)
-	s.usersdb.Mu.Unlock()
+	//s.usersdb.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-userEdit:")
@@ -550,19 +552,32 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hireManager, err := s.store.Manager().Find(user.ID)
+	_, err = s.store.Manager().FindByUser(user.ID)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleRoles<-ManagerFind:")
 		s.error(w, r, http.StatusNotFound, err)
 	}
 
 	// TODO: rewrite after Roles and Companies db interfaces realization
-	company := s.usersdb.Companies[hireManager.ID]
+
+	//company := s.usersdb.Companies[hireManager.ID]
+
+	company := model.Company{
+		ID:          0,
+		CompanyName: "default company",
+		Site:        "company.ru",
+		Description: "default company",
+		Country:     "Russia",
+		City:        "Moscow",
+		Address:     "Red square street",
+		Phone:       "88888888888",
+	}
+
 	var roles []*model.Role
 	clientRole := &model.Role{
 		Role:   "client",
 		Label:  company.CompanyName,
-		Avatar: "/default.png",
+		Avatar: "../store//default.png",
 	}
 	freelanceRole := &model.Role{
 		Role:   "freelancer",
@@ -573,6 +588,38 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	roles = append(roles, freelanceRole)
 	s.respond(w, r, http.StatusOK, roles)
 }
+
+//func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
+//	user, err, codeStatus := s.GetUserFromRequest(r)
+//	if err != nil {
+//		err = errors.Wrapf(err, "HandleRoles<-GetUserFromRequest:")
+//		s.error(w, r, codeStatus, err)
+//		return
+//	}
+//
+//	hireManager, err := s.store.Manager().Find(user.ID)
+//	if err != nil {
+//		err = errors.Wrapf(err, "HandleRoles<-ManagerFind:")
+//		s.error(w, r, http.StatusNotFound, err)
+//	}
+//
+//	// TODO: rewrite after Roles and Companies db interfaces realization
+//	company := s.usersdb.Companies[hireManager.ID]
+//	var roles []*model.Role
+//	clientRole := &model.Role{
+//		Role:   "client",
+//		Label:  company.CompanyName,
+//		Avatar: "/default.png",
+//	}
+//	freelanceRole := &model.Role{
+//		Role:   "freelancer",
+//		Label:  user.FirstName + " " + user.SecondName,
+//		Avatar: "/default.png",
+//	}
+//	roles = append(roles, clientRole)
+//	roles = append(roles, freelanceRole)
+//	s.respond(w, r, http.StatusOK, roles)
+//}
 
 func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
 	// TODO: get auth history
@@ -616,11 +663,13 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !user.IsManager() {
+	log.Println(user.UserType)
+
+	/*if !user.IsManager() {
 		err = errors.New("HandleCreateJob:current user is not a manager : ")
 		s.error(w, r, http.StatusInternalServerError, err)
 		return
-	}
+	}*/
 
 	s.store.Mu.Lock()
 	manager, err := s.store.Manager().FindByUser(user.ID)
@@ -804,4 +853,3 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
-

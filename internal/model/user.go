@@ -5,23 +5,24 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 )
 
 const (
 	userFreelancer = "freelancer"
 	userCustomer   = "client"
-	)
+)
 
 type User struct {
-	ID 				int `json:"id"`
-	FirstName 		string `json:"firstName"`
-	SecondName 		string `json:"secondName"`
-	UserName     	string `json:"username"`
-	Email 			string `json:"email"`
-	Password		string `json:"password"`
+	ID              int    `json:"id"`
+	FirstName       string `json:"firstName"`
+	SecondName      string `json:"secondName"`
+	UserName        string `json:"username"`
+	Email           string `json:"email"`
+	Password        string `json:"password"`
 	EncryptPassword string `json:"-"`
-	Avatar 			[]byte `json:"-"`
-	UserType 		string `json:"type"`
+	Avatar          []byte `json:"-"`
+	UserType        string `json:"type"`
 }
 
 func (u *User) BeforeCreate() error {
@@ -42,6 +43,7 @@ func (u *User) BeforeCreate() error {
 
 func (u *User) SetUserType(userType string) error {
 	if userType == userFreelancer || userType == userCustomer {
+		log.Println(userType)
 		u.UserType = userType
 		return nil
 	}
@@ -80,4 +82,3 @@ func requiredIf(cond bool) validation.RuleFunc {
 		return nil
 	}
 }
-

@@ -31,7 +31,7 @@ type server struct {
 	usersdb      *model.UsersDB
 	sessionStore sessions.Store
 	config       *Config
-	Logger    	 *zap.SugaredLogger
+	Logger       *zap.SugaredLogger
 	clientUrl    string
 }
 
@@ -40,9 +40,10 @@ func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.S
 		mux:          mux.NewRouter(),
 		usersdb:      model.NewUsersDB(),
 		sessionStore: sessionStore,
-		Logger:		  logger,
-		clientUrl:    "https://comandus.now.sh",
-		store:        store,
+		Logger:       logger,
+		//clientUrl:    "https://comandus.now.sh",
+		clientUrl: "http://127.0.0.1:9000",
+		store:     store,
 	}
 	s.ConfigureServer()
 	return s
@@ -91,7 +92,7 @@ func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
 	ctx := r.Context()
 	reqID := ctx.Value("rIDKey").(string)
-	s.Logger.Infof("Request ID: %s | error : %s", reqID , err.Error())
+	s.Logger.Infof("Request ID: %s | error : %s", reqID, err.Error())
 	s.respond(w, r, code, map[string]string{"error": errors.Cause(err).Error()})
 }
 
