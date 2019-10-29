@@ -1,0 +1,4 @@
+apiserver
+.idea
+!/internal/store/avatars/default.png
+!.gitignore
