@@ -30,16 +30,6 @@ func testUser(t *testing.T) *model.User {
 }
 
 func TestUserRepository_Create(t *testing.T) {
-	/*db, teardown := testStore(t, databaseURL)
-	defer teardown("users")
-
-	store := sqlstore.New(db)
-
-	u := testUser(t)
-	u.Email = "userrep1@example.org"
-	assert.NoError(t, store.User().Create(u))
-	assert.NotNil(t, u)*/
-
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
@@ -47,7 +37,6 @@ func TestUserRepository_Create(t *testing.T) {
 	defer db.Close()
 
 	store := sqlstore.New(db)
-	//repo := store.User()
 
 	u := testUser(t)
 	if err := u.Validate(); err != nil {
@@ -58,46 +47,35 @@ func TestUserRepository_Create(t *testing.T) {
 		t.Fatal()
 	}
 
-
-	firstName := u.FirstName
-	secondName := u.SecondName
-	username := u.UserName
-	email := u.Email
-	encryptPassword := u.EncryptPassword
-	userType := u.UserType
-
 	//ok query
 	mock.
-		//ExpectExec(`INSERT INTO users\\(firstName, secondName, username, email, encryptPassword, userType)\\`).
 		ExpectExec(`INSERT INTO users`).
-		WithArgs(firstName, secondName, username, email, encryptPassword, userType).
-		WillReturnError(nil)
-		//WillReturnResult(sqlmock.NewResult(0,0))
-		//WillReturnError(nil)
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
+		WillReturnResult(sqlmock.NewResult(1,1))
 
-	err = store.User().Create(u)
+	lastId, err := store.User().Create(u)
 
-	fmt.Println(u)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
-	/*if id != 1 {
-		t.Errorf("bad id: want %v, have %v", id, 1)
+
+	if lastId != 1 {
+		t.Errorf("bad id: want %v, have %v", lastId, 1)
 		return
-	}*/
+	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 
 	// query error
-	/*mock.
-		ExpectExec(`INSERT INTO items`).
-		WithArgs(title, descr).
+	mock.
+		ExpectExec(`INSERT INTO users`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	_, err = repo.Create(testItem)
+	_, err = store.User().Create(u)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -108,33 +86,18 @@ func TestUserRepository_Create(t *testing.T) {
 
 	// result error
 	mock.
-		ExpectExec(`INSERT INTO items`).
-		WithArgs(title, descr).
+		ExpectExec(`INSERT INTO users`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
 		WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("bad_result")))
 
-	_, err = repo.Create(testItem)
+	_, err = store.User().Create(u)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
-	}*/
-
-	// // last id error
-	// mock.
-	// 	ExpectExec(`INSERT INTO items`).
-	// 	WithArgs(title, descr).
-	// 	WillReturnResult(sqlmock.NewResult(0, 0))
-
-	// _, err = repo.Create(testItem)
-	// if err == nil {
-	// 	t.Errorf("expected error, got nil")
-	// 	return
-	// }
-	// if err := mock.ExpectationsWereMet(); err != nil {
-	// 	t.Errorf("there were unfulfilled expectations: %s", err)
-	// }
+	}
 }
 
 func TestUserRepository_Find(t *testing.T) {
@@ -144,7 +107,7 @@ func TestUserRepository_Find(t *testing.T) {
 	}
 	defer db.Close()
 
-	var elemID int = 1
+	var elemID int64 = 2
 
 	// good query
 	rows := sqlmock.
@@ -155,7 +118,7 @@ func TestUserRepository_Find(t *testing.T) {
 			FirstName: "masha",
 			SecondName: "ivanova",
 			UserName: "masha1996",
-			Email: "masha@mail.ru",
+			Email: "masha1@mail.ru",
 			Password: "123456",
 			EncryptPassword: "",
 			Avatar: nil,
@@ -240,7 +203,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	_, err := store.User().FindByEmail(u1.Email)
 	assert.EqualError(t, err, "sql: no rows in result set")//store.ErrRecordNotFound.Error())
 
-	err = store.User().Create(u1)
+	_, err = store.User().Create(u1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,13 +221,13 @@ func TestUserRepository_Edit(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "userrep4@example.org"
-	if err := store.User().Create(u); err != nil {
+	if _, err := store.User().Create(u); err != nil {
 		t.Fatal(err)
 	}
 
 	u.SecondName = "Second name"
 
-	if err := store.User().Edit(u); err != nil {
+	if _, err := store.User().Edit(u); err != nil {
 		t.Fatal(err)
 	}
 }

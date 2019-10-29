@@ -26,7 +26,7 @@ func (r *UserRepository) Create(u *model.User) (int64, error) {
 	return result.LastInsertId()
 }
 
-func (r *UserRepository) Find(id int) (*model.User, error) {
+func (r *UserRepository) Find(id int64) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
 		"SELECT accountId, firstName, secondName, username, email, '' as password, encryptPassword, avatar, usertype FROM users WHERE accountId = $1",

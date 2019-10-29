@@ -129,7 +129,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 		}
 
 		s.store.Mu.Lock()
-		u, err := s.store.User().Find(id.(int))
+		u, err := s.store.User().Find(id.(int64))
 		s.store.Mu.Unlock()
 
 		if err != nil {
@@ -390,7 +390,7 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	}
 
 	uidInterface := session.Values["user_id"]
-	uid := uidInterface.(int)
+	uid := uidInterface.(int64)
 
 	s.store.Mu.Lock()
 	user, err := s.store.User().Find(uid)
@@ -747,7 +747,7 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.store.User().Find(id)
+	user, err := s.store.User().Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetAvatar<-userFind: ")
 		s.error(w, r, http.StatusNotFound, err)
