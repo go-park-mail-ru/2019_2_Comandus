@@ -78,7 +78,7 @@ func (s *server) addUser2Server(t *testing.T) error {
 
 	u := testUser(t)
 
-	err := s.store.User().Create(u)
+	_, err := s.store.User().Create(u)
 	log.Println(u.ID)
 	if err != nil {
 		return err

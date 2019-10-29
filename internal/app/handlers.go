@@ -50,7 +50,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.Mu.Lock()
-	err = s.store.User().Create(user)
+	_, err = s.store.User().Create(user)
 	s.store.Mu.Unlock()
 
 	log.Println("USER ID: ", user.ID)
@@ -260,6 +260,7 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
 		return
 	}
+	s.respond(w, r, http.StatusOK, user.UserType)
 }
 
 func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
@@ -399,7 +400,7 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 
 // TODO: fix after creating Notifications table
 func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	/*w.Header().Set("Content-Type", "application/json")
 
 	user, sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
@@ -425,7 +426,7 @@ func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request)
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
-	s.respond(w, r, http.StatusOK, struct{}{})
+	s.respond(w, r, http.StatusOK, struct{}{})*/
 }
 
 func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
@@ -462,9 +463,9 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Avatar = image.Bytes()
 
-	s.store.Mu.Lock()
+	//s.store.Mu.Lock()
 	err = s.store.User().Edit(user)
-	s.usersdb.Mu.Unlock()
+	//s.usersdb.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-userEdit:")
@@ -550,7 +551,7 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hireManager, err := s.store.Manager().Find(user.ID)
+	hireManager, err := s.store.Manager().FindByUser(user.ID)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleRoles<-ManagerFind:")
 		s.error(w, r, http.StatusNotFound, err)
@@ -805,3 +806,47 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
+
+func (s *server) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	jobs, err := s.store.Job().GetAllJobs()
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
+		s.error(w, r, http.StatusNotFound, err)
+	}
+
+	s.respond(w, r, http.StatusOK, &jobs)
+}
+
+func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	decoder := json.NewDecoder(r.Body)
+	inputJob := new(model.Job)
+	err := decoder.Decode(inputJob)
+
+	// Validate Job
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id): ")
+		s.error(w, r, http.StatusBadRequest, err)
+	}
+
+	job, err := s.store.Job().Find(id)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
+		s.error(w, r, http.StatusNotFound, err)
+	}
+	inputJob.ID = job.ID
+	inputJob.HireManagerId = job.HireManagerId
+	err = s.store.Job().Edit(inputJob)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditProfile<-JobEdit")
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
+	s.respond(w, r, http.StatusOK, struct {}{})
+}

@@ -45,7 +45,7 @@ func (r *ManagerRepository) Find(id int) (*model.HireManager, error) {
 	return m, nil
 }
 
-func (r *ManagerRepository) FindByUser(accountId int) (*model.HireManager, error) {
+func (r *ManagerRepository) FindByUser(accountId int64) (*model.HireManager, error) {
 	m := &model.HireManager{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE accountId = $1",

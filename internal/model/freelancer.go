@@ -4,7 +4,7 @@ import "time"
 
 type Freelancer struct {
 	ID                int       `json:"id"`
-	AccountId         int       `json:"accountId"`
+	AccountId         int64       `json:"accountId"`
 	RegistrationDate  time.Time `json:"registrationDate"`
 	Country           string    `json:"country"`
 	City              string    `json:"city"`
