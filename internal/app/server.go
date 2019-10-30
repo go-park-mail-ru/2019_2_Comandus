@@ -15,7 +15,6 @@ type ctxKey int8
 const (
 	ctxKeyUser              ctxKey = iota
 	sessionName                    = "user-session"
-	userTypeCookieName             = "user_type"
 	hireManagerIdCookieName        = "hire-manager-id"
 )
 

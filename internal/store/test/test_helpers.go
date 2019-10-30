@@ -1,4 +1,4 @@
-package teststore
+package test
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"

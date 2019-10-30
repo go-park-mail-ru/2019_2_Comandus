@@ -1,32 +1,31 @@
-package teststore
+package test
 
 import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
+	//"database/sql"
+	//"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
+	//"net/http"
+	//"net/http/httptest"
 	"reflect"
 	"testing"
 )
 
-func TestManagerRepository_Create(t *testing.T) {
+func TestUserRepository_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
 	}
-	defer func() {
-		mock.ExpectClose()
-		if err := db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}()
-
+	defer db.Close()
 	store := sqlstore.New(db)
+
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
 
 	var elemID int64 = 1
-	expect := []*model.HireManager{
+	expect := []*model.User{
 		{ ID: elemID },
 	}
 
@@ -35,28 +34,27 @@ func TestManagerRepository_Create(t *testing.T) {
 	}
 
 	u := testUser(t)
-	u.ID = 1
-	m := testManager(t, u)
-
-	// TODO: uncomment when validation will be implemented
-	/*if err := m.Validate(); err != nil {
+	if err := u.Validate(); err != nil {
 		t.Fatal()
-	}*/
+	}
+	if err := u.BeforeCreate(); err != nil {
+		t.Fatal()
+	}
 
 	//ok query
-	// id, accountId, registrationDate, location, companyId FROM managers WHERE accountId = $1
 	mock.
-		ExpectQuery(`INSERT INTO managers`).
-		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
+		ExpectQuery(`INSERT INTO users`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
 		WillReturnRows(rows)
 
-	err = store.Manager().Create(m)
+	err = store.User().Create(u)
+
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
 
-	if m.ID != 1 {
+	if u.ID != 1 {
 		t.Errorf("bad id: want %v, have %v", u.ID, 1)
 		return
 	}
@@ -67,11 +65,11 @@ func TestManagerRepository_Create(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery(`INSERT INTO managers`).
-		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
+		ExpectQuery(`INSERT INTO users`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Manager().Create(m)
+	err = store.User().Create(u)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -81,42 +79,38 @@ func TestManagerRepository_Create(t *testing.T) {
 	}
 }
 
-func TestManagerRepository_Find(t *testing.T) {
+func TestUserRepository_Find(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
 	}
-	defer func() {
-		mock.ExpectClose()
-		if err := db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}()
+	defer db.Close()
 
 	var elemID int64 = 1
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "registrationDate", "location", "companyId" })
-
-	u := testUser(t)
-	u.ID = elemID + 1
-	expect := []*model.HireManager{
-		testManager(t, u),
+		NewRows([]string{"accountId", "firsName", "secondName", "username", "email", "password", "encryptPassword",
+			"avatar", "userType"})
+	expect := []*model.User{
+		testUser(t),
 	}
 
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.AccountID, item.RegistrationDate, item.Location, item.CompanyID)
+		rows = rows.AddRow(item.ID, item.FirstName, item.SecondName, item.UserName, item.Email, item.Password,
+			item.EncryptPassword, item.Avatar, item.UserType)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT accountId, firstName, secondName, username, email, " +
+			"'' as password, encryptPassword, avatar, userType  FROM users WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
+	repo := store.User()
 
-	item, err := store.Manager().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -125,7 +119,6 @@ func TestManagerRepository_Find(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
-
 	if !reflect.DeepEqual(item, expect[0]) {
 		t.Errorf("results not match, want %v, have %v", expect[0], item)
 		return
@@ -133,32 +126,32 @@ func TestManagerRepository_Find(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT accountId, firstName, secondName, username, email, " +
+			"'' as password, encryptPassword, avatar, userType  FROM users WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Manager().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
-
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
 	}
 
 	// row scan error
-	expect = []*model.HireManager{
-		testManager(t, u),
-	}
+	rows = sqlmock.NewRows([]string{"id", "firstName", "secondName", "username", "email" }).
+		AddRow(1, "masha", "ivanova", "masha1996", "masha@mail.ru")
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT accountId, firstName, secondName, username, email, " +
+			"'' as password, encryptPassword, avatar, userType  FROM users WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	_, err = store.Manager().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -169,42 +162,38 @@ func TestManagerRepository_Find(t *testing.T) {
 	}
 }
 
-func TestManagerRepository_FindByUser(t *testing.T) {
+func TestUserRepository_FindByEmail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
 	}
-	defer func() {
-		mock.ExpectClose()
-		if err := db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}()
-
-	var elemID int64 = 1
+	defer db.Close()
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "registrationDate", "location", "companyId" })
-
-	u := testUser(t)
-	u.ID = elemID + 1
-	expect := []*model.HireManager{
-		testManager(t, u),
+		NewRows([]string{"accountId", "firsName", "secondName", "username", "email", "password", "encryptPassword",
+			"avatar", "userType"})
+	expect := []*model.User{
+		testUser(t),
 	}
 
+	u := testUser(t)
+
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.AccountID, item.RegistrationDate, item.Location, item.CompanyID)
+		rows = rows.AddRow(item.ID, item.FirstName, item.SecondName, item.UserName, item.Email, item.Password,
+			item.EncryptPassword, item.Avatar, item.UserType)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
-		WithArgs(u.ID).
+		ExpectQuery("SELECT accountId, firstName, secondName, username, email, " +
+			"'' as password, encryptPassword, avatar, userType  FROM users WHERE").
+		WithArgs(u.Email).
 		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
+	repo := store.User()
 
-	item, err := store.Manager().FindByUser(u.ID)
+	item, err := repo.FindByEmail(u.Email)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -213,7 +202,6 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
-
 	if !reflect.DeepEqual(item, expect[0]) {
 		t.Errorf("results not match, want %v, have %v", expect[0], item)
 		return
@@ -221,32 +209,32 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
-		WithArgs(u.ID).
+		ExpectQuery("SELECT accountId, firstName, secondName, username, email, " +
+			"'' as password, encryptPassword, avatar, userType  FROM users WHERE").
+		WithArgs(u.Email).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Manager().FindByUser(u.ID)
+	_, err = repo.FindByEmail(u.Email)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
-
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
 	}
 
 	// row scan error
-	expect = []*model.HireManager{
-		testManager(t, u),
-	}
+	rows = sqlmock.NewRows([]string{"id", "firstName", "secondName", "username", "email" }).
+		AddRow(1, "masha", "ivanova", "masha1996", "masha@mail.ru")
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
-		WithArgs(u.ID).
+		ExpectQuery("SELECT accountId, firstName, secondName, username, email, " +
+			"'' as password, encryptPassword, avatar, userType  FROM users WHERE").
+		WithArgs(u.Email).
 		WillReturnRows(rows)
 
-	_, err = store.Manager().FindByUser(u.ID)
+	_, err = repo.FindByEmail(u.Email)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -257,26 +245,19 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 	}
 }
 
-func TestManagerRepository_Edit(t *testing.T) {
+func TestUserRepository_Edit(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
 	}
-
-	defer func() {
-		mock.ExpectClose()
-		if err := db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}()
-
+	defer db.Close()
 	store := sqlstore.New(db)
 
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
 
 	var elemID int64 = 1
-	expect := []*model.HireManager{
+	expect := []*model.User{
 		{ ID: elemID },
 	}
 
@@ -285,24 +266,21 @@ func TestManagerRepository_Edit(t *testing.T) {
 	}
 
 	u := testUser(t)
-	u.ID = 1
-	m := testManager(t, u)
-	m.ID = 1
-
-	// TODO: uncomment when validation will be implemented
-	/*if err := f.Validate(); err != nil {
+	if err := u.Validate(); err != nil {
 		t.Fatal()
-	}*/
+	}
+	if err := u.BeforeCreate(); err != nil {
+		t.Fatal()
+	}
 
 	//ok query
-	m.Location = "underwater"
-
+	u.UserName = "dasha"
 	mock.
-		ExpectQuery(`UPDATE managers SET`).
-		WithArgs(m.Location, m.CompanyID, m.ID).
+		ExpectQuery(`UPDATE users SET`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.EncryptPassword, u.Avatar, u.UserType, u.ID).
 		WillReturnRows(rows)
 
-	err = store.Manager().Edit(m)
+	err = store.User().Edit(u)
 	if err != nil {
 		t.Fatal(err)
 	}
