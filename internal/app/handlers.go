@@ -49,9 +49,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
 	err = s.store.User().Create(user)
-	s.store.Mu.Unlock()
 
 	log.Println("USER ID: ", user.ID)
 
@@ -66,9 +64,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		RegistrationDate: time.Now(),
 	}
 
-	s.store.Mu.Lock()
 	err = s.store.Freelancer().Create(&f)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateFreelancer:")
@@ -80,10 +76,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		AccountID:        user.ID,
 		RegistrationDate: time.Now(),
 	}
-	//Здесь нужны Мьютексы ?
-	s.store.Mu.Lock()
+
 	err = s.store.Manager().Create(&m)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateManager:")
@@ -126,9 +120,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		s.store.Mu.Lock()
 		u, err := s.store.User().Find(id.(int))
-		s.store.Mu.Unlock()
 
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, err)
@@ -157,9 +149,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("input user:", user)
 
-	s.store.Mu.Lock()
 	u, err := s.store.User().FindByEmail(user.Email)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-FindByEmail:")
@@ -237,9 +227,7 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
 	err = s.store.User().Edit(user)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSetUserType<-sessionEdit:")
@@ -302,9 +290,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
 	err = s.store.User().Edit(user)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-userEdit")
@@ -363,9 +349,7 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	user.EncryptPassword = newEncryptPassword
 
-	s.store.Mu.Lock()
 	err = s.store.User().Edit(user)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditPassword<-userEdit:")
@@ -386,9 +370,7 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	uidInterface := session.Values["user_id"]
 	uid := uidInterface.(int)
 
-	s.store.Mu.Lock()
 	user, err := s.store.User().Find(uid)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
@@ -462,9 +444,7 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Avatar = image.Bytes()
 
-	s.store.Mu.Lock()
 	err = s.store.User().Edit(user)
-	s.usersdb.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-userEdit:")
@@ -496,7 +476,7 @@ func (s *server) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "multipart/form-data")
 
 	} else {
-		filename := "internal/store/avatars/default.png"
+		filename := "../store/avatars/default.png"
 
 		var openFile *os.File
 		openFile, err = os.Open(filename)
@@ -550,19 +530,32 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hireManager, err := s.store.Manager().Find(user.ID)
+	hireManager, err := s.store.Manager().FindByUser(user.ID)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleRoles<-ManagerFind:")
 		s.error(w, r, http.StatusNotFound, err)
 	}
 
 	// TODO: rewrite after Roles and Companies db interfaces realization
-	company := s.usersdb.Companies[hireManager.ID]
+
+	//company := s.usersdb.Companies[hireManager.ID]
+
+	company := model.Company{
+		ID:          0,
+		CompanyName: "default company",
+		Site:        "company.ru",
+		Description: "default company",
+		Country:     "Russia",
+		City:        "Moscow",
+		Address:     "Red square street",
+		Phone:       "88888888888",
+	}
+
 	var roles []*model.Role
 	clientRole := &model.Role{
 		Role:   "client",
 		Label:  company.CompanyName,
-		Avatar: "/default.png",
+		Avatar: "user.Avatar",
 	}
 	freelanceRole := &model.Role{
 		Role:   "freelancer",
@@ -622,9 +615,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
 	manager, err := s.store.Manager().FindByUser(user.ID)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		log.Println("fail find manager", err)
@@ -632,9 +623,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusNotFound, err)
 	}
 
-	s.store.Mu.Lock()
 	err = s.store.Job().Create(job, manager)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		log.Println("fail create job", err)

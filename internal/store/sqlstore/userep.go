@@ -45,7 +45,7 @@ func (r *UserRepository) Find(id int) (*model.User, error) {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT accountId, firstName, secondName, username, email, encryptPassword, avatar, userType FROM users WHERE email = $1",
+		"SELECT accountId, firstName, secondName, username, email, '' as password, encryptPassword, avatar, userType FROM users WHERE email = $1",
 		email,
 	).Scan(
 		&u.ID,
@@ -53,6 +53,7 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 		&u.SecondName,
 		&u.UserName,
 		&u.Email,
+		&u.Password,
 		&u.EncryptPassword,
 		&u.Avatar,
 		&u.UserType,
@@ -65,12 +66,13 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 //TODO: validate user
 func (r *UserRepository) Edit(u * model.User) error {
 	return r.store.db.QueryRow("UPDATE users SET firstName = $1, secondName = $2, userName = $3, " +
-		"encryptPassword = $4, avatar = $5 WHERE accountId = $6 RETURNING accountId",
+		"encryptPassword = $4, avatar = $5, userType = $6 WHERE accountId = $7 RETURNING accountId",
 		u.FirstName,
 		u.SecondName,
 		u.UserName,
 		u.EncryptPassword,
 		u.Avatar,
+		u.UserType,
 		u.ID,
 	).Scan(&u.ID)
 }
