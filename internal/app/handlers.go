@@ -49,9 +49,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
-	_, err = s.store.User().Create(user)
-	s.store.Mu.Unlock()
+	err = s.store.User().Create(user)
 
 	log.Println("USER ID: ", user.ID)
 
@@ -66,11 +64,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		RegistrationDate: time.Now(),
 	}
 
-	s.store.Mu.Lock()
-	lastId, err := s.store.Freelancer().Create(&f)
-	s.store.Mu.Unlock()
-
-	log.Println(lastId)
+	err = s.store.Freelancer().Create(&f)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateFreelancer:")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -81,12 +75,9 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		AccountID:        user.ID,
 		RegistrationDate: time.Now(),
 	}
-	//Здесь нужны Мьютексы ?
-	s.store.Mu.Lock()
-	lastId, err = s.store.Manager().Create(&m)
-	s.store.Mu.Unlock()
 
-	log.Println(lastId)
+	err = s.store.Manager().Create(&m)
+
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateManager:")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -128,9 +119,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		s.store.Mu.Lock()
 		u, err := s.store.User().Find(id.(int64))
-		s.store.Mu.Unlock()
 
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, err)
@@ -159,9 +148,7 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("input user:", user)
 
-	s.store.Mu.Lock()
 	u, err := s.store.User().FindByEmail(user.Email)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-FindByEmail:")
@@ -239,11 +226,8 @@ func (s *server) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
-	lastId, err := s.store.User().Edit(user)
-	s.store.Mu.Unlock()
+	err = s.store.User().Edit(user)
 
-	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSetUserType<-sessionEdit:")
 		s.error(w, r, http.StatusBadRequest, err)
@@ -306,11 +290,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
-	lastId, err := s.store.User().Edit(user)
-	s.store.Mu.Unlock()
-
-	log.Println(lastId)
+	err = s.store.User().Edit(user)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-userEdit")
 		s.error(w, r, http.StatusUnprocessableEntity, err)
@@ -368,11 +348,8 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	user.EncryptPassword = newEncryptPassword
 
-	s.store.Mu.Lock()
-	lastId, err := s.store.User().Edit(user)
-	s.store.Mu.Unlock()
+	err = s.store.User().Edit(user)
 
-	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditPassword<-userEdit:")
 		s.error(w, r, http.StatusUnprocessableEntity, err)
@@ -392,9 +369,7 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	uidInterface := session.Values["user_id"]
 	uid := uidInterface.(int64)
 
-	s.store.Mu.Lock()
 	user, err := s.store.User().Find(uid)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
@@ -406,21 +381,18 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 // TODO: fix after creating Notifications table
 func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
 	/*w.Header().Set("Content-Type", "application/json")
-
 	user, sendErr, codeStatus := s.GetUserFromRequest(r)
 	if sendErr != nil {
 		sendErr = errors.Wrapf(sendErr, "HandleEditNotifications<-GetUserFromRequest:")
 		s.error(w, r, codeStatus, sendErr)
 		return
 	}
-
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleEditNotifications<-rBodyClose:")
 			s.error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
-
 	userNotification := s.usersdb.Notifications[user.ID]
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userNotification)
@@ -468,11 +440,8 @@ func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Avatar = image.Bytes()
 
-	//s.store.Mu.Lock()
-	lastId, err := s.store.User().Edit(user)
-	//s.usersdb.Mu.Unlock()
+	err = s.store.User().Edit(user)
 
-	log.Println(lastId)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-userEdit:")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -639,11 +608,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusNotFound, err)
 	}
 
-	s.store.Mu.Lock()
-	lastId, err := s.store.Job().Create(job, manager)
-	s.store.Mu.Unlock()
-
-	log.Println(lastId)
+	err = s.store.Job().Create(job, manager)
 	if err != nil {
 		log.Println("fail create job", err)
 		err = errors.Wrapf(err, "HandleCreateJob<-Create: ")
@@ -706,8 +671,7 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	}
 	// TODO: validate freelancer
 
-	lastId, err := s.store.Freelancer().Edit(freelancer)
-	log.Println(lastId)
+	err = s.store.Freelancer().Edit(freelancer)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -850,8 +814,7 @@ func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	}
 	inputJob.ID = job.ID
 	inputJob.HireManagerId = job.HireManagerId
-	lastId, err := s.store.Job().Edit(inputJob)
-	log.Println(lastId)
+	err = s.store.Job().Edit(inputJob)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-JobEdit")
 		s.error(w, r, http.StatusUnprocessableEntity, err)

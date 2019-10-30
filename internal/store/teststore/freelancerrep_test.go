@@ -14,12 +14,12 @@ func TestFreelancerRep_Create(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "freelancerrepository1@example.org"
-	if _, err := store.User().Create(u); err != nil {
+	if err := store.User().Create(u); err != nil {
 		t.Fatal()
 	}
 
 	f := testFreelancer(t, u)
-	if _, err := store.Freelancer().Create(f); err != nil {
+	if err := store.Freelancer().Create(f); err != nil {
 		t.Fatal()
 	}
 }
@@ -33,12 +33,12 @@ func TestFreelancerRep_Find(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "freelancerrepository2@example.org"
-	if _, err := store.User().Create(u); err != nil {
+	if err := store.User().Create(u); err != nil {
 		t.Fatal()
 	}
 
 	f := testFreelancer(t, u)
-	if _, err := store.Freelancer().Create(f); err != nil {
+	if err := store.Freelancer().Create(f); err != nil {
 		t.Fatal()
 	}
 
@@ -55,12 +55,12 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "freelancerrepository3@example.org"
-	if _, err := store.User().Create(u); err != nil {
+	if err := store.User().Create(u); err != nil {
 		t.Fatal()
 	}
 
 	f := testFreelancer(t, u)
-	if _, err := store.Freelancer().Create(f); err != nil {
+	if err := store.Freelancer().Create(f); err != nil {
 		t.Fatal()
 	}
 
@@ -77,18 +77,17 @@ func TestFreelancerRep_Edit(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "freelancerrepository4@example.org"
-	if _, err := store.User().Create(u); err != nil {
+	if err := store.User().Create(u); err != nil {
 		t.Fatal()
 	}
 
 	f := testFreelancer(t, u)
-	if _, err := store.Freelancer().Create(f); err != nil {
+	if err := store.Freelancer().Create(f); err != nil {
 		t.Fatal()
 	}
 	f.City = "London"
 
-	if _, err := store.Freelancer().Edit(f); err != nil {
+	if err := store.Freelancer().Edit(f); err != nil {
 		t.Fatal()
 	}
 }
-

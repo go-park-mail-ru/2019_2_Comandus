@@ -6,8 +6,8 @@ type JobRepository struct {
 	store *Store
 }
 
-func (r *JobRepository) Create(j *model.Job, m *model.HireManager) (int64, error) {
-	result, err := r.store.db.Exec(
+func (r *JobRepository) Create(j *model.Job, m *model.HireManager) error {
+	return r.store.db.QueryRow(
 		"INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 			"country, city, jobTypeId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
 		m.ID,
@@ -20,11 +20,7 @@ func (r *JobRepository) Create(j *model.Job, m *model.HireManager) (int64, error
 		j.Country,
 		j.City,
 		j.JobTypeId,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	).Scan(&j.ID)
 }
 
 func (r *JobRepository) Find(id int64) (*model.Job, error) {
@@ -51,6 +47,22 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 	return j, nil
 }
 
+func (r *JobRepository) Edit(j *model.Job) error {
+	return r.store.db.QueryRow("UPDATE jobs SET title = $1, description = $2, files = $3, " +
+		"specialityId = $4, experienceLevelId = $5, paymentAmount = $6, country = $7, city = $8, " +
+		"jobTypeId = $9 WHERE id = $10 RETURNING id",
+		j.Title,
+		j.Description,
+		j.Files,
+		j.SpecialityId,
+		j.ExperienceLevelId,
+		j.PaymentAmount,
+		j.Country,
+		j.City,
+		j.JobTypeId,
+		j.ID,
+	).Scan(&j.ID)
+}
 
 func (r *JobRepository) GetAllJobs() ([]model.Job, error) {
 	var jobs []model.Job
@@ -71,25 +83,3 @@ func (r *JobRepository) GetAllJobs() ([]model.Job, error) {
 	}
 	return jobs, nil
 }
-
-func (r *JobRepository) Edit(j *model.Job) (int64, error) {
-	result, err := r.store.db.Exec("UPDATE jobs SET title = $1, description = $2, files = $3, " +
-		"specialityId = $4, experienceLevelId = $5, paymentAmount = $6, country = $7, city = $8, " +
-		"jobTypeId = $9 WHERE id = $10 RETURNING id",
-		j.Title,
-		j.Description,
-		j.Files,
-		j.SpecialityId,
-		j.ExperienceLevelId,
-		j.PaymentAmount,
-		j.Country,
-		j.City,
-		j.JobTypeId,
-		j.ID,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
-}
-

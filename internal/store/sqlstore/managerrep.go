@@ -17,19 +17,15 @@ type HireManager struct {
 	CompanyID			int 		`json:"companyId"`
 }
 
-func (r *ManagerRepository) Create(m *model.HireManager) (int64, error) {
-	result, err := r.store.db.Exec(
+func (r *ManagerRepository) Create(m *model.HireManager) error {
+	return r.store.db.QueryRow(
 		"INSERT INTO managers (accountId, registrationDate, location, companyId) " +
 			"VALUES ($1, $2, $3, $4) RETURNING id",
 		m.AccountID,
 		m.RegistrationDate,
 		m.Location,
 		m.CompanyID,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	).Scan(&m.ID)
 }
 
 func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
@@ -66,17 +62,10 @@ func (r *ManagerRepository) FindByUser(accountId int64) (*model.HireManager, err
 	return m, nil
 }
 
-func (r *ManagerRepository) Edit(m * model.HireManager) (int64, error) {
-	result, err := r.store.db.Exec(
-		"UPDATE managers SET location = $1, companyId = $2 WHERE id = $3 RETURNING id",
+func (r *ManagerRepository) Edit(m * model.HireManager) error {
+	return r.store.db.QueryRow("UPDATE managers SET location = $1, companyId = $2 WHERE id = $3 RETURNING id",
 		m.Location,
 		m.CompanyID,
 		m.ID,
-	)
-
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	).Scan(&m.ID)
 }
-

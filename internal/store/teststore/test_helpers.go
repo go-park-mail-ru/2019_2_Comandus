@@ -6,6 +6,21 @@ import (
 	"time"
 )
 
+func testUser(t *testing.T) *model.User {
+	t.Helper()
+	return &model.User{
+		ID: 0,
+		FirstName: "masha",
+		SecondName: "ivanova",
+		UserName: "masha1996",
+		Email: "masha@mail.ru",
+		Password: "123456",
+		EncryptPassword: "",
+		Avatar: nil,
+		UserType: "freelancer",
+	}
+}
+
 // TODO: all helpers in another file test_helpers.go
 func testManager(t *testing.T, user * model.User) *model.HireManager {
 	t.Helper()

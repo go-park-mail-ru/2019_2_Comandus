@@ -8,8 +8,8 @@ type FreelancerRepository struct {
 	store *Store
 }
 
-func (r *FreelancerRepository) Create(f *model.Freelancer) (int64, error) {
-	result, err := r.store.db.Exec(
+func (r *FreelancerRepository) Create(f *model.Freelancer) error {
+	return r.store.db.QueryRow(
 		"INSERT INTO freelancers (accountId, registrationDate, country, city, address, phone, tagLine, " +
 			"overview, experienceLevelId, specialityId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
 		f.AccountId,
@@ -22,11 +22,7 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) (int64, error) {
 		f.Overview,
 		f.ExperienceLevelId,
 		f.SpecialityId,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	).Scan(&f.ID)
 }
 
 func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
@@ -77,8 +73,8 @@ func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, e
 	return f, nil
 }
 
-func (r *FreelancerRepository) Edit(f * model.Freelancer) (int64, error) {
-	result, err := r.store.db.Exec("UPDATE freelancers SET country = $1, city = $2, address = $3, " +
+func (r *FreelancerRepository) Edit(f * model.Freelancer) error {
+	return r.store.db.QueryRow("UPDATE freelancers SET country = $1, city = $2, address = $3, " +
 		"phone = $4, tagLine = $5, overview = $6, experienceLevelId = $7, specialityId = $8 WHERE id = $9 RETURNING id",
 		f.Country,
 		f.City,
@@ -89,9 +85,5 @@ func (r *FreelancerRepository) Edit(f * model.Freelancer) (int64, error) {
 		f.ExperienceLevelId,
 		f.SpecialityId,
 		f.ID,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	).Scan(&f.ID)
 }

@@ -15,12 +15,10 @@ func TestManagerRepository_Create(t *testing.T) {
 	u := testUser(t)
 	u.Email = "managerrep1@example.org"
 
-	_, err := store.User().Create(u)
-	assert.NoError(t, err)
+	assert.NoError(t, store.User().Create(u))
 
 	m := testManager(t, u)
-	_, err = store.Manager().Create(m)
-	assert.NoError(t, err)
+	assert.NoError(t, store.Manager().Create(m))
 	assert.NotNil(t, u)
 }
 
@@ -32,13 +30,13 @@ func TestManagerRepository_Find(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "managerrep2@example.org"
-	_, err := store.User().Create(u)
+	err := store.User().Create(u)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	m1 := testManager(t, u)
-	_, err = store.Manager().Create(m1)
+	err = store.Manager().Create(m1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +55,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "managerrep3@example.org"
-	if _, err := store.User().Create(u); err != nil {
+	if err := store.User().Create(u); err != nil {
 		t.Fatal(err)
 	}
 
@@ -67,7 +65,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 	assert.EqualError(t, err, "sql: no rows in result set")//store.ErrRecordNotFound.Error())
 	assert.Nil(t, m1)
 
-	if _, err := store.Manager().Create(m); err != nil {
+	if err := store.Manager().Create(m); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,20 +82,18 @@ func TestManagerRepository_Edit(t *testing.T) {
 
 	u := testUser(t)
 	u.Email = "managerrep4@example.org"
-	if _, err := store.User().Create(u); err != nil {
+	if err := store.User().Create(u); err != nil {
 		t.Fatal(err)
 	}
 
 	m := testManager(t, u)
-	if _, err := store.Manager().Create(m); err != nil {
+	if err := store.Manager().Create(m); err != nil {
 		t.Fatal(err)
 	}
 
 	m.Location = "London"
 
-	if _, err := store.Manager().Edit(m); err != nil {
+	if err := store.Manager().Edit(m); err != nil {
 		t.Fatal(err)
 	}
 }
-
-

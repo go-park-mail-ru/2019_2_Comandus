@@ -78,7 +78,7 @@ func (s *server) addUser2Server(t *testing.T) error {
 
 	u := testUser(t)
 
-	_, err := s.store.User().Create(u)
+	err := s.store.User().Create(u)
 	log.Println(u.ID)
 	if err != nil {
 		return err
@@ -86,15 +86,13 @@ func (s *server) addUser2Server(t *testing.T) error {
 	log.Println("ID: ", u.ID)
 
 	m := testManager(t, u)
-	lastId, err := s.store.Manager().Create(m)
-	log.Println(lastId)
+	err = s.store.Manager().Create(m)
 	if err != nil {
 		return err
 	}
 
 	f := testFreelancer(t, u)
-	lastId, err = s.store.Freelancer().Create(f)
-	log.Println(lastId)
+	err = s.store.Freelancer().Create(f)
 	if err != nil {
 		return err
 	}
@@ -103,20 +101,5 @@ func (s *server) addUser2Server(t *testing.T) error {
 
 func (s *server) addJob2Server(t *testing.T) {
 	t.Helper()
-
-	/*j := model.Job{
-		ID:                0,
-		HireManagerId:     0,
-		Title:             "first job",
-		Description:       "work hard",
-		Files:             "",
-		SpecialityId:      0,
-		ExperienceLevelId: 0,
-		PaymentAmout:      0,
-		Country:           "Russia",
-		City:              "Moscow",
-		JobTypeId:         0,
-	}*/
-
 	// TODO: add to db when jobs create func is impl
 }
