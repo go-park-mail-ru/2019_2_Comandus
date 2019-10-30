@@ -2,7 +2,6 @@ package apiserver
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -28,7 +27,6 @@ var (
 type server struct {
 	mux          *mux.Router
 	store        *sqlstore.Store
-	usersdb      *model.UsersDB
 	sessionStore sessions.Store
 	config       *Config
 	Logger    	 *zap.SugaredLogger
@@ -38,7 +36,6 @@ type server struct {
 func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.SugaredLogger) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
-		usersdb:      model.NewUsersDB(),
 		sessionStore: sessionStore,
 		Logger:		  logger,
 		clientUrl:    "https://comandus.now.sh",
