@@ -45,9 +45,6 @@ func TestJobRepository_Create(t *testing.T) {
 		t.Fatal()
 	}*/
 
-	//INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-	//			"country, city, jobTypeId
-
 	//ok query
 	mock.
 		ExpectQuery(`INSERT INTO jobs`).
@@ -242,5 +239,89 @@ func TestJobRepository_Edit(t *testing.T) {
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestJobRepository_List(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
+			"paymentAmount", "country", "city", "jobTypeId" })
+
+	u := testUser(t)
+	u.ID = 1
+	m := testManager(t, u)
+	m.ID = 1
+
+	j1 := testJob(t,m)
+	j1.Title = "job1"
+
+	j2 := testJob(t,m)
+	j2.Title = "job2"
+
+	j3 := testJob(t,m)
+	j3.Title = "job3"
+
+	expect := []*model.Job{
+		j1,
+		j2,
+		j3,
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.HireManagerId, item.Title, item.Description, item.Files, item.SpecialityId,
+			item.ExperienceLevelId, item.PaymentAmount, item.Country, item.City, item.JobTypeId)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+			"country, city, jobTypeId FROM jobs LIMIT 10").
+		WillReturnRows(rows)
+
+	store := sqlstore.New(db)
+
+	jobs, err := store.Job().List()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	for i := 0; i < 3; i++ {
+		if !jobs[i].IsEqual(*expect[i]) {
+			t.Errorf("results not match, want %v, have %v", expect[i], jobs[i])
+			return
+		}
+	}
+
+	// query error
+	mock.
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+			"country, city, jobTypeId FROM jobs LIMIT 10").
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = store.Job().List()
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
 	}
 }

@@ -782,7 +782,7 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 func (s *server) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	jobs, err := s.store.Job().GetAllJobs()
+	jobs, err := s.store.Job().List()
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)

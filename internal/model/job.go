@@ -14,6 +14,19 @@ type Job struct {
 	JobTypeId         int64     `json:"jobTypeId,string"`
 }
 
+func (j *Job) IsEqual(job Job) bool {
+	return j.ID == job.ID &&
+		j.HireManagerId == job.HireManagerId &&
+		j.Title == job.Title &&
+		j.Description == job.Description &&
+		j.Files == job.Files &&
+		j.ExperienceLevelId == job.ExperienceLevelId &&
+		j.PaymentAmount == job.PaymentAmount &&
+		j.Country == job.Country &&
+		j.City == job.City &&
+		j.JobTypeId == job.JobTypeId
+}
+
 //curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "USANews", "description" : "bbbbbbb",
 //"country" : "USA"}'
 // curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "RussianNews", "description" : "aaaaaaa",

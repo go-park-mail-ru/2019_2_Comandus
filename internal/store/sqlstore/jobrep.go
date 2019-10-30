@@ -64,14 +64,16 @@ func (r *JobRepository) Edit(j *model.Job) error {
 	).Scan(&j.ID)
 }
 
-func (r *JobRepository) GetAllJobs() ([]model.Job, error) {
+func (r *JobRepository) List() ([]model.Job, error) {
 	var jobs []model.Job
 	rows, err := r.store.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 			"country, city, jobTypeId FROM jobs LIMIT 10")
+
 	if err != nil {
 		return nil, err
 	}
+
 	for rows.Next() {
 		j := model.Job{}
 		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
@@ -80,6 +82,9 @@ func (r *JobRepository) GetAllJobs() ([]model.Job, error) {
 			return nil , err
 		}
 		jobs = append(jobs , j)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	return jobs, nil
 }

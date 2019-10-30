@@ -28,4 +28,5 @@ type JobRepository interface {
 	Create(job *model.Job) error
 	Find(int) (*model.Job, error)
 	Edit(job *model.Job) error
+	List() ([]model.Job, error)
 }

@@ -49,7 +49,6 @@ func TestUserRepository_Create(t *testing.T) {
 
 	err = store.User().Create(u)
 
-	fmt.Println(u)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
