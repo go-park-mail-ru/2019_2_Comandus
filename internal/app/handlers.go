@@ -818,3 +818,24 @@ func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	}
 	s.respond(w, r, http.StatusOK, struct {}{})
 }
+
+func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob<-GetUserFromRequest: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	freelancer, err := s.store.Freelancer().FindByUser(user.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob<-Freelancer().FindByUser: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	log.Println(freelancer)
+
+}

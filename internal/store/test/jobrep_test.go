@@ -38,7 +38,9 @@ func TestJobRepository_Create(t *testing.T) {
 	u.ID = 1
 	m := testManager(t, u)
 	m.ID = 1
+
 	j := testJob(t, m)
+	j.BeforeCreate()
 
 	// TODO: uncomment when validation will be implemented
 	/*if err := f.Validate(); err != nil {
@@ -49,7 +51,7 @@ func TestJobRepository_Create(t *testing.T) {
 	mock.
 		ExpectQuery(`INSERT INTO jobs`).
 		WithArgs(j.HireManagerId, j.Title, j.Description, j.Files, j.SpecialityId, j.ExperienceLevelId,
-			j.PaymentAmount, j.Country, j.City, j.JobTypeId).
+			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnRows(rows)
 
 	err = store.Job().Create(j, m)
@@ -71,7 +73,7 @@ func TestJobRepository_Create(t *testing.T) {
 	mock.
 		ExpectQuery(`INSERT INTO jobs`).
 		WithArgs(j.HireManagerId, j.Title, j.Description, j.Files, j.SpecialityId, j.ExperienceLevelId,
-			j.PaymentAmount, j.Country, j.City, j.JobTypeId).
+			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnError(fmt.Errorf("bad query"))
 
 	err = store.Job().Create(j, m)
@@ -100,24 +102,28 @@ func TestJobRepository_Find(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
-			"paymentAmount", "country", "city", "jobTypeId" })
+			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
 
 	u := testUser(t)
 	u.ID = 1
 	m := testManager(t, u)
 	m.ID = 1
+
+	j := testJob(t, m)
+	j.BeforeCreate()
+
 	expect := []*model.Job{
-		testJob(t, m),
+		j,
 	}
 
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.HireManagerId, item.Title, item.Description, item.Files, item.SpecialityId,
-			item.ExperienceLevelId, item.PaymentAmount, item.Country, item.City, item.JobTypeId)
+			item.ExperienceLevelId, item.PaymentAmount, item.Country, item.City, item.JobTypeId, item.Date, item.Status)
 	}
 
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-		"country, city, jobTypeId FROM jobs WHERE").
+		"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -141,7 +147,7 @@ func TestJobRepository_Find(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId FROM jobs WHERE").
+			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -163,7 +169,7 @@ func TestJobRepository_Find(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId FROM jobs WHERE").
+			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -210,21 +216,22 @@ func TestJobRepository_Edit(t *testing.T) {
 	m := testManager(t, u)
 	m.ID = 1
 	j := testJob(t, m)
-
-	// TODO: uncomment when validation will be implemented
-	/*if err := j.Validate(); err != nil {
-		t.Fatal()
-	}*/
+	j.BeforeCreate()
 
 	//ok query
 	j.City = "sim city"
 	j.Country = "nnn"
 	j.Description = "no description"
 
+	// TODO: uncomment when validation will be implemented
+	/*if err := j.Validate(); err != nil {
+		t.Fatal()
+	}*/
+
 	mock.
 		ExpectQuery(`UPDATE jobs SET`).
 		WithArgs(j.Title, j.Description, j.Files, j.SpecialityId, j.ExperienceLevelId, j.PaymentAmount, j.Country,
-			j.City, j.JobTypeId, j.ID).
+			j.City, j.JobTypeId, j.Status, j.ID).
 		WillReturnRows(rows)
 
 	err = store.Job().Edit(j)
@@ -257,7 +264,7 @@ func TestJobRepository_List(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
-			"paymentAmount", "country", "city", "jobTypeId" })
+			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
 
 	u := testUser(t)
 	u.ID = 1
@@ -266,12 +273,15 @@ func TestJobRepository_List(t *testing.T) {
 
 	j1 := testJob(t,m)
 	j1.Title = "job1"
+	j1.BeforeCreate()
 
 	j2 := testJob(t,m)
 	j2.Title = "job2"
+	j2.BeforeCreate()
 
 	j3 := testJob(t,m)
 	j3.Title = "job3"
+	j3.BeforeCreate()
 
 	expect := []*model.Job{
 		j1,
@@ -281,12 +291,12 @@ func TestJobRepository_List(t *testing.T) {
 
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.HireManagerId, item.Title, item.Description, item.Files, item.SpecialityId,
-			item.ExperienceLevelId, item.PaymentAmount, item.Country, item.City, item.JobTypeId)
+			item.ExperienceLevelId, item.PaymentAmount, item.Country, item.City, item.JobTypeId, item.Date, item.Status)
 	}
 
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId FROM jobs LIMIT 10").
+			"country, city, jobTypeId, date, status FROM jobs LIMIT 10").
 		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
@@ -311,7 +321,7 @@ func TestJobRepository_List(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId FROM jobs LIMIT 10").
+			"country, city, jobTypeId, date, status FROM jobs LIMIT 10").
 		WillReturnError(fmt.Errorf("db_error"))
 
 	_, err = store.Job().List()

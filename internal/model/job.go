@@ -1,5 +1,13 @@
 package model
 
+import "time"
+
+const (
+	JobStateCreate = "created"
+	JobStateFound = "found"
+	JobStateClosed = "closed"
+	)
+
 type Job struct {
 	ID                int64     `json:"id"`
 	HireManagerId     int64     `json:"hireManagerId,string"`
@@ -8,10 +16,12 @@ type Job struct {
 	Files             string  `json:"files"`
 	SpecialityId      int64     `json:"specialityId,string"`
 	ExperienceLevelId int64     `json:"experienceLevelId,string"`
-	PaymentAmount      float64 `json:"paymentAmount,string"`
+	PaymentAmount     float64 `json:"paymentAmount,string"`
 	Country           string  `json:"country"`
 	City              string  `json:"city"`
 	JobTypeId         int64     `json:"jobTypeId,string"`
+	Date			  time.Time `json:"date"`
+	Status			  string `json:"status,string"`
 }
 
 func (j *Job) IsEqual(job Job) bool {
@@ -24,7 +34,14 @@ func (j *Job) IsEqual(job Job) bool {
 		j.PaymentAmount == job.PaymentAmount &&
 		j.Country == job.Country &&
 		j.City == job.City &&
-		j.JobTypeId == job.JobTypeId
+		j.JobTypeId == job.JobTypeId &&
+		j.Date == job.Date &&
+		j.Status == job.Status
+}
+
+func (j *Job) BeforeCreate() {
+	j.Date = time.Now()
+	j.Status = JobStateCreate
 }
 
 //curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "USANews", "description" : "bbbbbbb",

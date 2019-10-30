@@ -107,7 +107,9 @@ func createTables(db *sql.DB) error {
 		paymentAmount float8,
 		country varchar,
 		city varchar,
-		jobTypeId bigserial
+		jobTypeId bigserial,
+		date timestamp,
+		status varchar
 	);`
 	if _, err := db.Exec(jobsQuery); err != nil {
 		return err
