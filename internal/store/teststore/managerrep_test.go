@@ -1,99 +1,318 @@
 package teststore
 
 import (
+	"fmt"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 func TestManagerRepository_Create(t *testing.T) {
-	db, teardown := testStore(t, databaseURL)
-	defer teardown("users", "managers")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	store := sqlstore.New(db)
+	rows := sqlmock.
+		NewRows([]string{"accountId"})
+
+	var elemID int64 = 1
+	expect := []*model.HireManager{
+		{ ID: elemID },
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID)
+	}
 
 	u := testUser(t)
-	u.Email = "managerrep1@example.org"
-
-	assert.NoError(t, store.User().Create(u))
-
+	u.ID = 1
 	m := testManager(t, u)
-	assert.NoError(t, store.Manager().Create(m))
-	assert.NotNil(t, u)
+
+	// TODO: uncomment when validation will be implemented
+	/*if err := m.Validate(); err != nil {
+		t.Fatal()
+	}*/
+
+	//ok query
+	// id, accountId, registrationDate, location, companyId FROM managers WHERE accountId = $1
+	mock.
+		ExpectQuery(`INSERT INTO managers`).
+		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
+		WillReturnRows(rows)
+
+	err = store.Manager().Create(m)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if m.ID != 1 {
+		t.Errorf("bad id: want %v, have %v", u.ID, 1)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+	// query error
+	mock.
+		ExpectQuery(`INSERT INTO managers`).
+		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
+		WillReturnError(fmt.Errorf("bad query"))
+
+	err = store.Manager().Create(m)
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestManagerRepository_Find(t *testing.T) {
-	db, teardown := testStore(t, databaseURL)
-	defer teardown("users", "managers")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	var elemID int64 = 1
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "accountId", "registrationDate", "location", "companyId" })
+
+	u := testUser(t)
+	u.ID = elemID + 1
+	expect := []*model.HireManager{
+		testManager(t, u),
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.AccountID, item.RegistrationDate, item.Location, item.CompanyID)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		WithArgs(elemID).
+		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
 
-	u := testUser(t)
-	u.Email = "managerrep2@example.org"
-	err := store.User().Create(u)
+	item, err := store.Manager().Find(elemID)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
 	}
 
-	m1 := testManager(t, u)
-	err = store.Manager().Create(m1)
-	if err != nil {
-		t.Fatal(err)
+	if !reflect.DeepEqual(item, expect[0]) {
+		t.Errorf("results not match, want %v, have %v", expect[0], item)
+		return
 	}
 
-	m2, err := store.Manager().Find(m1.ID)
+	// query error
+	mock.
+		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		WithArgs(elemID).
+		WillReturnError(fmt.Errorf("db_error"))
 
-	assert.NoError(t, err)
-	assert.NotNil(t, m2)
+	_, err = store.Manager().Find(elemID)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+
+	// row scan error
+	expect = []*model.HireManager{
+		testManager(t, u),
+	}
+
+	mock.
+		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		WithArgs(elemID).
+		WillReturnRows(rows)
+
+	_, err = store.Manager().Find(elemID)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
 }
 
 func TestManagerRepository_FindByUser(t *testing.T) {
-	db, teardown := testStore(t, databaseURL)
-	defer teardown("users", "managers")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	var elemID int64 = 1
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "accountId", "registrationDate", "location", "companyId" })
+
+	u := testUser(t)
+	u.ID = elemID + 1
+	expect := []*model.HireManager{
+		testManager(t, u),
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.AccountID, item.RegistrationDate, item.Location, item.CompanyID)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		WithArgs(u.ID).
+		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
 
-	u := testUser(t)
-	u.Email = "managerrep3@example.org"
-	if err := store.User().Create(u); err != nil {
-		t.Fatal(err)
+	item, err := store.Manager().FindByUser(u.ID)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
 	}
 
-	m := testManager(t, u)
-
-	m1, err := store.Manager().FindByUser(u.ID)
-	assert.EqualError(t, err, "sql: no rows in result set")//store.ErrRecordNotFound.Error())
-	assert.Nil(t, m1)
-
-	if err := store.Manager().Create(m); err != nil {
-		t.Fatal(err)
+	if !reflect.DeepEqual(item, expect[0]) {
+		t.Errorf("results not match, want %v, have %v", expect[0], item)
+		return
 	}
 
-	m2, err := store.Manager().FindByUser(u.ID)
-	assert.NoError(t, err)
-	assert.NotNil(t, m2)
+	// query error
+	mock.
+		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		WithArgs(u.ID).
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = store.Manager().FindByUser(u.ID)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+
+	// row scan error
+	expect = []*model.HireManager{
+		testManager(t, u),
+	}
+
+	mock.
+		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		WithArgs(u.ID).
+		WillReturnRows(rows)
+
+	_, err = store.Manager().FindByUser(u.ID)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
 }
 
 func TestManagerRepository_Edit(t *testing.T) {
-	db, teardown := testStore(t, databaseURL)
-	defer teardown("users", "managers")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	store := sqlstore.New(db)
 
+	rows := sqlmock.
+		NewRows([]string{"accountId"})
+
+	var elemID int64 = 1
+	expect := []*model.HireManager{
+		{ ID: elemID },
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID)
+	}
+
 	u := testUser(t)
-	u.Email = "managerrep4@example.org"
-	if err := store.User().Create(u); err != nil {
-		t.Fatal(err)
-	}
-
+	u.ID = 1
 	m := testManager(t, u)
-	if err := store.Manager().Create(m); err != nil {
+	m.ID = 1
+
+	// TODO: uncomment when validation will be implemented
+	/*if err := f.Validate(); err != nil {
+		t.Fatal()
+	}*/
+
+	//ok query
+	m.Location = "underwater"
+
+	mock.
+		ExpectQuery(`UPDATE managers SET`).
+		WithArgs(m.Location, m.CompanyID, m.ID).
+		WillReturnRows(rows)
+
+	err = store.Manager().Edit(m)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	m.Location = "London"
+	if u.ID != 1 {
+		t.Errorf("bad id: want %v, have %v", u.ID, 1)
+		return
+	}
 
-	if err := store.Manager().Edit(m); err != nil {
-		t.Fatal(err)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }

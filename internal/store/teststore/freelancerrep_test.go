@@ -287,7 +287,7 @@ func TestFreelancerRep_Edit(t *testing.T) {
 		NewRows([]string{"accountId"})
 
 	var elemID int64 = 1
-	expect := []*model.User{
+	expect := []*model.Freelancer{
 		{ ID: elemID },
 	}
 
