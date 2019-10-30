@@ -67,10 +67,8 @@ func (s *server) ConfigureServer() {
 
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/account/settings/security-question", s.HandleGetSecQuestion).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/account/settings/security-question", s.HandleEditSecQuestion).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/account/check-security-question", s.HandleCheckSecQuestion).Methods(http.MethodPut, http.MethodOptions)
+	//private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet, http.MethodOptions)
+
 	private.HandleFunc("/roles", s.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodDelete, http.MethodOptions)
 	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)

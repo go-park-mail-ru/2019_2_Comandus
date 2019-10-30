@@ -533,12 +533,25 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: rewrite after Roles and Companies db interfaces realization
-	/*company := s.usersdb.Companies[hireManager.ID]
+
+	//company := s.usersdb.Companies[hireManager.ID]
+
+	company := model.Company{
+		ID:          0,
+		CompanyName: "default company",
+		Site:        "company.ru",
+		Description: "default company",
+		Country:     "Russia",
+		City:        "Moscow",
+		Address:     "Red square street",
+		Phone:       "88888888888",
+	}
+
 	var roles []*model.Role
 	clientRole := &model.Role{
 		Role:   "client",
 		Label:  company.CompanyName,
-		Avatar: "/default.png",
+		Avatar: "../store//default.png",
 	}
 	freelanceRole := &model.Role{
 		Role:   "freelancer",
@@ -547,23 +560,7 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	}
 	roles = append(roles, clientRole)
 	roles = append(roles, freelanceRole)
-	s.respond(w, r, http.StatusOK, roles)*/
-}
-
-func (s *server) HandleGetAuthHistory(w http.ResponseWriter, r *http.Request) {
-	// TODO: get auth history
-}
-
-func (s *server) HandleGetSecQuestion(w http.ResponseWriter, r *http.Request) {
-	// TODO: get sec question
-}
-
-func (s *server) HandleEditSecQuestion(w http.ResponseWriter, r *http.Request) {
-	// TODO: edit sec question
-}
-
-func (s *server) HandleCheckSecQuestion(w http.ResponseWriter, r *http.Request) {
-	// TODO: check seq question
+	s.respond(w, r, http.StatusOK, roles)
 }
 
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
@@ -701,7 +698,6 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
