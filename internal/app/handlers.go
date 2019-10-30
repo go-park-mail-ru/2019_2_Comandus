@@ -595,9 +595,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.store.Mu.Lock()
 	manager, err := s.store.Manager().FindByUser(user.ID)
-	s.store.Mu.Unlock()
 
 	if err != nil {
 		log.Println("fail find manager", err)
@@ -822,6 +820,15 @@ func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob<-strconv.Atoi: ")
+		s.error(w, r, http.StatusBadRequest, err)
+	}
+	jobId := int64(id)
+
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleResponseJob<-GetUserFromRequest: ")
@@ -836,6 +843,80 @@ func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(freelancer)
+	// get files from request
+	response := model.Response{
+		ID:               0,
+		FreelancerId:     freelancer.ID,
+		JobId:            jobId,
+		Files:            "",
+		Date:             time.Now(),
+		StatusManager:    model.ResponseStatusReview,
+		StatusFreelancer: model.ResponseStatusBlock,
+	}
 
+	if err := response.Validate(0); err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob<-Validate: ")
+		s.error(w, r, http.StatusBadRequest, err)
+	}
+
+	if err := s.store.Response().Create(&response); err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob<-Response().Create")
+		s.error(w, r, http.StatusInternalServerError, err)
+	}
+
+	s.respond(w, r, http.StatusOK, struct {}{})
+}
+
+func (s *server) HandleGetFreelancerResponses(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancerResponses<-GetUserFromRequest: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	freelancer, err := s.store.Freelancer().FindByUser(user.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancerResponses<-Freelancer().FindByUser: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	responses, err := s.store.Response().ListForFreelancer(freelancer.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancerResponses<-Responses().ListForFreelancer: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	s.respond(w, r, http.StatusOK, &responses)
+}
+
+func (s *server) HandleGetManagerResponses(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	user, err, codeStatus := s.GetUserFromRequest(r)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancerResponses<-GetUserFromRequest: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	manager, err := s.store.Manager().FindByUser(user.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancerResponses<-Manager().FindByUser: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	responses, err := s.store.Response().ListForManager(manager.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancerResponses<-Responses().ListForManager: ")
+		s.error(w, r, codeStatus, err)
+		return
+	}
+
+	s.respond(w, r, http.StatusOK, &responses)
 }
