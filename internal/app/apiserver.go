@@ -127,8 +127,20 @@ func createTables(db *sql.DB) error {
 		id bigserial not null primary key,
 		name varchar
 	);`
-
 	if _, err := db.Exec(companiesQuery); err != nil {
+		return err
+	}
+
+	responsesQuery := `CREATE TABLE IF NOT EXISTS responses (
+		id bigserial not null primary key,
+		freelancerId bigserial not null references freelancers,
+		jobId bigserial not null references jobs,
+		files varchar,
+		date timestamp not null,
+		statusManager varchar not null,
+		statusFreelancer varchar not null
+	);`
+	if _, err := db.Exec(responsesQuery); err != nil {
 		return err
 	}
 

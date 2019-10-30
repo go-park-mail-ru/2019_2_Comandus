@@ -9,7 +9,7 @@ import (
 func testUser(t *testing.T) *model.User {
 	t.Helper()
 	return &model.User{
-		ID: 0,
+		ID: 1,
 		FirstName: "masha",
 		SecondName: "ivanova",
 		UserName: "masha1996",
@@ -25,6 +25,7 @@ func testUser(t *testing.T) *model.User {
 func testManager(t *testing.T, user * model.User) *model.HireManager {
 	t.Helper()
 	return &model.HireManager{
+		ID:					1,
 		AccountID: 			user.ID,
 		RegistrationDate:	time.Now(),
 		Location:			"Moscow",
@@ -34,6 +35,7 @@ func testManager(t *testing.T, user * model.User) *model.HireManager {
 func testFreelancer(t *testing.T, user *model.User) *model.Freelancer {
 	t.Helper()
 	return &model.Freelancer{
+		ID:				   1,
 		AccountId:         user.ID,
 		RegistrationDate:  time.Now(),
 		Country:           "Russia",
@@ -46,11 +48,24 @@ func testFreelancer(t *testing.T, user *model.User) *model.Freelancer {
 func testJob(t *testing.T, manager * model.HireManager) *model.Job {
 	t.Helper()
 	return &model.Job{
+		ID:				1,
 		HireManagerId:	manager.ID,
 		Title:          "title",
 		Description:    "description",
 		PaymentAmount:   11222,
 		Country: 	"russia",
 		City:	"moscow",
+	}
+}
+
+func testResponse(t *testing.T, freelancer *model.Freelancer, job *model.Job) *model.Response {
+	t.Helper()
+	return &model.Response{
+		ID:            1,
+		FreelancerId:  freelancer.ID,
+		JobId:         job.ID,
+		Files:         "no files",
+		Date:          time.Time{},
+		StatusManager: model.ResponseStatusReview,
 	}
 }

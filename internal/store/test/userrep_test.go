@@ -13,72 +13,6 @@ import (
 	"testing"
 )
 
-func TestUserRepository_Create(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("cant create mock: %s", err)
-	}
-	defer db.Close()
-	store := sqlstore.New(db)
-
-	rows := sqlmock.
-		NewRows([]string{"accountId"})
-
-	var elemID int64 = 1
-	expect := []*model.User{
-		{ ID: elemID },
-	}
-
-	for _, item := range expect {
-		rows = rows.AddRow(item.ID)
-	}
-
-	u := testUser(t)
-	if err := u.Validate(); err != nil {
-		t.Fatal()
-	}
-	if err := u.BeforeCreate(); err != nil {
-		t.Fatal()
-	}
-
-	//ok query
-	mock.
-		ExpectQuery(`INSERT INTO users`).
-		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
-		WillReturnRows(rows)
-
-	err = store.User().Create(u)
-
-	if err != nil {
-		t.Errorf("unexpected err: %s", err)
-		return
-	}
-
-	if u.ID != 1 {
-		t.Errorf("bad id: want %v, have %v", u.ID, 1)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-
-	// query error
-	mock.
-		ExpectQuery(`INSERT INTO users`).
-		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
-		WillReturnError(fmt.Errorf("bad query"))
-
-	err = store.User().Create(u)
-	if err == nil {
-		t.Errorf("expected error, got nil")
-		return
-	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-
 func TestUserRepository_Find(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -159,6 +93,72 @@ func TestUserRepository_Find(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
+	}
+}
+
+func TestUserRepository_Create(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	store := sqlstore.New(db)
+
+	rows := sqlmock.
+		NewRows([]string{"accountId"})
+
+	var elemID int64 = 1
+	expect := []*model.User{
+		{ ID: elemID },
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID)
+	}
+
+	u := testUser(t)
+	if err := u.Validate(); err != nil {
+		t.Fatal()
+	}
+	if err := u.BeforeCreate(); err != nil {
+		t.Fatal()
+	}
+
+	//ok query
+	mock.
+		ExpectQuery(`INSERT INTO users`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
+		WillReturnRows(rows)
+
+	err = store.User().Create(u)
+
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if u.ID != 1 {
+		t.Errorf("bad id: want %v, have %v", u.ID, 1)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+	// query error
+	mock.
+		ExpectQuery(`INSERT INTO users`).
+		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
+		WillReturnError(fmt.Errorf("bad query"))
+
+	err = store.User().Create(u)
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 

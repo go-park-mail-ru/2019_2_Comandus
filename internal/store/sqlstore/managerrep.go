@@ -2,19 +2,10 @@ package sqlstore
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"time"
 )
 
 type ManagerRepository struct {
 	store *Store
-}
-
-type HireManager struct {
-	ID					int		`json:"id"`
-	AccountID 			int		`json:"accountId"`
-	RegistrationDate	time.Time	`json:"registrationDate"`
-	Location			string 		`json:"location"`
-	CompanyID			int 		`json:"companyId"`
 }
 
 func (r *ManagerRepository) Create(m *model.HireManager) error {

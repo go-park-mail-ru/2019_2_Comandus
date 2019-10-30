@@ -10,7 +10,7 @@ const (
 
 type Job struct {
 	ID                int64     `json:"id"`
-	HireManagerId     int64     `json:"hireManagerId,string"`
+	HireManagerId     int64     `json:"hireManagerId"`
 	Title             string  `json:"title"`
 	Description       string  `json:"description"`
 	Files             string  `json:"files"`
