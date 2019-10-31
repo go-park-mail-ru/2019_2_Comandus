@@ -36,4 +36,5 @@ type ResponseRepository interface {
 	Edit(response *model.Response) error
 	ListForFreelancer(int64) ([]model.Response, error)
 	ListForManager(int64) ([]model.Response, error)
+	Find(int64) (*model.Response, error)
 }

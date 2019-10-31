@@ -85,3 +85,7 @@ func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) 
 	}
 	return responses, nil
 }
+
+func (r * ResponseRepository) Find(id int64) (*model.Response, error) {
+
+}
