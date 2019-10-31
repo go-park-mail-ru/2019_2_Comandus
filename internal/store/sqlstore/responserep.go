@@ -87,5 +87,20 @@ func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) 
 }
 
 func (r * ResponseRepository) Find(id int64) (*model.Response, error) {
-
+	response := &model.Response{}
+	if err := r.store.db.QueryRow(
+		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer FROM responses WHERE id = $1",
+		id,
+	).Scan(
+		&response.ID,
+		&response.FreelancerId,
+		&response.JobId,
+		&response.Files,
+		&response.Date,
+		&response.StatusManager,
+		&response.StatusFreelancer,
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
 }

@@ -876,7 +876,7 @@ func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 
 
 // TODO : to another file
-func (s * server) GetManagerResponses(userId int64) (*[]model.Response, error){
+func (s * server) getManagerResponses(userId int64) (*[]model.Response, error){
 	manager, err := s.store.Manager().FindByUser(userId)
 	if err != nil {
 		err = errors.Wrapf(err, " GetManagerResponses<-Manager().FindByUser: ")
@@ -891,7 +891,7 @@ func (s * server) GetManagerResponses(userId int64) (*[]model.Response, error){
 	return &responses, nil
 }
 
-func (s * server) GetFreelancerResponses(userId int64) (*[]model.Response, error){
+func (s * server) getFreelancerResponses(userId int64) (*[]model.Response, error){
 	freelancer, err := s.store.Freelancer().FindByUser(userId)
 	if err != nil {
 		err = errors.Wrapf(err, " GetManagerResponses<-Manager().FindByUser: ")
@@ -919,10 +919,10 @@ func (s *server) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 	var responses *[]model.Response
 
 	if user.IsManager() {
-		responses, err = s.GetManagerResponses(user.ID)
+		responses, err = s.getManagerResponses(user.ID)
 		if err != nil {}
 	} else {
-		responses, err = s.GetFreelancerResponses(user.ID)
+		responses, err = s.getFreelancerResponses(user.ID)
 		if err != nil {}
 	}
 	s.respond(w, r, http.StatusOK, responses)

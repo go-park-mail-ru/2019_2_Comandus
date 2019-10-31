@@ -303,3 +303,70 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 		return
 	}
 }
+
+func TestResponseRepository_Find(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	var elemID int64 = 1
+
+	u := testUser(t)
+	f := testFreelancer(t, u)
+	m := testManager(t, u)
+	j := testJob(t, m)
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer"})
+	expect := []*model.Response{
+		testResponse(t, f, j),
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.FreelancerId, item.JobId, item.Files, item.Date, item.StatusManager,
+			item.StatusFreelancer)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, freelancerId, jobId, files, date, " +
+			"statusManager, statusFreelancer  FROM responses WHERE").
+		WithArgs(elemID).
+		WillReturnRows(rows)
+
+	store := sqlstore.New(db)
+
+	item, err := store.Response().Find(elemID)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if !item.IsEqual(expect[0]) {
+		t.Errorf("results not match, want %v, have %v", expect[0], item)
+		return
+	}
+
+	// query error
+	mock.
+		ExpectQuery("SELECT id, freelancerId, jobId, files, date, " +
+			"statusManager, statusFreelancer  FROM responses WHERE").
+		WithArgs(elemID).
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = store.Response().Find(elemID)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+}
