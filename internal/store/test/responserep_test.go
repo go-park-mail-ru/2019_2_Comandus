@@ -309,7 +309,12 @@ func TestResponseRepository_Find(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
 	}
-	defer db.Close()
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	var elemID int64 = 1
 
