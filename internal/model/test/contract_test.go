@@ -18,7 +18,7 @@ func testContract(t *testing.T) *model.Contract {
 	}
 }
 
-func TestUserInput_Validate(t *testing.T) {
+func  TestContract_Validate(t *testing.T) {
 	testCases := []struct {
 		name     string
 		contract func() *model.Contract
@@ -71,7 +71,3 @@ func TestUserInput_Validate(t *testing.T) {
 	}
 }
 
-
-func TestContract_Validate(t *testing.T) {
-
-}
