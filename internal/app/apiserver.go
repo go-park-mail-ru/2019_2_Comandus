@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 )
 
@@ -26,8 +27,16 @@ func Start(config *Config) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-	defer zapLogger.Sync()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
+	defer func() {
+		if err := zapLogger.Sync(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	store := sqlstore.New(db)
 
