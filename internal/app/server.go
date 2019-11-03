@@ -75,9 +75,14 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/jobs", s.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
+
 	private.HandleFunc("/jobs/{id:[0-9]+}/response}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/responses", s.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
-	//private.HandleFunc("/jobs/responses/{id:[0-9]+}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
+	private.HandleFunc("/responses/{id:[0-9]+}/accept", s.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/responses/{id:[0-9]+}/deny", s.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
+
+	private.HandleFunc("/responses/{id:[0-9]+}/contract", s.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
+
 	private.HandleFunc("/freelancer", s.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 }

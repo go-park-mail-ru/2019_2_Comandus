@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	ContractStatusDone = "done"
+	ContractStatusUnderDevelopment = "develop"
+)
+
 type Contract struct {
 	ID				int64		`json:"id"`
 	ResponseID		int64 		`json:"responseId"`
