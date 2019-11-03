@@ -69,3 +69,33 @@ func testResponse(t *testing.T, freelancer *model.Freelancer, job *model.Job) *m
 		StatusManager: model.ResponseStatusReview,
 	}
 }
+
+func testCompany(t *testing.T) *model.Company {
+	t.Helper()
+	return &model.Company{
+		ID:          1,
+		CompanyName: "test company",
+		Site:        "www.testcompany.com",
+		TagLine:     "no tags",
+		Description: "no description",
+		Country:     "russia",
+		City:        "moscow",
+		Address:     "baumanskaya ul",
+		Phone:       "88888888888",
+	}
+}
+
+func testContract(t * testing.T, r *model.Response, c *model.Company, f *model.Freelancer) *model.Contract {
+	t.Helper()
+	return &model.Contract{
+		ID:            1,
+		ResponseID:    r.ID,
+		CompanyID:     c.ID,
+		FreelancerID:  f.ID,
+		StartTime:     time.Now(),
+		EndTime:       time.Time{},
+		Status:        "review",
+		Grade:         0,
+		PaymentAmount: 100,
+	}
+}

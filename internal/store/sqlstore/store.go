@@ -3,7 +3,6 @@ package sqlstore
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
-	"sync"
 )
 
 // Store ...
@@ -14,15 +13,16 @@ type Store struct {
 	managerRepository    *ManagerRepository
 	jobRepository 		 *JobRepository
 	responseRepository 	 *ResponseRepository
+	companyRepository 	 *CompanyRepository
+	contractRepository 	 *ContractRepository
 	config               *Config
-	Mu                   *sync.Mutex
+	//Mu                   *sync.Mutex
 }
 
 
 func New(db *sql.DB) *Store {
 	return &Store{
 		db: db,
-		Mu: new(sync.Mutex),
 	}
 }
 
@@ -84,4 +84,28 @@ func (s *Store) Response() *ResponseRepository {
 	}
 
 	return s.responseRepository
+}
+
+func (s *Store) Company() *CompanyRepository {
+	if s.companyRepository != nil {
+		return s.companyRepository
+	}
+
+	s.companyRepository = &CompanyRepository{
+		store: s,
+	}
+
+	return s.companyRepository
+}
+
+func (s *Store) Contract() *ContractRepository {
+	if s.contractRepository != nil {
+		return s.contractRepository
+	}
+
+	s.contractRepository = &ContractRepository {
+		store: s,
+	}
+
+	return s.contractRepository
 }

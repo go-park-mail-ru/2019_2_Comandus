@@ -6,4 +6,5 @@ type Store interface {
 	Freelancer() FreelancerRepository
 	Job() JobRepository
 	Response() ResponseRepository
+	Company() CompanyRepository
 }

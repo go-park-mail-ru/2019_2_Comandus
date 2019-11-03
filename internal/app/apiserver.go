@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
@@ -39,11 +40,9 @@ func Start(config *Config) error {
 	}()
 
 	store := sqlstore.New(db)
-
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	srv := newServer(sessionStore, store, sugaredLogger)
 
-	//CSRF := csrf.Protect([]byte("32-byte-long-auth-key"))
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 
@@ -71,7 +70,7 @@ func createTables(db *sql.DB) error {
 		email varchar not null unique,
 		encryptPassword varchar not null,
 		avatar bytea,
-		userType varchar --not null
+		userType varchar not null
 	);`
 	if _, err := db.Exec(usersQuery); err != nil {
 		return err
@@ -82,7 +81,7 @@ func createTables(db *sql.DB) error {
 		accountId bigserial references users,
 		registrationDate timestamp,
 		location varchar,
-		companyId bigserial --references  companies
+		companyId bigserial references  companies
 	);`
 	if _, err := db.Exec(managersQuery); err != nil {
 		return err
@@ -134,7 +133,14 @@ func createTables(db *sql.DB) error {
 
 	companiesQuery := `CREATE TABLE IF NOT EXISTS companies (
 		id bigserial not null primary key,
-		name varchar
+		companyName varchar not null,
+		site varchar,
+		tagLine varchar,
+		description varchar,
+		country varchar,
+		city varchar,
+		address varchar,
+		phone varchar
 	);`
 	if _, err := db.Exec(companiesQuery); err != nil {
 		return err
@@ -150,6 +156,21 @@ func createTables(db *sql.DB) error {
 		statusFreelancer varchar not null
 	);`
 	if _, err := db.Exec(responsesQuery); err != nil {
+		return err
+	}
+
+	contractsQuery := `CREATE TABLE IF NOT EXISTS contracts (
+		id bigserial not null primary key,
+		responseId bigint not null references responses,
+		companyId bigint not null references companies,
+		freelancerId bigint not null,
+		startTime timestamp not null,
+		endTime timestamp not null,
+		status varchar not null,
+		grade int not null,
+		paymentAmount float8
+	);`
+	if _, err := db.Exec(contractsQuery); err != nil {
 		return err
 	}
 
@@ -183,6 +204,11 @@ func dropAllTables(db *sql.DB) error {
 	}
 
 	query = `DROP TABLE IF EXISTS specialities;`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	query = `DROP TABLE IF EXISTS contracts;`
 	if _, err := db.Exec(query); err != nil {
 		return err
 	}

@@ -38,3 +38,8 @@ type ResponseRepository interface {
 	ListForManager(int64) ([]model.Response, error)
 	Find(int64) (*model.Response, error)
 }
+
+type CompanyRepository interface {
+	Create(company *model.Company) error
+	Find(int64) (*model.Company, error)
+}
