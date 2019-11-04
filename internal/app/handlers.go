@@ -1161,5 +1161,5 @@ func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := s.token.Create(sess, time.Now().Add(24*time.Hour).Unix())
-	s.respond(w, r, http.StatusOK, token)
+	s.respond(w, r, http.StatusOK, map[string]string{"csrf-token" : token})
 }
