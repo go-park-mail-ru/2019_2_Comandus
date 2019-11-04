@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,11 +16,12 @@ type User struct {
 	SecondName 		string `json:"secondName" valid:"utfletter"`
 	UserName     	string `json:"username" valid:"alphanum"`
 	Email 			string `json:"email" valid:"email"`
-	Password		string `json:"password" valid:"-"`
+	Password		string `json:"password" valid:"length(6|100)"`
 	EncryptPassword string `json:"-" valid:"-"`
 	Avatar 			[]byte `json:"-" valid:"-"`
 	UserType 		string `json:"type" valid:"in(client|freelancer)"`
 }
+
 
 func (u *User) BeforeCreate() error {
 	if len(u.UserType) == 0 || u.UserType != userFreelancer && u.UserType != userCustomer {
@@ -64,20 +63,20 @@ func EncryptString(s string) (string, error) {
 	return string(b), nil
 }
 
-func (u *User) Validate() error {
-	return validation.ValidateStruct(
-		u,
-		validation.Field(&u.Email, validation.Required, is.Email),
-		validation.Field(&u.Password, validation.Required, validation.Length(6, 100)),
-	)
-}
-
-func requiredIf(cond bool) validation.RuleFunc {
-	return func(value interface{}) error {
-		if cond {
-			return validation.Validate(value, validation.Required)
-		}
-		return nil
-	}
-}
-
+//func (u *User) Validate() error {
+//	return validation.ValidateStruct(
+//		u,
+//		validation.Field(&u.Email, validation.Required, is.Email),
+//		validation.Field(&u.Password, validation.Required, validation.Length(6, 100)),
+//	)
+//}
+//
+//func requiredIf(cond bool) validation.RuleFunc {
+//	return func(value interface{}) error {
+//		if cond {
+//			return validation.Validate(value, validation.Required)
+//		}
+//		return nil
+//	}
+//}
+//

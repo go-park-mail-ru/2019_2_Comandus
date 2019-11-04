@@ -22,7 +22,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateUser:")
+			err = errors.Wrapf(err, "HandleCreateUser<-BodyClose:")
 			s.error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
@@ -31,7 +31,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	user := new(model.User)
 	err := decoder.Decode(user)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser:")
+		err = errors.Wrapf(err, "HandleCreateUser<-Decode :")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -285,7 +285,8 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, err)
 		return
 	}
-
+	trueID := user.ID
+	trueEmail := user.Email
 	// TODO: validate edited user
 
 	defer func() {
@@ -298,8 +299,21 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	err = decoder.Decode(user)
 
 	if err != nil {
-		log.Printf("error while marshalling JSON: %s", err)
 		err = errors.Wrapf(err, "HandleEditProfile<-Decode:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+
+	if trueEmail != user.Email || trueID != user.ID {
+		err = fmt.Errorf("incorrect userID or email")
+		err = errors.Wrapf(err, "HandleEditProfile<-Validate:")
+		s.error(w, r, http.StatusBadRequest, err)
+	}
+
+	_, err = govalidator.ValidateStruct(user)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditProfile<-ValidateStruct:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -338,6 +352,7 @@ func (s *server) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	bodyPassword := new(model.BodyPassword)
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(bodyPassword)
+
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditPassword<-Decode: ")
 		s.error(w, r, http.StatusInternalServerError, err)
@@ -610,6 +625,11 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
+	if 	_, err = govalidator.ValidateStruct(job); err != nil {
+		err = errors.Wrapf(err, "HandleCreateJob<-ValidateStruct:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
@@ -698,7 +718,13 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, errors.New("invalid format of data"))
 		return
 	}
-	// TODO: validate freelancer
+
+	if 	_, err = govalidator.ValidateStruct(freelancer); err != nil {
+		err = errors.Wrapf(err, "HandleEditFreelancer<-ValidateStruct:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
 
 	err = s.store.Freelancer().Edit(freelancer)
 	if err != nil {
