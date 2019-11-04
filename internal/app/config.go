@@ -10,6 +10,7 @@ type Config struct {
 	DatabaseURL string
 	SessionKey  string
 	Store       *sqlstore.Config
+	TokenSecret string
 }
 
 func NewConfig() *Config {
@@ -19,5 +20,6 @@ func NewConfig() *Config {
 		SessionKey:  "jdfhdfdj",
 		DatabaseURL: "host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d",
 		Store:       sqlstore.NewConfig(),
+		TokenSecret: "golangsecpark",
 	}
 }

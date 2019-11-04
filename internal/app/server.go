@@ -30,15 +30,17 @@ type server struct {
 	config       *Config
 	Logger    	 *zap.SugaredLogger
 	clientUrl    string
+	token 	 	 *HashToken
 }
 
-func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.SugaredLogger) *server {
+func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.SugaredLogger, thisToken *HashToken) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		sessionStore: sessionStore,
 		Logger:		  logger,
 		clientUrl:    "https://comandus.now.sh",
 		store:        store,
+		token:	  	  thisToken,
 	}
 	s.ConfigureServer()
 	return s
@@ -56,7 +58,9 @@ func (s *server) ConfigureServer() {
 
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
-	private.Use(s.authenticateUser)
+	private.Use(s.authenticateUser, s.CheckTokenMiddleware)
+	private.HandleFunc("/token" , s.HandleGetToken).Methods(http.MethodGet)
+
 	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut, http.MethodOptions)

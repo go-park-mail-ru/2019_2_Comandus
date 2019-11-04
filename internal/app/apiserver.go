@@ -2,7 +2,6 @@ package apiserver
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
@@ -28,6 +27,11 @@ func Start(config *Config) error {
 	if err != nil {
 		return err
 	}
+	token, err := NewHMACHashToken(config.TokenSecret)
+	if err != nil {
+		return err
+	}
+
 	defer func() {
 		if err := db.Close(); err != nil {
 			log.Println(err)
@@ -41,7 +45,7 @@ func Start(config *Config) error {
 
 	store := sqlstore.New(db)
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	srv := newServer(sessionStore, store, sugaredLogger)
+	srv := newServer(sessionStore, store, sugaredLogger, token)
 
 	return http.ListenAndServe(config.BindAddr, srv)
 }

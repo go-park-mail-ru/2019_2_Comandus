@@ -1150,3 +1150,16 @@ func (s * server) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	sess , err := s.sessionStore.Get(r, sessionName)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get :")
+		s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
+		return
+	}
+
+	token, err := s.token.Create(sess, time.Now().Add(24*time.Hour).Unix())
+	s.respond(w, r, http.StatusOK, token)
+}
