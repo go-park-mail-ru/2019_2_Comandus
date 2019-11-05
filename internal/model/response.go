@@ -68,5 +68,5 @@ func (r * Response) IsEqual(response *Response) bool {
 
 
 func (resp *Response) Sanitize (sanitizer *bluemonday.Policy)  {
-	sanitizer.Sanitize(resp.Files)
+	resp.Files = sanitizer.Sanitize(resp.Files)
 }

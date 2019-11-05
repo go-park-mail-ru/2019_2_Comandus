@@ -15,12 +15,12 @@ type Company struct {
 }
 
 func (comp *Company) Sanitize (sanitizer *bluemonday.Policy)  {
-	sanitizer.Sanitize(comp.CompanyName)
-	sanitizer.Sanitize(comp.Site)
-	sanitizer.Sanitize(comp.TagLine)
-	sanitizer.Sanitize(comp.Description)
-	sanitizer.Sanitize(comp.Country)
-	sanitizer.Sanitize(comp.City)
-	sanitizer.Sanitize(comp.Address)
-	sanitizer.Sanitize(comp.Phone)
+	comp.CompanyName = sanitizer.Sanitize(comp.CompanyName)
+	comp.Site = sanitizer.Sanitize(comp.Site)
+	comp.TagLine = sanitizer.Sanitize(comp.TagLine)
+	comp.Description = sanitizer.Sanitize(comp.Description)
+	comp.Country = sanitizer.Sanitize(comp.Country)
+	comp.City = sanitizer.Sanitize(comp.City)
+	comp.Address = sanitizer.Sanitize(comp.Address)
+	comp.Phone = sanitizer.Sanitize(comp.Phone)
 }

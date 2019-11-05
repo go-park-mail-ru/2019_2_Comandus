@@ -47,10 +47,10 @@ func (j *Job) BeforeCreate() {
 	j.Status = JobStateCreate
 }
 
-func (job *Job) Sanitize (sanitizer *bluemonday.Policy)  {
-	sanitizer.Sanitize(job.Title)
-	sanitizer.Sanitize(job.Description)
-	sanitizer.Sanitize(job.Files)
-	sanitizer.Sanitize(job.Country)
-	sanitizer.Sanitize(job.City)
+func (j *Job) Sanitize (sanitizer *bluemonday.Policy)  {
+	j.Title = sanitizer.Sanitize(j.Title)
+	j.Description = sanitizer.Sanitize(j.Description)
+	j.Files = sanitizer.Sanitize(j.Files)
+	j.Country = sanitizer.Sanitize(j.Country)
+	j.City = sanitizer.Sanitize(j.City)
 }

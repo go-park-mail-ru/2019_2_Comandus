@@ -97,7 +97,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusInternalServerError, err)
 		return
 	}
-
+	user.Sanitize(s.sanitizer)
 	// TODO: why we need manager cookie?
 	cookie := http.Cookie{Name: hireManagerIdCookieName, Value: strconv.Itoa(1)} // m.Id
 	http.SetCookie(w, &cookie)
@@ -258,6 +258,7 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, err)
 		return
 	}
+	user.Sanitize(s.sanitizer)
 	s.respond(w, r, http.StatusOK, user)
 }
 
@@ -628,7 +629,7 @@ func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
 	}
-
+	job.Sanitize(s.sanitizer)
 	s.respond(w, r, http.StatusOK, &job)
 }
 
@@ -690,7 +691,7 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
 	}
-
+	freelancer.Sanitize(s.sanitizer)
 	s.respond(w, r, http.StatusOK, &freelancer)
 }
 
@@ -774,13 +775,14 @@ func (s *server) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	jobs, err := s.store.Job().List()
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
 	}
-
+	for i, _ := range jobs{
+		jobs[i].Sanitize(s.sanitizer)
+	}
 	s.respond(w, r, http.StatusOK, &jobs)
 }
 
@@ -930,6 +932,9 @@ func (s *server) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 			s.error(w, r, http.StatusInternalServerError, err)
 			return
 		}
+	}
+	for i, _ := range *responses{
+		(*responses)[i].Sanitize(s.sanitizer)
 	}
 	s.respond(w, r, http.StatusOK, responses)
 }
@@ -1139,9 +1144,7 @@ func (s * server) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 	contract.CompanyID = manager.CompanyID
 	contract.FreelancerID = response.FreelancerId
 	contract.Status = model.ContractStatusUnderDevelopment
-
-	//TODO: uncommnet when fix response
-	//contract.PaymentAmount = response.PaymentAmount
+	contract.PaymentAmount = response.PaymentAmount
 	contract.Grade = 0
 
 	if err := s.store.Contract().Create(contract); err != nil {

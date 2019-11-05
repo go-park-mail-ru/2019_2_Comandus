@@ -15,5 +15,5 @@ type HireManager struct {
 
 
 func (hireMan *HireManager) Sanitize (sanitizer *bluemonday.Policy)  {
-	sanitizer.Sanitize(hireMan.Location)
+	hireMan.Location = sanitizer.Sanitize(hireMan.Location)
 }

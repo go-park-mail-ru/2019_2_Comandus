@@ -21,10 +21,10 @@ type Freelancer struct {
 
 
 func (freel *Freelancer) Sanitize (sanitizer *bluemonday.Policy)  {
-	sanitizer.Sanitize(freel.Country)
-	sanitizer.Sanitize(freel.City)
-	sanitizer.Sanitize(freel.Address)
-	sanitizer.Sanitize(freel.Phone)
-	sanitizer.Sanitize(freel.TagLine)
-	sanitizer.Sanitize(freel.Overview)
+	freel.Country = sanitizer.Sanitize(freel.Country)
+	freel.City = sanitizer.Sanitize(freel.City)
+	freel.Address = sanitizer.Sanitize(freel.Address)
+	freel.Phone = sanitizer.Sanitize(freel.Phone)
+	freel.TagLine = sanitizer.Sanitize(freel.TagLine)
+	freel.Overview = sanitizer.Sanitize(freel.Overview)
 }

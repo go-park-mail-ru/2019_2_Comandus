@@ -83,7 +83,7 @@ func requiredIf(cond bool) validation.RuleFunc {
 }
 
 func (u *User) Sanitize (sanitizer *bluemonday.Policy)  {
-	sanitizer.Sanitize(u.FirstName)
-	sanitizer.Sanitize(u.SecondName)
-	sanitizer.Sanitize(u.UserName)
+	u.FirstName = sanitizer.Sanitize(u.FirstName)
+	u.SecondName = sanitizer.Sanitize(u.SecondName)
+	u.UserName = sanitizer.Sanitize(u.UserName)
 }

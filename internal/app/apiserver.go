@@ -28,7 +28,6 @@ func Start(config *Config) error {
 	if err != nil {
 		return err
 	}
-
 	token, err := NewHMACHashToken(config.TokenSecret)
 	if err != nil {
 		return err
@@ -159,7 +158,7 @@ func createTables(db *sql.DB) error {
 		files varchar,
 		date timestamp not null,
 		statusManager varchar not null,
-		statusFreelancer varchar not null
+		statusFreelancer varchar not null,
 		paymentAmount decimal(8,2) not null 
 	);`
 	if _, err := db.Exec(responsesQuery); err != nil {
