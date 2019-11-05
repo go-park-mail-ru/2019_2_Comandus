@@ -9,6 +9,19 @@ import (
 	"testing"
 )
 
+func IsEqual(t *testing.T, c1 *model.Contract, c2 * model.Contract) bool {
+	t.Helper()
+	return c1.ID == c2.ID &&
+		c1.ResponseID == c2.ResponseID &&
+		c1.CompanyID == c2.CompanyID &&
+		c1.FreelancerID == c2.FreelancerID &&
+		c1.StartTime == c2.StartTime &&
+		c1.EndTime == c2.EndTime &&
+		c1.Status == c2.Status &&
+		c1.Grade == c2.Grade &&
+		c1.PaymentAmount == c2.PaymentAmount
+}
+
 func TestContractRep_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -246,5 +259,147 @@ func TestContractRep_Edit(t *testing.T) {
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestContractRepository_List(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
+			"grade", "paymentAmount" })
+
+	u := testUser(t)
+	m := testManager(t, u)
+	f := testFreelancer(t, u)
+	f.ID = 100
+	c := testCompany(t)
+
+	j1 := testJob(t,m)
+	j2 := testJob(t,m)
+	j2.ID = 2
+	j3 := testJob(t,m)
+	j3.ID = 3
+
+	r1 := testResponse(t,f,j1)
+	r2 := testResponse(t,f,j1)
+	r2.ID = 2
+	r3 := testResponse(t,f,j1)
+	r3.ID = 3
+
+	c1 := testContract(t, r1, c, f)
+	c2 := testContract(t, r2, c, f)
+	c3 := testContract(t, r3, c, f)
+
+	expect := []*model.Contract{
+		c1,
+		c2,
+		c3,
+	}
+
+	// company mode
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime,
+			item.EndTime, item.Status, item.Grade, item.PaymentAmount)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
+			"grade, paymentAmount FROM contracts WHERE").
+		WithArgs(c.ID).
+		WillReturnRows(rows)
+
+	store := sqlstore.New(db)
+
+	contracts, err := store.Contract().List(c.ID, "company")
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	for i := 0; i < 3; i++ {
+		if !IsEqual(t, &contracts[i], expect[i]) {
+			t.Errorf("results not match, want %v, have %v", expect[i], contracts[i])
+			return
+		}
+	}
+
+	// query error
+	mock.
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
+			"grade, paymentAmount FROM contracts WHERE").
+		WithArgs(c.ID).
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = store.Contract().List(c.ID, "company")
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+
+	// freelancer mode
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime,
+			item.EndTime, item.Status, item.Grade, item.PaymentAmount)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
+			"grade, paymentAmount FROM contracts WHERE").
+		WithArgs(f.ID).
+		WillReturnRows(rows)
+
+	contracts, err = store.Contract().List(c.ID, "freelancer")
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	for i := 0; i < 3; i++ {
+		if !IsEqual(t, &contracts[i], expect[i]) {
+			t.Errorf("results not match, want %v, have %v", expect[i], contracts[i])
+			return
+		}
+	}
+
+	// query error
+	mock.
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
+			"grade, paymentAmount FROM contracts WHERE").
+		WithArgs(f.ID).
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = store.Contract().List(c.ID, "freelancer")
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
 	}
 }
