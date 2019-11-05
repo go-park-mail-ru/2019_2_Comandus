@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/sessions"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"net/http"
@@ -23,9 +24,9 @@ func TestServer_HandleCreateUser(t *testing.T) {
 	zapLogger, _ := zap.NewProduction()
 	sugaredLogger := zapLogger.Sugar()
 	token , _ := NewHMACHashToken(config.TokenSecret)
+	sanitizer := bluemonday.UGCPolicy()
 
-
-	s := newServer(sessionStore, store, sugaredLogger, token)
+	s := newServer(sessionStore, store, sugaredLogger, token, sanitizer)
 
 	testCases := []struct {
 		name         string

@@ -21,7 +21,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateUser:")
+			err = errors.Wrapf(err, "HandleCreateUser:<-Body.Close")
 			s.error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
@@ -30,7 +30,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	user := new(model.User)
 	err := decoder.Decode(user)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser:")
+		err = errors.Wrapf(err, "HandleCreateUser<-Decode:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -101,7 +101,6 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	// TODO: why we need manager cookie?
 	cookie := http.Cookie{Name: hireManagerIdCookieName, Value: strconv.Itoa(1)} // m.Id
 	http.SetCookie(w, &cookie)
-
 	s.respond(w, r, http.StatusCreated, user)
 }
 

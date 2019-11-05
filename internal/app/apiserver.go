@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"github.com/gorilla/sessions"
+	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -27,6 +28,7 @@ func Start(config *Config) error {
 	if err != nil {
 		return err
 	}
+
 	token, err := NewHMACHashToken(config.TokenSecret)
 	if err != nil {
 		return err
@@ -42,10 +44,10 @@ func Start(config *Config) error {
 			log.Println(err)
 		}
 	}()
-
+	sanitizer := bluemonday.UGCPolicy()
 	store := sqlstore.New(db)
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	srv := newServer(sessionStore, store, sugaredLogger, token)
+	srv := newServer(sessionStore, store, sugaredLogger, token, sanitizer)
 
 	return http.ListenAndServe(config.BindAddr, srv)
 }

@@ -1,5 +1,7 @@
 package model
 
+import "github.com/microcosm-cc/bluemonday"
+
 type Company struct {
 	ID			int64    `json:"id"`
 	CompanyName string `json:"companyName"`
@@ -12,3 +14,13 @@ type Company struct {
 	Phone 		string `json:"phone"`
 }
 
+func (comp *Company) Sanitize (sanitizer *bluemonday.Policy)  {
+	sanitizer.Sanitize(comp.CompanyName)
+	sanitizer.Sanitize(comp.Site)
+	sanitizer.Sanitize(comp.TagLine)
+	sanitizer.Sanitize(comp.Description)
+	sanitizer.Sanitize(comp.Country)
+	sanitizer.Sanitize(comp.City)
+	sanitizer.Sanitize(comp.Address)
+	sanitizer.Sanitize(comp.Phone)
+}

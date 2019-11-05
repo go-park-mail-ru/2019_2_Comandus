@@ -22,7 +22,7 @@ func (s *server) RequestIDMiddleware (next http.Handler) http.Handler {
 
 func (s *server) AccessLogMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.Logger.Info(r.URL.Path,
+		s.logger.Info(r.URL.Path,
 			zap.String("method:", r.Method),
 			zap.String("remote_addr:", r.RemoteAddr),
 			zap.String("url:", r.URL.Path),
