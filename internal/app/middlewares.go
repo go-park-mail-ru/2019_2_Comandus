@@ -59,7 +59,7 @@ func (s *server) CheckTokenMiddleware (next http.Handler) http.Handler {
 			isEqual, err := s.token.Check(sess, r.Header.Get("csrf-token"))
 			if !isEqual {
 				err = errors.Wrapf(err, "CheckTokenMiddleware<-Check:")
-				s.error(w, r, http.StatusUnauthorized, err)
+				s.error(w, r, http.StatusBadRequest, err)
 				return
 			}
 		}

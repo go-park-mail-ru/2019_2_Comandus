@@ -22,8 +22,10 @@ func TestServer_HandleCreateUser(t *testing.T) {
 	store := sqlstore.New(db)
 	zapLogger, _ := zap.NewProduction()
 	sugaredLogger := zapLogger.Sugar()
+	token , _ := NewHMACHashToken(config.TokenSecret)
 
-	s := newServer(sessionStore, store, sugaredLogger)
+
+	s := newServer(sessionStore, store, sugaredLogger, token)
 
 	testCases := []struct {
 		name         string

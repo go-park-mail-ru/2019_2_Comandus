@@ -20,6 +20,7 @@ type Response struct {
 	Date				time.Time `json:"date"`
 	StatusManager		string    `json:"statusManager,string"`
 	StatusFreelancer	string    `json:"statusFreelancer,string"`
+	PaymentAmount 		float64	  `json:"PaymentAmount,string"`
 }
 
 func (r *Response) BeforeCreate() {

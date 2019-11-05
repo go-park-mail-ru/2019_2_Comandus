@@ -116,7 +116,7 @@ func createTables(db *sql.DB) error {
 		files varchar,
 		specialityId bigserial,  --references specialities,
 		experienceLevelId bigserial,
-		paymentAmount float8,
+		paymentAmount decimal(8,2),
 		country varchar,
 		city varchar,
 		jobTypeId bigserial,
@@ -158,6 +158,7 @@ func createTables(db *sql.DB) error {
 		date timestamp not null,
 		statusManager varchar not null,
 		statusFreelancer varchar not null
+		paymentAmount decimal(8,2) not null 
 	);`
 	if _, err := db.Exec(responsesQuery); err != nil {
 		return err
@@ -172,7 +173,7 @@ func createTables(db *sql.DB) error {
 		endTime timestamp not null,
 		status varchar not null,
 		grade int not null,
-		paymentAmount float8
+		paymentAmount decimal(8,2) not null 
 	);`
 	if _, err := db.Exec(contractsQuery); err != nil {
 		return err
