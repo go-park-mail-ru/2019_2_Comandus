@@ -91,6 +91,7 @@ func (s *server) ConfigureServer() {
 
 	private.HandleFunc("/responses/{id:[0-9]+}/contract", s.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/contract/{id:[0-9]+/done}", s.HandleTickContractAsDone).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/contract/{id:[0-9]+}", s.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
 
 	private.HandleFunc("/freelancer", s.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)

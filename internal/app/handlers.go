@@ -1226,6 +1226,81 @@ func (s * server) HandleTickContractAsDone(w http.ResponseWriter, r *http.Reques
 	s.respond(w,r, http.StatusOK, struct{}{})
 }
 
+func (s *server) HandleReviewContract(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	user, err, status := s.GetUserFromRequest(r)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleReviewContract<-GetUserFromRequest: ")
+		s.error(w, r, status, err)
+		return
+	}
+
+	if !user.IsManager() {
+		err = errors.New("user must be manager")
+		s.error(w, r, http.StatusInternalServerError, errors.Wrap(err, "HandleReviewContract: "))
+		return
+	}
+
+	manager, err := s.store.Manager().FindByUser(user.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleReviewContract<-Manager().FindByUser: ")
+		s.error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			err = errors.Wrapf(err, "HandleReviewContract: ")
+			s.error(w, r, http.StatusInternalServerError, err)
+		}
+	}()
+
+	type Input struct {
+		Grade int `json:"grade"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	input := new(Input)
+	if err := decoder.Decode(input); err != nil {
+		err = errors.Wrapf(err, "HandleReviewContract: ")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	// TODO: max and min grades
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleReviewContract<-strconv.Atoi: ")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	contractId := int64(id)
+	contract, err := s.store.Contract().Find(contractId)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleReviewContract<-Contract().Find: ")
+		s.error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+	if contract.CompanyID != manager.CompanyID {
+		err = errors.New("current manager cant manage this contract")
+		s.error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleReviewContract: "))
+	}
+
+	contract.Grade = input.Grade
+	contract.Status = model.ContractStatusReviewed
+	if err := s.store.Contract().Edit(contract); err != nil {
+		s.error(w, r, http.StatusInternalServerError, errors.Wrap(err, "HandleReviewContract<-Contract().Edit: "))
+		return
+	}
+
+	s.respond(w,r, http.StatusOK, struct{}{})
+}
+
 func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	sess , err := s.sessionStore.Get(r, sessionName)
