@@ -8,6 +8,7 @@ import (
 const (
 	ContractStatusDone = "done"
 	ContractStatusUnderDevelopment = "develop"
+	ContractStatusCanceled = "cancel"
 )
 
 type Contract struct {

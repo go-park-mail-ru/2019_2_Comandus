@@ -1092,6 +1092,7 @@ func (s * server) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleCreateContract:")
 			s.error(w, r, http.StatusInternalServerError, err)
+			return
 		}
 	}()
 
@@ -1149,6 +1150,78 @@ func (s * server) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusInternalServerError, err)
 		return
 	}
+
+	// TODO: other responses should be denied
+	s.respond(w, r, http.StatusOK, struct{}{})
+}
+
+func (s * server) SetStatusContract(user * model.User, contract *model.Contract, status string) error {
+	// TODO: fix if add new modes
+	if !user.IsManager() && status != model.ContractStatusDone {
+		err := errors.New("freelancer can change status only to done status")
+		return errors.Wrapf(err, "SetStatusContract<-GetUserFromRequest:")
+	}
+
+	contract.Status = status
+	if err := s.store.Contract().Edit(contract); err != nil {
+		return errors.Wrapf(err, "SetStatusContract<-Contract().Edit:")
+	}
+	return nil
+}
+
+func (s * server) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	user, err, status := s.GetUserFromRequest(r)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-GetUserFromRequest: ")
+		s.error(w, r, status, err)
+		return
+	}
+
+	if user.IsManager() {
+		err = errors.New("user must be freelancer")
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	freelancer, err := s.store.Freelancer().FindByUser(user.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-Freelancer().FindByUser: ")
+		s.error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-strconv.Atoi: ")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	contractId := int64(id)
+	contract, err := s.store.Contract().Find(contractId)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-Contract().Find: ")
+		s.error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+
+	if contract.FreelancerID != freelancer.ID {
+		err = errors.New("current freelancer can't manage this contract")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := s.SetStatusContract(user, contract, model.ContractStatusDone); err != nil {
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-SetStatusContract: ")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	s.respond(w,r, http.StatusOK, struct{}{})
 }
 
 func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
