@@ -9,6 +9,7 @@ const (
 	ContractStatusDone = "done"
 	ContractStatusUnderDevelopment = "develop"
 	ContractStatusCanceled = "cancel"
+	ContractStatusReviewed = "reviewed"
 )
 
 type Contract struct {
