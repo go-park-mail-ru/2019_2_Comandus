@@ -47,7 +47,7 @@ func TestResponseRepository_Create(t *testing.T) {
 	//ok query
 	mock.
 		ExpectQuery(`INSERT INTO responses`).
-		WithArgs(r.FreelancerId, r.JobId, r.Files, r.Date, r.StatusManager, r.StatusFreelancer).
+		WithArgs(r.FreelancerId, r.JobId, r.Files, r.Date, r.StatusManager, r.StatusFreelancer, r.PaymentAmount).
 		WillReturnRows(rows)
 
 	err = store.Response().Create(r)
@@ -68,7 +68,7 @@ func TestResponseRepository_Create(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery(`INSERT INTO responses`).
-		WithArgs(r.FreelancerId, r.JobId, r.Files, r.Date, r.StatusManager, r.StatusFreelancer).
+		WithArgs(r.FreelancerId, r.JobId, r.Files, r.Date, r.StatusManager, r.StatusFreelancer, r.PaymentAmount).
 		WillReturnError(fmt.Errorf("bad query"))
 
 	err = store.Response().Create(r)
@@ -115,6 +115,7 @@ func TestResponseRepository_Edit(t *testing.T) {
 	r.ID = 1
 	r.StatusManager = model.ResponseStatusAccepted
 	r.StatusFreelancer = model.ResponseStatusReview
+	r.PaymentAmount = 2000
 	r.BeforeCreate()
 	if err := r.Validate(1); err != nil {
 		t.Fatal(err)
@@ -122,7 +123,7 @@ func TestResponseRepository_Edit(t *testing.T) {
 
 	mock.
 		ExpectQuery(`UPDATE responses SET`).
-		WithArgs(r.Files, r.StatusManager, r.StatusFreelancer, r.ID).
+		WithArgs(r.Files, r.StatusManager, r.StatusFreelancer, r.PaymentAmount, r.ID).
 		WillReturnRows(rows)
 
 	err = store.Response().Edit(r)
@@ -154,7 +155,7 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer" })
+		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount"})
 
 	u := testUser(t)
 	m := testManager(t, u)
@@ -170,11 +171,11 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.FreelancerId, item.JobId, item.Files, item.Date, item.StatusManager,
-			item.StatusFreelancer)
+			item.StatusFreelancer, item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer " +
+		ExpectQuery("SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount " +
 			"FROM responses WHERE").
 		WithArgs(f.ID).
 		WillReturnRows(rows)
@@ -200,7 +201,7 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer " +
+		ExpectQuery("SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount " +
 			"FROM responses WHERE").
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -230,7 +231,7 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer" })
+		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount" })
 
 	u := testUser(t)
 	m := testManager(t, u)
@@ -250,16 +251,16 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.FreelancerId, item.JobId, item.Files, item.Date, item.StatusManager,
-			item.StatusFreelancer)
+			item.StatusFreelancer, item.PaymentAmount)
 	}
 
 	mock.
 		ExpectQuery("SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, " +
-		"responses.statusManager, responses.statusFreelancer " +
+		"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
 		"FROM responses " +
-		"INNER JOIN jobs" +
-		"ON jobs.id = responses.jobId" +
-		"WHERE").
+		"INNER JOIN jobs " +
+		"ON jobs.id = responses.jobId " +
+		"WHERE ").
 		WithArgs(m.ID).
 		WillReturnRows(rows)
 
@@ -285,11 +286,11 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, " +
-		"responses.statusManager, responses.statusFreelancer " +
+		"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
 		"FROM responses " +
-		"INNER JOIN jobs" +
-		"ON jobs.id = responses.jobId" +
-		"WHERE").
+		"INNER JOIN jobs " +
+		"ON jobs.id = responses.jobId " +
+		"WHERE ").
 		WillReturnError(fmt.Errorf("db_error"))
 
 	_, err = store.Response().ListForManager(m.ID)
@@ -325,19 +326,19 @@ func TestResponseRepository_Find(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer"})
+		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount"})
 	expect := []*model.Response{
 		testResponse(t, f, j),
 	}
 
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.FreelancerId, item.JobId, item.Files, item.Date, item.StatusManager,
-			item.StatusFreelancer)
+			item.StatusFreelancer, item.PaymentAmount)
 	}
 
 	mock.
 		ExpectQuery("SELECT id, freelancerId, jobId, files, date, " +
-			"statusManager, statusFreelancer  FROM responses WHERE").
+			"statusManager, statusFreelancer, paymentAmount FROM responses WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -361,7 +362,7 @@ func TestResponseRepository_Find(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT id, freelancerId, jobId, files, date, " +
-			"statusManager, statusFreelancer  FROM responses WHERE").
+			"statusManager, statusFreelancer, paymentAmount FROM responses WHERE ").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 

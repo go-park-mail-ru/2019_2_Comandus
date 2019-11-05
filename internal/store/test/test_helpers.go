@@ -67,6 +67,7 @@ func testResponse(t *testing.T, freelancer *model.Freelancer, job *model.Job) *m
 		Files:         "no files",
 		Date:          time.Time{},
 		StatusManager: model.ResponseStatusReview,
+		PaymentAmount: 10000,
 	}
 }
 
