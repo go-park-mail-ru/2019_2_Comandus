@@ -2,19 +2,10 @@ package sqlstore
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"time"
 )
 
 type ManagerRepository struct {
 	store *Store
-}
-
-type HireManager struct {
-	ID					int		`json:"id"`
-	AccountID 			int		`json:"accountId"`
-	RegistrationDate	time.Time	`json:"registrationDate"`
-	Location			string 		`json:"location"`
-	CompanyID			int 		`json:"companyId"`
 }
 
 func (r *ManagerRepository) Create(m *model.HireManager) error {
@@ -28,7 +19,7 @@ func (r *ManagerRepository) Create(m *model.HireManager) error {
 	).Scan(&m.ID)
 }
 
-func (r *ManagerRepository) Find(id int) (*model.HireManager, error) {
+func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
 	m := &model.HireManager{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE id = $1",
@@ -69,4 +60,3 @@ func (r *ManagerRepository) Edit(m * model.HireManager) error {
 		m.ID,
 	).Scan(&m.ID)
 }
-

@@ -25,7 +25,7 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 	).Scan(&f.ID)
 }
 
-func (r *FreelancerRepository) Find(id int) (*model.Freelancer, error) {
+func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 	f := &model.Freelancer{}
 	if err := r.store.db.QueryRow(
 		"SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
