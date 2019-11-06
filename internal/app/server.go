@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"net/http"
@@ -28,22 +29,25 @@ type server struct {
 	store        store.Store
 	sessionStore sessions.Store
 	config       *Config
-	Logger    	 *zap.SugaredLogger
+	logger    	 *zap.SugaredLogger
 	clientUrl    string
 	token 	 	 *HashToken
+	sanitizer	 *bluemonday.Policy
 }
 
-func NewServer(sessionStore sessions.Store, store store.Store, logger *zap.SugaredLogger, thisToken *HashToken) *server {
-	s := &server{
-		mux:          mux.NewRouter(),
-		sessionStore: sessionStore,
-		Logger:		  logger,
-		clientUrl:    "https://comandus.now.sh",
-		store:        store,
-		token:	  	  thisToken,
-	}
-	s.ConfigureServer()
-	return s
+func newServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
+	thisToken *HashToken, thisSanitizer *bluemonday.Policy) *server {
+		s := &server{
+			mux:          mux.NewRouter(),
+			sessionStore: sessionStore,
+			logger:		  thisLogger,
+			clientUrl:    "https://comandus.now.sh",
+			store:        store,
+			token:	  	  thisToken,
+			sanitizer:	  thisSanitizer,
+		}
+		s.ConfigureServer()
+		return s
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +105,7 @@ func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
 	ctx := r.Context()
 	reqID := ctx.Value("rIDKey").(string)
-	s.Logger.Infof("Request ID: %s | error : %s", reqID , err.Error())
+	s.logger.Infof("Request ID: %s | error : %s", reqID , err.Error())
 	s.respond(w, r, code, map[string]string{"error": errors.Cause(err).Error()})
 }
 

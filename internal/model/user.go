@@ -4,6 +4,7 @@ import (
 	"errors"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -81,3 +82,8 @@ func requiredIf(cond bool) validation.RuleFunc {
 	}
 }
 
+func (u *User) Sanitize (sanitizer *bluemonday.Policy)  {
+	u.FirstName = sanitizer.Sanitize(u.FirstName)
+	u.SecondName = sanitizer.Sanitize(u.SecondName)
+	u.UserName = sanitizer.Sanitize(u.UserName)
+}

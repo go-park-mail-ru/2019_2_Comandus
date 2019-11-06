@@ -2,10 +2,12 @@ package sqlstore
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type UserRepository struct {
 	store *Store
+	sanitizer *bluemonday.Policy
 }
 
 func (r *UserRepository) Create(u *model.User) error {

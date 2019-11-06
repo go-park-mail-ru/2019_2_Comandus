@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"github.com/microcosm-cc/bluemonday"
 	"time"
 )
 
@@ -63,4 +64,9 @@ func (r * Response) IsEqual(response *Response) bool {
 		r.Date == response.Date &&
 		r.StatusManager == response.StatusManager &&
 		r.StatusFreelancer == response.StatusFreelancer
+}
+
+
+func (resp *Response) Sanitize (sanitizer *bluemonday.Policy)  {
+	resp.Files = sanitizer.Sanitize(resp.Files)
 }

@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/microcosm-cc/bluemonday"
+	"time"
+)
 
 type Freelancer struct {
 	ID                int64       `json:"id"`
@@ -14,4 +17,14 @@ type Freelancer struct {
 	Overview          string    `json:"overview"`
 	ExperienceLevelId int64       `json:"experienceLevelId"`
 	SpecialityId      int64       `json:"specialityId,string"`
+}
+
+
+func (freel *Freelancer) Sanitize (sanitizer *bluemonday.Policy)  {
+	freel.Country = sanitizer.Sanitize(freel.Country)
+	freel.City = sanitizer.Sanitize(freel.City)
+	freel.Address = sanitizer.Sanitize(freel.Address)
+	freel.Phone = sanitizer.Sanitize(freel.Phone)
+	freel.TagLine = sanitizer.Sanitize(freel.TagLine)
+	freel.Overview = sanitizer.Sanitize(freel.Overview)
 }

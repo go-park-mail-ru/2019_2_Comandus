@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/microcosm-cc/bluemonday"
+	"time"
+)
 
 const (
 	JobStateCreate = "created"
@@ -44,9 +47,10 @@ func (j *Job) BeforeCreate() {
 	j.Status = JobStateCreate
 }
 
-//curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "USANews", "description" : "bbbbbbb",
-//"country" : "USA"}'
-// curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "RussianNews", "description" : "aaaaaaa",
-// "country" : "russia"}'
-// curl -XPOST -v -b cookie.txt http://127.0.0.1:8080/jobs --data '{"title" : "ArmeniaNews", "description" : "armyDeth",
-// "country" : "armenia"}'
+func (j *Job) Sanitize (sanitizer *bluemonday.Policy)  {
+	j.Title = sanitizer.Sanitize(j.Title)
+	j.Description = sanitizer.Sanitize(j.Description)
+	j.Files = sanitizer.Sanitize(j.Files)
+	j.Country = sanitizer.Sanitize(j.Country)
+	j.City = sanitizer.Sanitize(j.City)
+}
