@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -58,6 +59,12 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	userInput.ID = user.ID
 	userInput.Email = user.Email
 
+	_, err = govalidator.ValidateStruct(userInput)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditProfile<-ValidateStruct:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
 	err = s.store.User().Edit(userInput)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-userEdit")

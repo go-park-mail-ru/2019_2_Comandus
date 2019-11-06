@@ -6,7 +6,7 @@ import (
 )
 
 type Freelancer struct {
-	ID                int       `json:"id" valid:"int, optional"`
+	ID                int64       `json:"id" valid:"int, optional"`
 	AccountId         int64       `json:"accountId" valid:"int, optional"`
 	RegistrationDate  time.Time `json:"registrationDate" valid:"-"`
 	Country           string    `json:"country" valid:"utfletter"`

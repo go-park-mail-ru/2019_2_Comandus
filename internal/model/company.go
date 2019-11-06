@@ -3,7 +3,7 @@ package model
 import "github.com/microcosm-cc/bluemonday"
 
 type Company struct {
-	ID			int    `json:"id" valid:"int , optional"`
+	ID			int64    `json:"id" valid:"int , optional"`
 	CompanyName string `json:"companyName" valid:"utfletternum, required"`
 	Site 		string `json:"site" valid:"url"`
 	TagLine 	string `json:"tagline" valid:"- , optional"`
