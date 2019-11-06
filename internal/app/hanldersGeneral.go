@@ -152,6 +152,12 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !u.ComparePassword(user.Password) {
+		err = errors.Wrapf(errors.New("wrong password"), "HandleSessionCreate<-ComparePassword:")
+		s.error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
 	session, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-sessionGet:")
