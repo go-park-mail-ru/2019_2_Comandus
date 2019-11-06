@@ -47,7 +47,7 @@ func (s *server) CORSMiddleware (next http.Handler) http.Handler {
 
 func (s *server) CheckTokenMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.RequestURI != "/token" {
+		if r.Method != http.MethodGet {
 			sess, err := s.sessionStore.Get(r, sessionName)
 			if err != nil {
 				err = errors.Wrapf(err, "CheckTokenMiddleware<-sessionStore.Get :")
