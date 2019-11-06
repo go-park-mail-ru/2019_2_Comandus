@@ -35,7 +35,7 @@ type server struct {
 	sanitizer	 *bluemonday.Policy
 }
 
-func newServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
+func NewServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
 	thisToken *HashToken, thisSanitizer *bluemonday.Policy) *server {
 		s := &server{
 			mux:          mux.NewRouter(),

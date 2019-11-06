@@ -114,7 +114,7 @@ func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.store.User().Find(id.(int64))
+		u, err := s.store.User().Find(int64(id.(int)))
 
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, err)
@@ -144,10 +144,15 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	log.Println("input user:", user)
 
 	u, err := s.store.User().FindByEmail(user.Email)
-
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-FindByEmail:")
 		s.error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+	if !u.ComparePassword(user.Password) {
+		err = errors.Wrapf(errors.New("wrong password"), "HandleSessionCreate<-ComparePassword:")
+		s.error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
