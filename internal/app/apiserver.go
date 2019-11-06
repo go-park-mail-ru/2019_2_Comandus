@@ -49,6 +49,7 @@ func Start(config *Config) error {
 	srv := newServer(sessionStore, store, sugaredLogger, token, sanitizer)
 
 	return http.ListenAndServe(config.BindAddr, srv)
+
 }
 
 func newDB(dbURL string) (*sql.DB, error) {

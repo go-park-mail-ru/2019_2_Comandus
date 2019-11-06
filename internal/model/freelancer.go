@@ -6,17 +6,17 @@ import (
 )
 
 type Freelancer struct {
-	ID                int64       `json:"id"`
-	AccountId         int64       `json:"accountId"`
-	RegistrationDate  time.Time `json:"registrationDate"`
-	Country           string    `json:"country"`
-	City              string    `json:"city"`
-	Address           string    `json:"address"`
-	Phone             string    `json:"phone"`
-	TagLine           string    `json:"tagline"`
-	Overview          string    `json:"overview"`
-	ExperienceLevelId int64       `json:"experienceLevelId"`
-	SpecialityId      int64       `json:"specialityId,string"`
+	ID                int       `json:"id" valid:"int, optional"`
+	AccountId         int64       `json:"accountId" valid:"int, optional"`
+	RegistrationDate  time.Time `json:"registrationDate" valid:"-"`
+	Country           string    `json:"country" valid:"utfletter"`
+	City              string    `json:"city" valid:"utfletter"`
+	Address           string    `json:"address" valid:"-"`
+	Phone             string    `json:"phone" valid:"-"`
+	TagLine           string    `json:"tagline" valid:"-"`
+	Overview          string    `json:"overview" valid:"-"`
+	ExperienceLevelId int       `json:"experienceLevelId" valid:"in(1|2|3)"`
+	SpecialityId      int       `json:"specialityId,string" valid:"int"`
 }
 
 
