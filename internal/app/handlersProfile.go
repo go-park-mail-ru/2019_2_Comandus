@@ -45,9 +45,9 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 			s.error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
+	userInput := new(model.User)
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(user)
-
+	err = decoder.Decode(userInput)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
 		err = errors.Wrapf(err, "HandleEditProfile<-Decode:")
@@ -55,7 +55,10 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.store.User().Edit(user)
+	userInput.ID = user.ID
+	userInput.Email = user.Email
+
+	err = s.store.User().Edit(userInput)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-userEdit")
 		s.error(w, r, http.StatusUnprocessableEntity, err)
