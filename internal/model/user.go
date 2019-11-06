@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	userFreelancer = "freelancer"
-	userCustomer   = "client"
+	UserFreelancer = "freelancer"
+	UserCustomer   = "client"
 	)
 
 type User struct {
@@ -25,8 +25,8 @@ type User struct {
 }
 
 func (u *User) BeforeCreate() error {
-	if len(u.UserType) == 0 || u.UserType != userFreelancer && u.UserType != userCustomer {
-		u.UserType = userFreelancer
+	if len(u.UserType) == 0 || u.UserType != UserFreelancer && u.UserType != UserCustomer {
+		u.UserType = UserFreelancer
 	}
 
 	if len(u.Password) > 0 {
@@ -41,7 +41,7 @@ func (u *User) BeforeCreate() error {
 }
 
 func (u *User) SetUserType(userType string) error {
-	if userType == userFreelancer || userType == userCustomer {
+	if userType == UserFreelancer || userType == UserCustomer {
 		u.UserType = userType
 		return nil
 	}
@@ -49,7 +49,7 @@ func (u *User) SetUserType(userType string) error {
 }
 
 func (u *User) IsManager() bool {
-	return u.UserType == userCustomer
+	return u.UserType == UserCustomer
 }
 
 func (u *User) ComparePassword(password string) bool {

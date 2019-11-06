@@ -7,4 +7,5 @@ type Store interface {
 	Job() JobRepository
 	Response() ResponseRepository
 	Company() CompanyRepository
+	Contract() ContractRepository
 }

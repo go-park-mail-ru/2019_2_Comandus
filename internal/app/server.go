@@ -2,7 +2,7 @@ package apiserver
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
@@ -25,7 +25,7 @@ var (
 
 type server struct {
 	mux          *mux.Router
-	store        *sqlstore.Store
+	store        store.Store
 	sessionStore sessions.Store
 	config       *Config
 	Logger    	 *zap.SugaredLogger
@@ -33,7 +33,7 @@ type server struct {
 	token 	 	 *HashToken
 }
 
-func newServer(sessionStore sessions.Store, store *sqlstore.Store, logger *zap.SugaredLogger, thisToken *HashToken) *server {
+func NewServer(sessionStore sessions.Store, store store.Store, logger *zap.SugaredLogger, thisToken *HashToken) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		sessionStore: sessionStore,
@@ -58,7 +58,7 @@ func (s *server) ConfigureServer() {
 
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
-	private.Use(s.authenticateUser, s.CheckTokenMiddleware)
+	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
 	private.HandleFunc("/token" , s.HandleGetToken).Methods(http.MethodGet)
 
 	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)

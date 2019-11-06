@@ -8,6 +8,7 @@ type JobRepository struct {
 	store *Store
 }
 
+// TODO: remove hire manager
 func (r *JobRepository) Create(j *model.Job, m *model.HireManager) error {
 	return r.store.db.QueryRow(
 		"INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +

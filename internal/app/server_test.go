@@ -25,7 +25,7 @@ func TestServer_HandleCreateUser(t *testing.T) {
 	token , _ := NewHMACHashToken(config.TokenSecret)
 
 
-	s := newServer(sessionStore, store, sugaredLogger, token)
+	s := NewServer(sessionStore, store, sugaredLogger, token)
 
 	testCases := []struct {
 		name         string
@@ -77,7 +77,7 @@ func TestServer_HandleCreateUser(t *testing.T) {
 	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
-	s := newServer(sessionStore, store)
+	s := NewServer(sessionStore, store)
 
 	err := s.addUser2Server(t)
 	if err != nil {
@@ -143,7 +143,7 @@ func TestServer_AuthenticateUser(t *testing.T) {
 	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
-	s := newServer(sessionStore, store)
+	s := NewServer(sessionStore, store)
 
 	err := s.addUser2Server(t)
 	if err != nil {
@@ -201,7 +201,7 @@ func TestServer_HandleSetUserType(t *testing.T) {
 	defer truncate("users", "managers", "freelancers")
 
 	store := sqlstore.New(db)
-	s := newServer(sessionStore, store)
+	s := NewServer(sessionStore, store)
 
 	err := s.addUser2Server(t)
 	if err != nil {
@@ -301,7 +301,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 	defer truncate("users", "freelancers", "jobs")
 
 	store := sqlstore.New(db)
-	s := newServer(sessionStore, store)
+	s := NewServer(sessionStore, store)
 
 	err := s.addUser2Server(t)
 	if err != nil {
@@ -349,7 +349,7 @@ func TestServer_HandleLogout(t *testing.T) {
 	}
 
 	secretKey := []byte("secret")
-	s := newServer(sessions.NewCookieStore(secretKey))
+	s := NewServer(sessions.NewCookieStore(secretKey))
 	sc := securecookie.New(secretKey, nil)
 
 	err := s.addUser2Server()
@@ -404,7 +404,7 @@ func TestServer_HandleGetJob(t *testing.T) {
 	}
 
 	secretKey := []byte("secret")
-	s := newServer(sessions.NewCookieStore(secretKey))
+	s := NewServer(sessions.NewCookieStore(secretKey))
 	sc := securecookie.New(secretKey, nil)
 
 	err := s.addUser2Server()
@@ -447,7 +447,7 @@ func TestServer_HandleShowProfile(t *testing.T) {
 	}
 
 	secretKey := []byte("secret")
-	s := newServer(sessions.NewCookieStore(secretKey))
+	s := NewServer(sessions.NewCookieStore(secretKey))
 	sc := securecookie.New(secretKey, nil)
 
 	err := s.addUser2Server()
@@ -538,7 +538,7 @@ func TestServer_HandleEditPassword(t *testing.T) {
 	}
 
 	secretKey := []byte("secret")
-	s := newServer(sessions.NewCookieStore(secretKey))
+	s := NewServer(sessions.NewCookieStore(secretKey))
 	sc := securecookie.New(secretKey, nil)
 
 	err := s.addUser2Server()

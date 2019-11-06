@@ -45,7 +45,7 @@ func Start(config *Config) error {
 
 	store := sqlstore.New(db)
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	srv := newServer(sessionStore, store, sugaredLogger, token)
+	srv := NewServer(sessionStore, store, sugaredLogger, token)
 
 	return http.ListenAndServe(config.BindAddr, srv)
 }
@@ -157,7 +157,7 @@ func createTables(db *sql.DB) error {
 		files varchar,
 		date timestamp not null,
 		statusManager varchar not null,
-		statusFreelancer varchar not null
+		statusFreelancer varchar not null,
 		paymentAmount decimal(8,2) not null 
 	);`
 	if _, err := db.Exec(responsesQuery); err != nil {

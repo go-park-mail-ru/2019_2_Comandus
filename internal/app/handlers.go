@@ -105,7 +105,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusCreated, user)
 }
 
-func (s *server) authenticateUser(next http.Handler) http.Handler {
+func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
@@ -119,7 +119,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.store.User().Find(id.(int64))
+		u, err := s.store.User().Find(int64(id.(int)))
 
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, err)
@@ -850,8 +850,31 @@ func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			err = errors.Wrapf(err, "HandleResponseJob:")
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+	}()
+
+	decoder := json.NewDecoder(r.Body)
+	response := new(model.Response)
+	err = decoder.Decode(response)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	response.FreelancerId = freelancer.ID
+	response.JobId = jobId
+	response.Date = time.Now()
+	response.StatusManager = model.ResponseStatusReview
+	response.StatusFreelancer = model.ResponseStatusBlock
+
 	// TODO: get files from request
-	response := model.Response{
+	/*response := model.Response{
 		ID:               0,
 		FreelancerId:     freelancer.ID,
 		JobId:            jobId,
@@ -859,14 +882,14 @@ func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 		Date:             time.Now(),
 		StatusManager:    model.ResponseStatusReview,
 		StatusFreelancer: model.ResponseStatusBlock,
-	}
+	}*/
 
 	if err := response.Validate(0); err != nil {
 		err = errors.Wrapf(err, "HandleResponseJob<-Validate: ")
 		s.error(w, r, http.StatusBadRequest, err)
 	}
 
-	if err := s.store.Response().Create(&response); err != nil {
+	if err := s.store.Response().Create(response); err != nil {
 		err = errors.Wrapf(err, "HandleResponseJob<-Response().Create")
 		s.error(w, r, http.StatusInternalServerError, err)
 	}
