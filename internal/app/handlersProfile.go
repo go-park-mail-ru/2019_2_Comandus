@@ -46,7 +46,7 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 			s.error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
-	userInput := new(model.User)
+	userInput := user
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(userInput)
 	if err != nil {
@@ -55,9 +55,6 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
-
-	userInput.ID = user.ID
-	userInput.Email = user.Email
 
 	_, err = govalidator.ValidateStruct(userInput)
 	if err != nil {
