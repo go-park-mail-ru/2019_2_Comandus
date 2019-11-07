@@ -2,7 +2,7 @@ package apiserver
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
@@ -26,28 +26,28 @@ var (
 
 type server struct {
 	mux          *mux.Router
-	store        *sqlstore.Store
+	store        store.Store
 	sessionStore sessions.Store
 	config       *Config
-	logger    	 *zap.SugaredLogger
+	logger       *zap.SugaredLogger
 	clientUrl    string
-	token 	 	 *HashToken
-	sanitizer	 *bluemonday.Policy
+	token        *HashToken
+	sanitizer    *bluemonday.Policy
 }
 
-func newServer(sessionStore sessions.Store, store *sqlstore.Store, thisLogger *zap.SugaredLogger,
+func NewServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
 	thisToken *HashToken, thisSanitizer *bluemonday.Policy) *server {
-		s := &server{
-			mux:          mux.NewRouter(),
-			sessionStore: sessionStore,
-			logger:		  thisLogger,
-			clientUrl:    "https://comandus.now.sh",
-			store:        store,
-			token:	  	  thisToken,
-			sanitizer:	  thisSanitizer,
-		}
-		s.ConfigureServer()
-		return s
+	s := &server{
+		mux:          mux.NewRouter(),
+		sessionStore: sessionStore,
+		logger:       thisLogger,
+		clientUrl:    "https://comandus.now.sh",
+		store:        store,
+		token:        thisToken,
+		sanitizer:    thisSanitizer,
+	}
+	s.ConfigureServer()
+	return s
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -62,8 +62,8 @@ func (s *server) ConfigureServer() {
 
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
-	private.Use(s.authenticateUser, s.CheckTokenMiddleware)
-	private.HandleFunc("/token" , s.HandleGetToken).Methods(http.MethodGet)
+	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
+	private.HandleFunc("/token", s.HandleGetToken).Methods(http.MethodGet)
 
 	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet, http.MethodOptions)
@@ -105,7 +105,7 @@ func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
 	ctx := r.Context()
 	reqID := ctx.Value("rIDKey").(string)
-	s.logger.Infof("Request ID: %s | error : %s", reqID , err.Error())
+	s.logger.Infof("Request ID: %s | error : %s", reqID, err.Error())
 	s.respond(w, r, code, map[string]string{"error": errors.Cause(err).Error()})
 }
 

@@ -15,17 +15,19 @@ type UserRepository interface {
 type FreelancerRepository interface {
 	Create(freelancer *model.Freelancer) error
 	Find(int64) (*model.Freelancer, error)
+	FindByUser(int64) (*model.Freelancer, error)
 	Edit(freelancer *model.Freelancer) error
 }
 
 type ManagerRepository interface {
 	Create(manager *model.HireManager) error
-	Find(int64) (*model.Freelancer, error)
+	Find(int64) (*model.HireManager, error)
+	FindByUser(int64) (*model.HireManager, error)
 	Edit(manager *model.HireManager) error
 }
 
 type JobRepository interface {
-	Create(job *model.Job) error
+	Create(j *model.Job, m *model.HireManager) error
 	Find(int64) (*model.Job, error)
 	Edit(job *model.Job) error
 	List() ([]model.Job, error)
@@ -42,4 +44,12 @@ type ResponseRepository interface {
 type CompanyRepository interface {
 	Create(company *model.Company) error
 	Find(int64) (*model.Company, error)
+	Edit(company *model.Company) error
+}
+
+type ContractRepository interface {
+	Create(contract *model.Contract) error
+	Edit(contract *model.Contract) error
+	List(int64, string) ([]model.Contract, error)
+	Find(int64) (*model.Contract, error)
 }
