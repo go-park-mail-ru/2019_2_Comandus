@@ -36,12 +36,12 @@ type server struct {
 }
 
 func NewServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
-	thisToken *HashToken, thisSanitizer *bluemonday.Policy) *server {
+	thisToken *HashToken, thisSanitizer *bluemonday.Policy, clientUrl string) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		sessionStore: sessionStore,
 		logger:       thisLogger,
-		clientUrl:    "https://comandus.now.sh",
+		clientUrl:    clientUrl,
 		store:        store,
 		token:        thisToken,
 		sanitizer:    thisSanitizer,

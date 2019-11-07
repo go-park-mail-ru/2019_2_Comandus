@@ -46,7 +46,7 @@ func Start(config *Config) error {
 	sanitizer := bluemonday.UGCPolicy()
 	store := sqlstore.New(db)
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	srv := NewServer(sessionStore, store, sugaredLogger, token, sanitizer)
+	srv := NewServer(sessionStore, store, sugaredLogger, token, sanitizer, config.ClientUrl)
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 

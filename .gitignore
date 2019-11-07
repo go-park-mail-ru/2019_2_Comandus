@@ -4,3 +4,4 @@ apiserver
 *.txt
 go.sum
 *.swp
+.idea

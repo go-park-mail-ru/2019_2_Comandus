@@ -3,6 +3,21 @@ package create
 import "database/sql"
 
 func CreateTables(db *sql.DB) error {
+	companiesQuery := `CREATE TABLE IF NOT EXISTS companies (
+		id bigserial not null primary key,
+		companyName varchar not null,
+		site varchar,
+		tagLine varchar,
+		description varchar,
+		country varchar,
+		city varchar,
+		address varchar,
+		phone varchar
+	);`
+	if _, err := db.Exec(companiesQuery); err != nil {
+		return err
+	}
+
 	usersQuery := `CREATE TABLE IF NOT EXISTS users (
 		accountId bigserial not null primary key,
 		firstName varchar,
@@ -22,7 +37,7 @@ func CreateTables(db *sql.DB) error {
 		accountId bigserial references users,
 		registrationDate timestamp,
 		location varchar,
-		companyId bigserial references  companies
+		companyId bigserial references companies
 	);`
 	if _, err := db.Exec(managersQuery); err != nil {
 		return err
@@ -69,21 +84,6 @@ func CreateTables(db *sql.DB) error {
 		name varchar
 	);`
 	if _, err := db.Exec(specialitiesQuery); err != nil {
-		return err
-	}
-
-	companiesQuery := `CREATE TABLE IF NOT EXISTS companies (
-		id bigserial not null primary key,
-		companyName varchar not null,
-		site varchar,
-		tagLine varchar,
-		description varchar,
-		country varchar,
-		city varchar,
-		address varchar,
-		phone varchar
-	);`
-	if _, err := db.Exec(companiesQuery); err != nil {
 		return err
 	}
 
@@ -157,4 +157,3 @@ func dropAllTables(db *sql.DB) error {
 
 	return nil
 }
-
