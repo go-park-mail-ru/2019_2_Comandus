@@ -29,14 +29,14 @@ type server struct {
 	store        store.Store
 	sessionStore sessions.Store
 	config       *Config
-	logger    	 *zap.SugaredLogger
+	logger       *zap.SugaredLogger
 	clientUrl    string
-	token 	 	 *HashToken
-	sanitizer	 *bluemonday.Policy
+	token        *HashToken
+	sanitizer    *bluemonday.Policy
 }
 
 func NewServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
-	thisToken *HashToken, thisSanitizer *bluemonday.Policy, clientUrl string)) *server {
+	thisToken *HashToken, thisSanitizer *bluemonday.Policy, clientUrl string) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		sessionStore: sessionStore,
