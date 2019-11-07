@@ -84,10 +84,10 @@ func (s *server) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	jobs, err := s.store.Job().List()
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Find: ")
+		err = errors.Wrapf(err, "HandleGetJob<-List: ")
 		s.error(w, r, http.StatusNotFound, err)
 	}
-	for i, _ := range jobs{
+	for i, _ := range jobs {
 		jobs[i].Sanitize(s.sanitizer)
 	}
 	s.respond(w, r, http.StatusOK, &jobs)
@@ -122,7 +122,7 @@ func (s *server) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusUnprocessableEntity, err)
 		return
 	}
-	s.respond(w, r, http.StatusOK, struct {}{})
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {

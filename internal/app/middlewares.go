@@ -9,8 +9,7 @@ import (
 	"strconv"
 )
 
-
-func (s *server) RequestIDMiddleware (next http.Handler) http.Handler {
+func (s *server) RequestIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := strconv.Itoa(rand.Int())
 		ctx := r.Context()
@@ -20,7 +19,7 @@ func (s *server) RequestIDMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) AccessLogMiddleware (next http.Handler) http.Handler {
+func (s *server) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.logger.Info(r.URL.Path,
 			zap.String("method:", r.Method),
@@ -31,21 +30,21 @@ func (s *server) AccessLogMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) CORSMiddleware (next http.Handler) http.Handler {
+func (s *server) CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,csrf-token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
-		if r.Method == http.MethodOptions{
-			s.respond(w , r , http.StatusOK, nil)
+		if r.Method == http.MethodOptions {
+			s.respond(w, r, http.StatusOK, nil)
 			return
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
-func (s *server) CheckTokenMiddleware (next http.Handler) http.Handler {
+func (s *server) CheckTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.RequestURI != "/token" {
 			sess, err := s.sessionStore.Get(r, sessionName)

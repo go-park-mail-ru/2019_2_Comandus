@@ -8,11 +8,14 @@ import (
 )
 
 var (
-	configPath string
+	configPath         string
+	localhostClientUrl string = "http://localhost:9000"
+	runForLocalClient  bool
 )
 
 func init() {
 	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to config file")
+	flag.BoolVar(&runForLocalClient, "local", false, "assign clientUrl as "+localhostClientUrl)
 }
 
 func main() {
@@ -26,9 +29,13 @@ func main() {
 	}
 	config.BindAddr = port
 
-	url :=  os.Getenv("DATABASE_URL")
+	url := os.Getenv("DATABASE_URL")
 	if len(url) != 0 {
 		config.DatabaseURL = url
+	}
+
+	if runForLocalClient {
+		config.ClientUrl = localhostClientUrl
 	}
 
 	if err := apiserver.Start(config); err != nil {
