@@ -30,11 +30,11 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if 	_, err = govalidator.ValidateStruct(job); err != nil {
-		err = errors.Wrapf(err, "HandleCreateJob<-ValidateStruct:")
-		s.error(w, r, http.StatusBadRequest, err)
-		return
-	}
+	//if 	_, err = govalidator.ValidateStruct(job); err != nil {
+	//	err = errors.Wrapf(err, "HandleCreateJob<-ValidateStruct:")
+	//	s.error(w, r, http.StatusBadRequest, err)
+	//	return
+	//}
 
 	user, err, codeStatus := s.GetUserFromRequest(r)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusInternalServerError, err)
 	}
 
-	s.respond(w, r, http.StatusOK, struct{}{})
+	s.respond(w, r, http.StatusOK, job)
 }
 
 func (s *server) HandleGetJob(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +164,7 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if 	_, err = govalidator.ValidateStruct(freelancer); err != nil {
+	if _, err = govalidator.ValidateStruct(freelancer); err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-ValidateStruct:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return

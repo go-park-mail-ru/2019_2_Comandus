@@ -60,6 +60,8 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost, http.MethodOptions)
 	s.mux.Use(s.RequestIDMiddleware, s.CORSMiddleware, s.AccessLogMiddleware)
 
+	s.mux.HandleFunc("/jobs", s.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
+
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
 	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
