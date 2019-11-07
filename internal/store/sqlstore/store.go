@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	_ "github.com/lib/pq"
 )
 
@@ -11,14 +12,13 @@ type Store struct {
 	userRepository       *UserRepository
 	freelancerRepository *FreelancerRepository
 	managerRepository    *ManagerRepository
-	jobRepository 		 *JobRepository
-	responseRepository 	 *ResponseRepository
-	companyRepository 	 *CompanyRepository
-	contractRepository 	 *ContractRepository
+	jobRepository        *JobRepository
+	responseRepository   *ResponseRepository
+	companyRepository    *CompanyRepository
+	contractRepository   *ContractRepository
 	config               *Config
 	//Mu                   *sync.Mutex
 }
-
 
 func New(db *sql.DB) *Store {
 	return &Store{
@@ -26,7 +26,7 @@ func New(db *sql.DB) *Store {
 	}
 }
 
-func (s *Store) User() *UserRepository {
+func (s *Store) User() store.UserRepository {
 	if s.userRepository != nil {
 		return s.userRepository
 	}
@@ -38,7 +38,7 @@ func (s *Store) User() *UserRepository {
 	return s.userRepository
 }
 
-func (s *Store) Manager() *ManagerRepository {
+func (s *Store) Manager() store.ManagerRepository {
 	if s.managerRepository != nil {
 		return s.managerRepository
 	}
@@ -50,7 +50,7 @@ func (s *Store) Manager() *ManagerRepository {
 	return s.managerRepository
 }
 
-func (s *Store) Freelancer() *FreelancerRepository {
+func (s *Store) Freelancer() store.FreelancerRepository {
 	if s.freelancerRepository != nil {
 		return s.freelancerRepository
 	}
@@ -62,7 +62,7 @@ func (s *Store) Freelancer() *FreelancerRepository {
 	return s.freelancerRepository
 }
 
-func (s *Store) Job() *JobRepository {
+func (s *Store) Job() store.JobRepository {
 	if s.jobRepository != nil {
 		return s.jobRepository
 	}
@@ -74,7 +74,7 @@ func (s *Store) Job() *JobRepository {
 	return s.jobRepository
 }
 
-func (s *Store) Response() *ResponseRepository {
+func (s *Store) Response() store.ResponseRepository {
 	if s.responseRepository != nil {
 		return s.responseRepository
 	}
@@ -86,7 +86,7 @@ func (s *Store) Response() *ResponseRepository {
 	return s.responseRepository
 }
 
-func (s *Store) Company() *CompanyRepository {
+func (s *Store) Company() store.CompanyRepository {
 	if s.companyRepository != nil {
 		return s.companyRepository
 	}
@@ -98,12 +98,12 @@ func (s *Store) Company() *CompanyRepository {
 	return s.companyRepository
 }
 
-func (s *Store) Contract() *ContractRepository {
+func (s *Store) Contract() store.ContractRepository {
 	if s.contractRepository != nil {
 		return s.contractRepository
 	}
 
-	s.contractRepository = &ContractRepository {
+	s.contractRepository = &ContractRepository{
 		store: s,
 	}
 

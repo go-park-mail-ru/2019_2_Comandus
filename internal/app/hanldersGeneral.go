@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"log"
@@ -33,8 +34,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(user)
 
-	if err := user.Validate(); err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-Validate:")
+	if _, err = govalidator.ValidateStruct(user); err != nil {
+		err = errors.Wrapf(err, "HandleCreateUser<-ValidateStruct:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -100,7 +101,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusCreated, user)
 }
 
-func (s *server) authenticateUser(next http.Handler) http.Handler {
+func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
@@ -114,7 +115,7 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.store.User().Find(id.(int64))
+		u, err := s.store.User().Find(int64(id.(int)))
 
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, err)
@@ -144,10 +145,15 @@ func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	log.Println("input user:", user)
 
 	u, err := s.store.User().FindByEmail(user.Email)
-
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-FindByEmail:")
 		s.error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+	if !u.ComparePassword(user.Password) {
+		err = errors.Wrapf(errors.New("wrong password"), "HandleSessionCreate<-ComparePassword:")
+		s.error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -290,9 +296,9 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, roles)
 }
 
-func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	sess , err := s.sessionStore.Get(r, sessionName)
+	sess, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get :")
 		s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
@@ -300,5 +306,5 @@ func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := s.token.Create(sess, time.Now().Add(24*time.Hour).Unix())
-	s.respond(w, r, http.StatusOK, map[string]string{"csrf-token" : token})
+	s.respond(w, r, http.StatusOK, map[string]string{"csrf-token": token})
 }

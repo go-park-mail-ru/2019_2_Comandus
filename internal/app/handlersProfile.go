@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -45,9 +46,9 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 			s.error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
+	userInput := new(model.User)
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(user)
-
+	err = decoder.Decode(userInput)
 	if err != nil {
 		log.Printf("error while marshalling JSON: %s", err)
 		err = errors.Wrapf(err, "HandleEditProfile<-Decode:")
@@ -55,7 +56,16 @@ func (s *server) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.store.User().Edit(user)
+	userInput.ID = user.ID
+	userInput.Email = user.Email
+
+	_, err = govalidator.ValidateStruct(userInput)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditProfile<-ValidateStruct:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+	err = s.store.User().Edit(userInput)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-userEdit")
 		s.error(w, r, http.StatusUnprocessableEntity, err)
@@ -132,9 +142,9 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	}
 
 	uidInterface := session.Values["user_id"]
-	uid := uidInterface.(int64)
+	uid := uidInterface.(int)
 
-	user, err := s.store.User().Find(uid)
+	user, err := s.store.User().Find(int64(uid))
 
 	if err != nil {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
