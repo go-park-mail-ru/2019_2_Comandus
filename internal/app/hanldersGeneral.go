@@ -115,7 +115,7 @@ func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.store.User().Find(int64(id.(int)))
+		u, err := s.store.User().Find(id.(int64))
 
 		if err != nil {
 			s.error(w, r, http.StatusNotFound, err)

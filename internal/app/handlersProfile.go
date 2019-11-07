@@ -142,9 +142,9 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	}
 
 	uidInterface := session.Values["user_id"]
-	uid := uidInterface.(int)
+	uid := uidInterface.(int64)
 
-	user, err := s.store.User().Find(int64(uid))
+	user, err := s.store.User().Find(uid)
 
 	if err != nil {
 		sendErr := fmt.Errorf("can't find user with id:" + strconv.Itoa(int(uid)))
