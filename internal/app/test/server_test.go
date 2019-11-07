@@ -120,7 +120,6 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 		}
 	}()
 
-
 	sessionStore := sessions.NewCookieStore([]byte("config.SessionKey"))
 	sanitizer := bluemonday.UGCPolicy()
 	s := apiserver.NewServer(sessionStore, store, sugaredLogger, token, sanitizer)
@@ -129,7 +128,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 		name         string
 		payload      interface{}
 		expectedCode int
-		expectFind bool
+		expectFind   bool
 	}{
 		{
 			name: "valid",
@@ -138,22 +137,22 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 				"password": "password",
 			},
 			expectedCode: http.StatusOK,
-			expectFind: true,
+			expectFind:   true,
 		},
 		{
 			name:         "invalid payload",
 			payload:      "invalid",
 			expectedCode: http.StatusBadRequest,
-			expectFind: false,
+			expectFind:   false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			user := &model.User{
-				ID:              1,
-				Email:           "user@example.org",
-				Password:        "password",
+				ID:       1,
+				Email:    "user@example.org",
+				Password: "password",
 			}
 
 			_ = user.BeforeCreate()
@@ -293,9 +292,9 @@ func TestServer_HandleSetUserType(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			user := &model.User{
-				ID:              1,
-				Email:           "ddjhd@mail.com",
-				UserType:        "client",
+				ID:       1,
+				Email:    "ddjhd@mail.com",
+				UserType: "client",
 			}
 
 			store.userRepository.EXPECT().
@@ -313,7 +312,6 @@ func TestServer_HandleSetUserType(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodPost, "/setusertype", b)
-
 
 			cookieStr, _ := sc.Encode("user-session", map[interface{}]interface{}{
 				"user_id": 1,
@@ -342,13 +340,13 @@ func TestServer_HandleCreateJob(t *testing.T) {
 		{
 			name: "correct user",
 			payload: map[string]interface{}{
-				"title":                    "test job",
-				"paymentAmount":     		"100",
-				"country":		            "russia",
-				"city":		                "moscow",
+				"title":         "test job",
+				"paymentAmount": "100",
+				"country":       "russia",
+				"city":          "moscow",
 			},
 			cookie: map[interface{}]interface{}{
-				"user_id":   1,
+				"user_id": 1,
 			},
 			expectedCode: http.StatusOK,
 			userType:     model.UserFreelancer,
@@ -356,10 +354,10 @@ func TestServer_HandleCreateJob(t *testing.T) {
 		{
 			name: "user without user type",
 			payload: map[string]interface{}{
-				"title":                    "test job",
-				"paymentAmount":     		"100",
-				"country":           		"russia",
-				"city":              		"moscow",
+				"title":         "test job",
+				"paymentAmount": "100",
+				"country":       "russia",
+				"city":          "moscow",
 			},
 			cookie: map[interface{}]interface{}{
 				"user_id": 1,
@@ -394,25 +392,25 @@ func TestServer_HandleCreateJob(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			user := &model.User{
-				ID:              1,
-				Email:           "ddjhd@mail.com",
-				UserType:        "client",
+				ID:       1,
+				Email:    "ddjhd@mail.com",
+				UserType: "client",
 			}
 
 			manager := &model.HireManager{
-				ID:               1,
-				AccountID:        1,
-				Location:         "moscow",
-				CompanyID:        0,
+				ID:        1,
+				AccountID: 1,
+				Location:  "moscow",
+				CompanyID: 0,
 			}
 
 			job := &model.Job{
-				ID:                0,
-				HireManagerId:     0,
-				Title:             "test job",
-				Country:		   "russia",
-				City:		   	   "moscow",
-				PaymentAmount:     100,
+				ID:            0,
+				HireManagerId: 0,
+				Title:         "test job",
+				Country:       "russia",
+				City:          "moscow",
+				PaymentAmount: 100,
 			}
 
 			store.userRepository.EXPECT().
@@ -455,13 +453,13 @@ func TestServer_HandleCreateJob(t *testing.T) {
 func TestServer_HandleLogout(t *testing.T) {
 	testCases := []struct {
 		name         string
-		cookie      interface{}
+		cookie       interface{}
 		expectedCode int
 	}{
 		{
 			name: "auth user",
-			cookie : map[interface{}]interface{}{
-				"user_id":   1,
+			cookie: map[interface{}]interface{}{
+				"user_id": 1,
 			},
 			expectedCode: http.StatusOK,
 		},
@@ -496,9 +494,9 @@ func TestServer_HandleLogout(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			user := &model.User{
-				ID:              1,
-				Email:           "ddjhd@mail.com",
-				UserType:        "client",
+				ID:       1,
+				Email:    "ddjhd@mail.com",
+				UserType: "client",
 			}
 
 			if tc.expectedCode == http.StatusOK {

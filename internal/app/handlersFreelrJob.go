@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -25,6 +26,12 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(job)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateJob<-Decode: ")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if 	_, err = govalidator.ValidateStruct(job); err != nil {
+		err = errors.Wrapf(err, "HandleCreateJob<-ValidateStruct:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -156,7 +163,12 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusBadRequest, errors.New("invalid format of data"))
 		return
 	}
-	// TODO: validate freelancer
+
+	if 	_, err = govalidator.ValidateStruct(freelancer); err != nil {
+		err = errors.Wrapf(err, "HandleEditFreelancer<-ValidateStruct:")
+		s.error(w, r, http.StatusBadRequest, err)
+		return
+	}
 
 	err = s.store.Freelancer().Edit(freelancer)
 	if err != nil {

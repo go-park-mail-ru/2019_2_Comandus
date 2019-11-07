@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"log"
@@ -33,8 +34,8 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(user)
 
-	if err := user.Validate(); err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-Validate:")
+	if _, err = govalidator.ValidateStruct(user); err != nil {
+		err = errors.Wrapf(err, "HandleCreateUser<-ValidateStruct:")
 		s.error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -295,9 +296,9 @@ func (s *server) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, roles)
 }
 
-func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	sess , err := s.sessionStore.Get(r, sessionName)
+	sess, err := s.sessionStore.Get(r, sessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get :")
 		s.error(w, r, http.StatusUnauthorized, errNotAuthenticated)
@@ -305,5 +306,5 @@ func (s * server) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := s.token.Create(sess, time.Now().Add(24*time.Hour).Unix())
-	s.respond(w, r, http.StatusOK, map[string]string{"csrf-token" : token})
+	s.respond(w, r, http.StatusOK, map[string]string{"csrf-token": token})
 }

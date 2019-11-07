@@ -11,20 +11,19 @@ import (
 const (
 	UserFreelancer = "freelancer"
 	UserCustomer   = "client"
-	)
+)
 
 type User struct {
-	ID 				int64 `json:"id" valid:"int, optional"`
-	FirstName 		string `json:"firstName" valid:"utfletter, required"`
-	SecondName 		string `json:"secondName" valid:"utfletter"`
-	UserName     	string `json:"username" valid:"alphanum"`
-	Email 			string `json:"email" valid:"email"`
-	Password		string `json:"password" valid:"length(6|100)"`
+	ID              int64  `json:"id" valid:"int, optional"`
+	FirstName       string `json:"firstName" valid:"utfletter, required"`
+	SecondName      string `json:"secondName" valid:"utfletter"`
+	UserName        string `json:"username" valid:"alphanum"`
+	Email           string `json:"email" valid:"email"`
+	Password        string `json:"password" valid:"length(6|100)"`
 	EncryptPassword string `json:"-" valid:"-"`
-	Avatar 			[]byte `json:"-" valid:"-"`
-	UserType 		string `json:"type" valid:"in(client|freelancer)"`
+	Avatar          []byte `json:"-" valid:"-"`
+	UserType        string `json:"type" valid:"in(client|freelancer)"`
 }
-
 
 func (u *User) BeforeCreate() error {
 	if len(u.UserType) == 0 || u.UserType != UserFreelancer && u.UserType != UserCustomer {
@@ -83,7 +82,7 @@ func requiredIf(cond bool) validation.RuleFunc {
 	}
 }
 
-func (u *User) Sanitize (sanitizer *bluemonday.Policy)  {
+func (u *User) Sanitize(sanitizer *bluemonday.Policy) {
 	u.FirstName = sanitizer.Sanitize(u.FirstName)
 	u.SecondName = sanitizer.Sanitize(u.SecondName)
 	u.UserName = sanitizer.Sanitize(u.UserName)

@@ -13,18 +13,18 @@ const (
 
 type Job struct {
 	ID                int64     `json:"id" valid:"int, optional"`
-	HireManagerId     int64     `json:"hireManagerId,string" valid:"int, optional"`
+	HireManagerId     int64   `json:"hireManagerId,string" valid:"int, optional"`
 	Title             string  `json:"title" valid:"utfletternum, required"`
 	Description       string  `json:"description"valid:"- , optional"`
 	Files             string  `json:"files" valid:"-"`
 	SpecialityId      int     `json:"specialityId,string" valid:"int, optional"`
 	ExperienceLevelId int     `json:"experienceLevelId,string" valid:"in(1|2|3)"`
-	PaymentAmount      float64 `json:"paymentAmount,string" valid:"float"`
+	PaymentAmount     float64 `json:"paymentAmount,string" valid:"float"`
 	Country           string  `json:"country" valid:"utfletternum, optional"`
 	City              string  `json:"city" valid:"utfletternum, optional"`
 	JobTypeId         int     `json:"jobTypeId,string" valid:"int, optional"`
-	Date			  time.Time `json:"date"`
-	Status			  string `json:"status,string"`
+	Date			  time.Time `json:"date" valid:"-"`
+	Status			  string `json:"status,string" valid:"-"`
 }
 
 func (j *Job) IsEqual(job Job) bool {

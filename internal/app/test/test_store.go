@@ -10,24 +10,23 @@ type Store struct {
 	userRepository       *MockUserRepository
 	freelancerRepository *MockFreelancerRepository
 	managerRepository    *MockManagerRepository
-	jobRepository 		 *MockJobRepository
-	responseRepository 	 *MockResponseRepository
-	companyRepository 	 *MockCompanyRepository
-	contractRepository 	 *MockContractRepository
+	jobRepository        *MockJobRepository
+	responseRepository   *MockResponseRepository
+	companyRepository    *MockCompanyRepository
+	contractRepository   *MockContractRepository
 }
-
 
 func New(t *testing.T) *Store {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	return &Store{
-		userRepository:NewMockUserRepository(ctrl),
-		freelancerRepository:NewMockFreelancerRepository(ctrl),
-		managerRepository:NewMockManagerRepository(ctrl),
-		jobRepository:NewMockJobRepository(ctrl),
-		responseRepository:NewMockResponseRepository(ctrl),
-		companyRepository:NewMockCompanyRepository(ctrl),
-		contractRepository:NewMockContractRepository(ctrl),
+		userRepository:       NewMockUserRepository(ctrl),
+		freelancerRepository: NewMockFreelancerRepository(ctrl),
+		managerRepository:    NewMockManagerRepository(ctrl),
+		jobRepository:        NewMockJobRepository(ctrl),
+		responseRepository:   NewMockResponseRepository(ctrl),
+		companyRepository:    NewMockCompanyRepository(ctrl),
+		contractRepository:   NewMockContractRepository(ctrl),
 	}
 }
 
@@ -58,4 +57,3 @@ func (s *Store) Company() store.CompanyRepository {
 func (s *Store) Contract() store.ContractRepository {
 	return s.contractRepository
 }
-

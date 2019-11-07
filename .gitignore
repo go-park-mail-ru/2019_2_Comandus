@@ -1,12 +1,6 @@
 apiserver
-go.sum
-.idea
-<<<<<<< HEAD
 !/internal/store/avatars/default.png
 !.gitignore
 *.txt
 go.sum
 *.swp
-=======
-!.gitignore
->>>>>>> job-contract

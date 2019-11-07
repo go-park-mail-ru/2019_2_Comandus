@@ -12,14 +12,13 @@ type Store struct {
 	userRepository       *UserRepository
 	freelancerRepository *FreelancerRepository
 	managerRepository    *ManagerRepository
-	jobRepository 		 *JobRepository
-	responseRepository 	 *ResponseRepository
-	companyRepository 	 *CompanyRepository
-	contractRepository 	 *ContractRepository
+	jobRepository        *JobRepository
+	responseRepository   *ResponseRepository
+	companyRepository    *CompanyRepository
+	contractRepository   *ContractRepository
 	config               *Config
 	//Mu                   *sync.Mutex
 }
-
 
 func New(db *sql.DB) *Store {
 	return &Store{
@@ -104,7 +103,7 @@ func (s *Store) Contract() store.ContractRepository {
 		return s.contractRepository
 	}
 
-	s.contractRepository = &ContractRepository {
+	s.contractRepository = &ContractRepository{
 		store: s,
 	}
 
