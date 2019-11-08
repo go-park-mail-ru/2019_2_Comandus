@@ -7,21 +7,21 @@ import (
 )
 
 const (
-	ResponseStatusBlock = "block"
-	ResponseStatusReview = "review"
-	ResponseStatusDenied = "denied"
+	ResponseStatusBlock    = "block"
+	ResponseStatusReview   = "review"
+	ResponseStatusDenied   = "denied"
 	ResponseStatusAccepted = "accepted"
-	)
+)
 
 type Response struct {
-	ID					int64     `json:"id"`
-	FreelancerId		int64     `json:"freelancerId"`
-	JobId				int64     `json:"jobId"`
-	Files				string    `json:"files,string"`
-	Date				time.Time `json:"date"`
-	StatusManager		string    `json:"statusManager,string"`
-	StatusFreelancer	string    `json:"statusFreelancer,string"`
-	PaymentAmount 		float64	  `json:"PaymentAmount,string"`
+	ID               int64     `json:"id"`
+	FreelancerId     int64     `json:"freelancerId"`
+	JobId            int64     `json:"jobId"`
+	Files            string    `json:"files,string"`
+	Date             time.Time `json:"date"`
+	StatusManager    string    `json:"statusManager,string"`
+	StatusFreelancer string    `json:"statusFreelancer,string"`
+	PaymentAmount    float64   `json:"paymentAmount,string"`
 }
 
 func (r *Response) BeforeCreate() {
@@ -32,7 +32,7 @@ func (r *Response) BeforeCreate() {
 
 // validation before create and edit
 // for create lastID = 0
-func (r * Response) Validate(lastID int64) error {
+func (r *Response) Validate(lastID int64) error {
 	if !(r.StatusManager == ResponseStatusReview ||
 		r.StatusManager == ResponseStatusDenied ||
 		r.StatusManager == ResponseStatusAccepted) {
@@ -56,7 +56,7 @@ func (r * Response) Validate(lastID int64) error {
 	return nil
 }
 
-func (r * Response) IsEqual(response *Response) bool {
+func (r *Response) IsEqual(response *Response) bool {
 	return r.ID == response.ID &&
 		r.FreelancerId == response.FreelancerId &&
 		r.JobId == response.JobId &&
@@ -66,7 +66,6 @@ func (r * Response) IsEqual(response *Response) bool {
 		r.StatusFreelancer == response.StatusFreelancer
 }
 
-
-func (resp *Response) Sanitize (sanitizer *bluemonday.Policy)  {
+func (resp *Response) Sanitize(sanitizer *bluemonday.Policy) {
 	resp.Files = sanitizer.Sanitize(resp.Files)
 }
