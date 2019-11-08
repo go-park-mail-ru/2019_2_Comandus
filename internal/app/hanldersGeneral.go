@@ -68,7 +68,9 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	company := model.Company{}
+	company := model.Company{
+		CompanyName: "",
+	}
 	err = s.store.Company().Create(&company)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateCompany:")
