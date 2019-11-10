@@ -18,6 +18,7 @@ func init() {
 func main() {
 	flag.Parse()
 	config := apiserver.NewConfig()
+
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = ":8080"

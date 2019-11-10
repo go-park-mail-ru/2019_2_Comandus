@@ -3,6 +3,7 @@ package apiserver
 import (
 	"context"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"math/rand"
@@ -24,8 +25,7 @@ func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := s.store.User().Find(int64(id.(int)))
-
+		u, err := s.usecase.Find(id.(int64))
 		if err != nil {
 			general.Error(w, r, http.StatusNotFound, err)
 		}

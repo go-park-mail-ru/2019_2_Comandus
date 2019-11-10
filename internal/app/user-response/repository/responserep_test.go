@@ -1,4 +1,4 @@
-package test
+package repository
 
 import (
 	"fmt"
@@ -6,7 +6,27 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"testing"
+	"time"
 )
+
+const (
+	freelancerId = 1
+	jobId = 1
+	managerId = 1
+)
+
+func testResponse(t *testing.T) *model.Response {
+	t.Helper()
+	return &model.Response{
+		ID:            1,
+		FreelancerId:  freelancerId,
+		JobId:         jobId,
+		Files:         "no files",
+		Date:          time.Time{},
+		StatusManager: model.ResponseStatusReview,
+		PaymentAmount: 10000,
+	}
+}
 
 func TestResponseRepository_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -33,11 +53,7 @@ func TestResponseRepository_Create(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	u := testUser(t)
-	m := testManager(t, u)
-	f := testFreelancer(t, u)
-	j := testJob(t, m)
-	r := testResponse(t, f, j)
+	r := testResponse(t)
 
 	r.BeforeCreate()
 	if err := r.Validate(1); err != nil {
@@ -106,13 +122,8 @@ func TestResponseRepository_Edit(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	u := testUser(t)
-	m := testManager(t, u)
-	f := testFreelancer(t, u)
-	j := testJob(t, m)
-	r := testResponse(t, f, j)
+	r := testResponse(t)
 
-	r.ID = 1
 	r.StatusManager = model.ResponseStatusAccepted
 	r.StatusFreelancer = model.ResponseStatusReview
 	r.PaymentAmount = 2000
@@ -131,8 +142,8 @@ func TestResponseRepository_Edit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if u.ID != 1 {
-		t.Errorf("bad id: want %v, have %v", u.ID, 1)
+	if r.ID != 1 {
+		t.Errorf("bad id: want %v, have %v", r.ID, 1)
 		return
 	}
 
@@ -157,16 +168,10 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 	rows := sqlmock.
 		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount"})
 
-	u := testUser(t)
-	m := testManager(t, u)
-	j := testJob(t,m)
-
-	f := testFreelancer(t, u)
-
 	expect := []*model.Response{
-		testResponse(t, f, j),
-		testResponse(t, f, j),
-		testResponse(t, f, j),
+		testResponse(t),
+		testResponse(t),
+		testResponse(t),
 	}
 
 	for _, item := range expect {
@@ -177,12 +182,12 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount " +
 			"FROM responses WHERE").
-		WithArgs(f.ID).
+		WithArgs(freelancerId).
 		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
 
-	responses, err := store.Response().ListForFreelancer(f.ID)
+	responses, err := store.Response().ListForFreelancer(freelancerId)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -205,7 +210,7 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 			"FROM responses WHERE").
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Response().ListForFreelancer(f.ID)
+	_, err = store.Response().ListForFreelancer(freelancerId)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -233,20 +238,10 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 	rows := sqlmock.
 		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount" })
 
-	u := testUser(t)
-	m := testManager(t, u)
-	j := testJob(t, m)
-
-	f1 := testFreelancer(t, u)
-	f2 := testFreelancer(t, u)
-	f2.ID = 2
-	f3 := testFreelancer(t, u)
-	f3.ID = 3
-
 	expect := []*model.Response{
-		testResponse(t, f1, j),
-		testResponse(t, f2, j),
-		testResponse(t, f3, j),
+		testResponse(t),
+		testResponse(t),
+		testResponse(t),
 	}
 
 	for _, item := range expect {
@@ -261,12 +256,12 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 		"INNER JOIN jobs " +
 		"ON jobs.id = responses.jobId " +
 		"WHERE ").
-		WithArgs(m.ID).
+		WithArgs(managerId).
 		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
 
-	responses, err := store.Response().ListForManager(m.ID)
+	responses, err := store.Response().ListForManager(managerId)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -293,7 +288,7 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 		"WHERE ").
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Response().ListForManager(m.ID)
+	_, err = store.Response().ListForManager(managerId)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -319,16 +314,11 @@ func TestResponseRepository_Find(t *testing.T) {
 
 	var elemID int64 = 1
 
-	u := testUser(t)
-	f := testFreelancer(t, u)
-	m := testManager(t, u)
-	j := testJob(t, m)
-
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount"})
 	expect := []*model.Response{
-		testResponse(t, f, j),
+		testResponse(t),
 	}
 
 	for _, item := range expect {

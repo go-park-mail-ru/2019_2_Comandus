@@ -1,4 +1,4 @@
-package test
+package repository
 
 import (
 	"fmt"
@@ -8,6 +8,21 @@ import (
 	"reflect"
 	"testing"
 )
+
+const managerId = 1
+
+func testJob(t *testing.T) *model.Job {
+	t.Helper()
+	return &model.Job{
+		ID:				1,
+		HireManagerId:	managerId,
+		Title:          "title",
+		Description:    "description",
+		PaymentAmount:   11222,
+		Country: 	"russia",
+		City:	"moscow",
+	}
+}
 
 func TestJobRepository_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -34,12 +49,12 @@ func TestJobRepository_Create(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	u := testUser(t)
-	u.ID = 1
-	m := testManager(t, u)
-	m.ID = 1
+	m := &model.HireManager{
+		ID:               managerId,
+		AccountID:        1,
+	}
 
-	j := testJob(t, m)
+	j := testJob(t)
 	j.BeforeCreate()
 
 	// TODO: uncomment when validation will be implemented
@@ -61,7 +76,7 @@ func TestJobRepository_Create(t *testing.T) {
 	}
 
 	if j.ID != 1 {
-		t.Errorf("bad id: want %v, have %v", u.ID, 1)
+		t.Errorf("bad id: want %v, have %v", j.ID, 1)
 		return
 	}
 
@@ -104,12 +119,7 @@ func TestJobRepository_Find(t *testing.T) {
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
 			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
 
-	u := testUser(t)
-	u.ID = 1
-	m := testManager(t, u)
-	m.ID = 1
-
-	j := testJob(t, m)
+	j := testJob(t)
 	j.BeforeCreate()
 
 	expect := []*model.Job{
@@ -164,7 +174,7 @@ func TestJobRepository_Find(t *testing.T) {
 
 	// row scan error
 	expect = []*model.Job{
-		testJob(t, m),
+		testJob(t),
 	}
 
 	mock.
@@ -211,11 +221,7 @@ func TestJobRepository_Edit(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	u := testUser(t)
-	u.ID = 1
-	m := testManager(t, u)
-	m.ID = 1
-	j := testJob(t, m)
+	j := testJob(t)
 	j.BeforeCreate()
 
 	//ok query
@@ -266,20 +272,16 @@ func TestJobRepository_List(t *testing.T) {
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
 			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
 
-	u := testUser(t)
-	u.ID = 1
-	m := testManager(t, u)
-	m.ID = 1
 
-	j1 := testJob(t,m)
+	j1 := testJob(t)
 	j1.Title = "job1"
 	j1.BeforeCreate()
 
-	j2 := testJob(t,m)
+	j2 := testJob(t)
 	j2.Title = "job2"
 	j2.BeforeCreate()
 
-	j3 := testJob(t,m)
+	j3 := testJob(t)
 	j3.Title = "job3"
 	j3.BeforeCreate()
 

@@ -1,4 +1,4 @@
-package test
+package repository
 
 import (
 	"fmt"
@@ -8,6 +8,21 @@ import (
 	"reflect"
 	"testing"
 )
+
+func testCompany(t *testing.T) *model.Company {
+	t.Helper()
+	return &model.Company{
+		ID:          1,
+		CompanyName: "test company",
+		Site:        "www.testcompany.com",
+		TagLine:     "no tags",
+		Description: "no description",
+		Country:     "russia",
+		City:        "moscow",
+		Address:     "baumanskaya ul",
+		Phone:       "88888888888",
+	}
+}
 
 func TestCompanyRep_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()

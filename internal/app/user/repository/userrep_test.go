@@ -1,4 +1,4 @@
-package test
+package repository
 
 import (
 	"fmt"
@@ -12,6 +12,21 @@ import (
 	"reflect"
 	"testing"
 )
+
+func testUser(t *testing.T) *model.User {
+	t.Helper()
+	return &model.User{
+		ID: 1,
+		FirstName: "masha",
+		SecondName: "ivanova",
+		UserName: "masha1996",
+		Email: "masha@mail.ru",
+		Password: "123456",
+		EncryptPassword: "",
+		Avatar: nil,
+		UserType: "freelancer",
+	}
+}
 
 func TestUserRepository_Find(t *testing.T) {
 	db, mock, err := sqlmock.New()

@@ -1,4 +1,4 @@
-package test
+package repository
 
 import (
 	"fmt"
@@ -7,7 +7,29 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"reflect"
 	"testing"
+	"time"
 )
+
+const (
+	responseId = 1
+	companyId = 1
+	freelancerId = 1
+	)
+
+func testContract(t * testing.T) *model.Contract {
+	t.Helper()
+	return &model.Contract{
+		ID:            1,
+		ResponseID:    responseId,
+		CompanyID:     companyId,
+		FreelancerID:  freelancerId,
+		StartTime:     time.Now(),
+		EndTime:       time.Time{},
+		Status:        "review",
+		Grade:         0,
+		PaymentAmount: 100,
+	}
+}
 
 func IsEqual(t *testing.T, c1 *model.Contract, c2 * model.Contract) bool {
 	t.Helper()
@@ -47,14 +69,7 @@ func TestContractRep_Create(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	u := testUser(t)
-	f := testFreelancer(t, u)
-	m := testManager(t, u)
-	j := testJob(t, m)
-	r := testResponse(t, f, j)
-	c := testCompany(t)
-
-	contract := testContract(t, r, c, f)
+	contract := testContract(t)
 
 	// TODO: uncomment when validation will be implemented
 	/*if err := c.Validate(); err != nil {
@@ -74,8 +89,8 @@ func TestContractRep_Create(t *testing.T) {
 		return
 	}
 
-	if c.ID != 1 {
-		t.Errorf("bad id: want %v, have %v", c.ID, 1)
+	if contract.ID != 1 {
+		t.Errorf("bad id: want %v, have %v", contract.ID, 1)
 		return
 	}
 
@@ -119,13 +134,7 @@ func TestContractRep_Find(t *testing.T) {
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
 			"grade", "paymentAmount" })
 
-	u := testUser(t)
-	f := testFreelancer(t, u)
-	m := testManager(t, u)
-	j := testJob(t, m)
-	r := testResponse(t, f, j)
-	c := testCompany(t)
-	contract := testContract(t, r, c, f)
+	contract := testContract(t)
 	expect := []*model.Contract{
 		contract,
 	}
@@ -225,13 +234,7 @@ func TestContractRep_Edit(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	u := testUser(t)
-	f := testFreelancer(t, u)
-	m := testManager(t, u)
-	j := testJob(t, m)
-	r := testResponse(t, f, j)
-	c := testCompany(t)
-	contract := testContract(t, r, c, f)
+	contract := testContract(t)
 
 	// TODO: uncomment when validation will be implemented
 	/*if err := f.Validate(); err != nil {
@@ -253,7 +256,7 @@ func TestContractRep_Edit(t *testing.T) {
 	}
 
 	if contract.ID != 1 {
-		t.Errorf("bad id: want %v, have %v", c.ID, 1)
+		t.Errorf("bad id: want %v, have %v", contract.ID, 1)
 		return
 	}
 
@@ -279,27 +282,9 @@ func TestContractRepository_ListCompany(t *testing.T) {
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
 			"grade", "paymentAmount" })
 
-	u := testUser(t)
-	m := testManager(t, u)
-	f := testFreelancer(t, u)
-	f.ID = 100
-	c := testCompany(t)
-
-	j1 := testJob(t,m)
-	j2 := testJob(t,m)
-	j2.ID = 2
-	j3 := testJob(t,m)
-	j3.ID = 3
-
-	r1 := testResponse(t,f,j1)
-	r2 := testResponse(t,f,j2)
-	r2.ID = 2
-	r3 := testResponse(t,f,j3)
-	r3.ID = 3
-
-	c1 := testContract(t, r1, c, f)
-	c2 := testContract(t, r2, c, f)
-	c3 := testContract(t, r3, c, f)
+	c1 := testContract(t)
+	c2 := testContract(t)
+	c3 := testContract(t)
 
 	expect := []*model.Contract{
 		c1,
@@ -316,12 +301,12 @@ func TestContractRepository_ListCompany(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
 			"grade, paymentAmount FROM contracts WHERE").
-		WithArgs(c.ID).
+		WithArgs(companyId).
 		WillReturnRows(rows)
 
 	store := sqlstore.New(db)
 
-	contracts, err := store.Contract().List(c.ID, "company")
+	contracts, err := store.Contract().List(companyId, "company")
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -342,10 +327,10 @@ func TestContractRepository_ListCompany(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
 			"grade, paymentAmount FROM contracts WHERE").
-		WithArgs(c.ID).
+		WithArgs(companyId).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Contract().List(c.ID, "company")
+	_, err = store.Contract().List(companyId, "company")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -374,27 +359,9 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
 			"grade", "paymentAmount" })
 
-	u := testUser(t)
-	m := testManager(t, u)
-	f := testFreelancer(t, u)
-	f.ID = 100
-	c := testCompany(t)
-
-	j1 := testJob(t,m)
-	j2 := testJob(t,m)
-	j2.ID = 2
-	j3 := testJob(t,m)
-	j3.ID = 3
-
-	r1 := testResponse(t,f,j1)
-	r2 := testResponse(t,f,j2)
-	r2.ID = 2
-	r3 := testResponse(t,f,j3)
-	r3.ID = 3
-
-	c1 := testContract(t, r1, c, f)
-	c2 := testContract(t, r2, c, f)
-	c3 := testContract(t, r3, c, f)
+	c1 := testContract(t)
+	c2 := testContract(t)
+	c3 := testContract(t)
 
 	expect := []*model.Contract{
 		c1,
@@ -413,10 +380,10 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
 			"grade, paymentAmount FROM contracts WHERE").
-		WithArgs(f.ID).
+		WithArgs(freelancerId).
 		WillReturnRows(rows)
 
-	contracts, err := store.Contract().List(f.ID, "freelancer")
+	contracts, err := store.Contract().List(freelancerId, "freelancer")
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -437,10 +404,10 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
 			"grade, paymentAmount FROM contracts WHERE").
-		WithArgs(f.ID).
+		WithArgs(freelancerId).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Contract().List(f.ID, "freelancer")
+	_, err = store.Contract().List(freelancerId, "freelancer")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return

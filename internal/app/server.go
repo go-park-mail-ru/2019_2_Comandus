@@ -8,6 +8,7 @@ import (
 	usecase2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	generalHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	mRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	http5 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
 	cRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
 	usecase5 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/usecase"
@@ -20,7 +21,6 @@ import (
 	http2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
 	uRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/repository"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
@@ -44,7 +44,6 @@ var (
 
 type server struct {
 	mux				*mux.Router
-	store			store.Store
 	db				*sql.DB
 	sessionStore	sessions.Store
 	config			*Config
@@ -52,15 +51,15 @@ type server struct {
 	clientUrl		string
 	token			*HashToken
 	sanitizer		*bluemonday.Policy
+	usecase			user.Usecase
 }
 
-func NewServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy) *server {
+func NewServer(sessionStore sessions.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy, db *sql.DB) *server {
 	s := &server{
 		mux:          mux.NewRouter(),
 		sessionStore: sessionStore,
 		logger:		  thisLogger,
 		clientUrl:    "https://comandus.now.sh",
-		store:        store,
 		token:	  	  thisToken,
 		sanitizer:	  thisSanitizer,
 	}
@@ -82,6 +81,7 @@ func (s *server) ConfigureServer() {
 	contractRep := cRep.NewContractRepository(s.db)
 
 	userUcase := usecase.NewUserUsecase(userRep, managerRep, freelancerRep)
+	s.usecase = userUcase
 	freelancerUcase := usecase2.NewFreelancerUsecase(userRep, freelancerRep)
 	jobUcase := usecase3.NewJobUsecase(userRep, managerRep, jobRep)
 	responseUcase := usecase4.NewResponseUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep)
