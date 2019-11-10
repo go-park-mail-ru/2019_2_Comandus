@@ -2,12 +2,17 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 
 )
 
 type UserRepository struct {
 	db	*sql.DB
+}
+
+func NewUserRepository(db *sql.DB) user.Repository {
+	return &UserRepository{db}
 }
 
 func (r *UserRepository) Create(u *model.User) error {

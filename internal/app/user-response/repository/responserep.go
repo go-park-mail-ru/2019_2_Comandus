@@ -2,11 +2,16 @@ package sqlstore
 
 import (
 	"database/sql"
+	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 )
 
 type ResponseRepository struct {
 	db *sql.DB
+}
+
+func NewResponseRepository(db *sql.DB) user_response.Repository {
+	return &ResponseRepository{db}
 }
 
 func (r *ResponseRepository) Create(response *model.Response) error {

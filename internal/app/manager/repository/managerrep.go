@@ -2,11 +2,16 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 )
 
 type ManagerRepository struct {
 	db	*sql.DB
+}
+
+func NewManagerRepository(db *sql.DB) manager.Repository {
+	return &ManagerRepository{db}
 }
 
 func (r *ManagerRepository) Create(m *model.HireManager) error {

@@ -8,7 +8,6 @@ import (
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	"net/http"
 	"time"
 )
 
@@ -20,7 +19,7 @@ type ResponseUsecase struct {
 	responseRep		user_response.Repository
 }
 
-func NewReponseUsecase(u user.Repository,
+func NewResponseUsecase(u user.Repository,
 	m manager.Repository,
 	f freelancer.Repository,
 	j user_job.Repository,
@@ -177,4 +176,5 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 
 		response.StatusManager = model.ResponseStatusDenied
 	}
+	return nil
 }

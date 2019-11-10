@@ -50,6 +50,7 @@ func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy
 	m.HandleFunc("/account/download-avatar", handler.HandleDownloadAvatar).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/account/avatar/{id:[0-9]}", handler.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/set-user-type", handler.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
+	m.HandleFunc("/roles", handler.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *UserHandler) HandleShowProfile(w http.ResponseWriter, r *http.Request) {

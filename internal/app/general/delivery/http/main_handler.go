@@ -31,7 +31,7 @@ type MainHandler struct {
 	sessionStore	sessions.Store
 }
 
-func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
+func NewMainHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &MainHandler{
 		UserUsecase:	us,
 		sanitizer:		sanitizer,

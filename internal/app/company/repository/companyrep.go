@@ -2,11 +2,16 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 )
 
 type CompanyRepository struct {
 	db *sql.DB
+}
+
+func NewCompanyRepository(db *sql.DB) company.Repository {
+	return &CompanyRepository{db}
 }
 
 func (r *CompanyRepository)  Create(company *model.Company) error {

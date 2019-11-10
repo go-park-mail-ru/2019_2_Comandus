@@ -32,7 +32,7 @@ type JobHandler struct {
 	sessionStore sessions.Store
 }
 
-func NewUserHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
+func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &JobHandler{
 		jobUsecase:   js,
 		sanitizer:    sanitizer,

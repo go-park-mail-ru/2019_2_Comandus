@@ -2,11 +2,16 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 )
 
 type FreelancerRepository struct {
 	db	*sql.DB
+}
+
+func NewFreelancerRepository(db *sql.DB) freelancer.Repository {
+	return &FreelancerRepository{db}
 }
 
 func (r *FreelancerRepository) Create(f *model.Freelancer) error {

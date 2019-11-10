@@ -2,11 +2,16 @@ package sqlstore
 
 import (
 	"database/sql"
+	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 )
 
 type JobRepository struct {
 	db *sql.DB
+}
+
+func NewJobRepository(db *sql.DB) user_job.Repository {
+	return &JobRepository{db}
 }
 
 // TODO: remove hire manager

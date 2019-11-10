@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 )
 
@@ -12,6 +13,10 @@ const (
 
 type ContractRepository struct {
 	db *sql.DB
+}
+
+func NewContractRepository(db *sql.DB) user_contract.Repository {
+	return &ContractRepository{db}
 }
 
 func (r *ContractRepository)  Create(contract *model.Contract) error {
