@@ -3,24 +3,24 @@ package apiserver
 import (
 	"database/sql"
 	coRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
-	http3 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
+	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/freelancerUcase"
 	fRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
-	usecase2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	generalHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	mRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	http5 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/contractUcase"
+	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
 	cRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
-	usecase5 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/usecase"
-	http4 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
+	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/jobUcase"
 	jRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
-	usecase3 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
-	http6 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
+	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
 	rRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
-	usecase4 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
-	http2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/responseUcase"
+	userHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
 	uRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/repository"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/userUcase"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
@@ -34,7 +34,6 @@ type ctxKey int8
 const (
 	ctxKeyUser              ctxKey = iota
 	sessionName                    = "user-session"
-	hireManagerIdCookieName        = "hire-manager-id"
 )
 
 var (
@@ -56,12 +55,13 @@ type server struct {
 
 func NewServer(sessionStore sessions.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy, db *sql.DB) *server {
 	s := &server{
-		mux:          mux.NewRouter(),
-		sessionStore: sessionStore,
-		logger:		  thisLogger,
-		clientUrl:    "https://comandus.now.sh",
-		token:	  	  thisToken,
-		sanitizer:	  thisSanitizer,
+		mux:          	mux.NewRouter(),
+		sessionStore: 	sessionStore,
+		logger:		  	thisLogger,
+		clientUrl:    	"https://comandus.now.sh",
+		token:	  	  	thisToken,
+		sanitizer:	  	thisSanitizer,
+		db:				db,
 	}
 	s.ConfigureServer()
 	return s
@@ -80,23 +80,25 @@ func (s *server) ConfigureServer() {
 	responseRep := rRep.NewResponseRepository(s.db)
 	contractRep := cRep.NewContractRepository(s.db)
 
-	userUcase := usecase.NewUserUsecase(userRep, managerRep, freelancerRep)
-	s.usecase = userUcase
-	freelancerUcase := usecase2.NewFreelancerUsecase(userRep, freelancerRep)
-	jobUcase := usecase3.NewJobUsecase(userRep, managerRep, jobRep)
-	responseUcase := usecase4.NewResponseUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep)
-	contractUcase := usecase5.NewContractUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep, contractRep, companyRep)
+	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep)
+	freelancerU := freelancerUcase.NewFreelancerUsecase(userRep, freelancerRep)
+	jobU := jobUcase.NewJobUsecase(userRep, managerRep, jobRep)
+	responseU := responseUcase.NewResponseUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep)
+	contractU := contractUcase.NewContractUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep, contractRep, companyRep)
 
-	generalHttp.NewMainHandler(s.mux, userUcase, s.sanitizer, s.logger, s.sessionStore)
+	s.usecase = userU
+	generalHttp.NewMainHandler(s.mux, userU, s.sanitizer, s.logger, s.sessionStore)
 
 	s.mux.Use(s.RequestIDMiddleware, s.CORSMiddleware, s.AccessLogMiddleware)
+
+	// only for auth users
 	private := s.mux.PathPrefix("").Subrouter()
 	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
 
-	http2.NewUserHandler(private, userUcase, s.sanitizer, s.logger, s.sessionStore)
-	http3.NewFreelancerHandler(private, freelancerUcase, s.sanitizer, s.logger, s.sessionStore)
-	http4.NewJobHandler(private, jobUcase, s.sanitizer, s.logger, s.sessionStore)
-	http5.NewContractHandler(private, contractUcase, s.sanitizer, s.logger, s.sessionStore)
-	http6.NewResponseHandler(private, responseUcase, s.sanitizer, s.logger, s.sessionStore)
+	userHttp.NewUserHandler(private, userU, s.sanitizer, s.logger, s.sessionStore)
+	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.sanitizer, s.logger, s.sessionStore)
+	jobHttp.NewJobHandler(private, jobU, s.sanitizer, s.logger, s.sessionStore)
+	responseHttp.NewResponseHandler(private, responseU, s.sanitizer, s.logger, s.sessionStore)
+	contractHttp.NewContractHandler(private, contractU, s.sanitizer, s.logger, s.sessionStore)
 }
 

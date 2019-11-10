@@ -1,4 +1,4 @@
-package usecase
+package freelancerUcase
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"

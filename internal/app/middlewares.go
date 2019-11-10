@@ -61,6 +61,7 @@ func (s *server) CORSMiddleware (next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Origin", s.clientUrl)
 		if r.Method == http.MethodOptions{
+			// TODO: http.StatusOK?
 			general.Error(w , r , http.StatusOK, nil)
 			return
 		}
