@@ -146,34 +146,6 @@ func (s *server) GetUserFromRequest(r *http.Request) (*model.User, error, int) {
 	return user, nil, http.StatusOK
 }
 
-// TODO: fix after creating Notifications table
-func (s *server) HandleEditNotifications(w http.ResponseWriter, r *http.Request) {
-	/*w.Header().Set("Content-Type", "application/json")
-	user, sendErr, codeStatus := s.GetUserFromRequest(r)
-	if sendErr != nil {
-		sendErr = errors.Wrapf(sendErr, "HandleEditNotifications<-GetUserFromRequest:")
-		s.error(w, r, codeStatus, sendErr)
-		return
-	}
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditNotifications<-rBodyClose:")
-			s.error(w, r, http.StatusInternalServerError, err)
-		}
-	}()
-	userNotification := s.usersdb.Notifications[user.ID]
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(userNotification)
-	log.Println(user)
-	if err != nil {
-		log.Printf("error while marshalling JSON: %s", err)
-		err = errors.Wrapf(err, "HandleEditNotifications<-Decode:")
-		s.error(w, r, http.StatusBadRequest, err)
-		return
-	}
-	s.respond(w, r, http.StatusOK, struct{}{})*/
-}
-
 func (s *server) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

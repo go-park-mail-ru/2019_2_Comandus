@@ -1,7 +1,6 @@
 package apiserver
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -100,7 +99,7 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusCreated, user)
 }
 
-func (s *server) AuthenticateUser(next http.Handler) http.Handler {
+/*func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
@@ -121,7 +120,7 @@ func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, &u)))
 	})
-}
+}*/
 
 func (s *server) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")

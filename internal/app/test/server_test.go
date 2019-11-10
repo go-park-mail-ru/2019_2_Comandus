@@ -162,7 +162,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 				store.userRepository.
 					EXPECT().
 					FindByEmail("user@example.org").
-					Return(user, nil)
+					Return(&model.User{}, nil)
 			}
 
 			b := &bytes.Buffer{}

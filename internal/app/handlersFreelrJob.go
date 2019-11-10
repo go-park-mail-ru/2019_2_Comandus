@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +24,9 @@ func (s *server) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	job := new(model.Job)
 	err := decoder.Decode(job)
+
+	job.Date = time.Now()
+
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateJob<-Decode: ")
 		s.error(w, r, http.StatusBadRequest, err)

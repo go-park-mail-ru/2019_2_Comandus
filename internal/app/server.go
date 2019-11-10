@@ -74,7 +74,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/account/avatar/{id:[0-9]}", s.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
 
 	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut, http.MethodOptions)
+	//private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut, http.MethodOptions)
 	//private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet, http.MethodOptions)
 
 	private.HandleFunc("/roles", s.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
