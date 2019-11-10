@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
@@ -15,6 +16,7 @@ type UserUsecase struct {
 	userRep			user.Repository
 	managerRep		manager.Repository
 	freelancerRep	freelancer.Repository
+	companyRep		company.Repository
 }
 
 func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository) user.Usecase {
@@ -159,4 +161,34 @@ func (usecase *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 	}
 	
 	return u.ID, nil
+}
+
+func (usecase *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
+	currManager, err := usecase.managerRep.FindByUser(user.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "managerRep.FindByUser(): ")
+	}
+
+	currCompany, err := usecase.companyRep.Find(currManager.CompanyID)
+	if err != nil {
+		return nil, errors.Wrap(err, "companyRep.Find()")
+	}
+
+	var roles []*model.Role
+
+	// TODO: rewrite avatar in Role struct
+	clientRole := &model.Role{
+		Role:	"client",
+		Label:	currCompany.CompanyName,
+	}
+
+	freelanceRole := &model.Role{
+		Role:   "freelancer",
+		Label:  user.FirstName + " " + user.SecondName,
+	}
+
+	roles = append(roles, clientRole)
+	roles = append(roles, freelanceRole)
+
+	return roles, nil
 }

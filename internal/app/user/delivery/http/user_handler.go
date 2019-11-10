@@ -305,3 +305,21 @@ func (h * UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 	general.Respond(w, r, http.StatusOK, struct{}{})
 }
+
+func (h *UserHandler) HandleRoles(w http.ResponseWriter, r *http.Request) {
+	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("no currUser in context"), "HandleRoles: ")
+		general.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	roles, err := h.UserUsecase.GetRoles(currUser)
+	if err != nil {
+		err := errors.Wrapf(err, "HandleRoles<-UserUsecase.GetRoles(): ")
+		general.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	general.Respond(w, r, http.StatusOK, roles)
+}

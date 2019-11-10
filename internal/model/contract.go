@@ -10,6 +10,8 @@ const (
 	ContractStatusUnderDevelopment = "develop"
 	ContractStatusCanceled = "cancel"
 	ContractStatusReviewed = "reviewed"
+	ContractMinGrade = 0
+	ContractMaxGrade = 5
 )
 
 type Contract struct {
