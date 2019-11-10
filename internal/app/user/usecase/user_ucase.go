@@ -11,21 +11,21 @@ import (
 	"time"
 )
 
-type Usecase struct {
+type UserUsecase struct {
 	userRep			user.Repository
 	managerRep		manager.Repository
 	freelancerRep	freelancer.Repository
 }
 
 func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository) user.Usecase {
-	return &Usecase{
+	return &UserUsecase{
 		userRep:		u,
 		managerRep:		m,
 		freelancerRep:	f,
 	}
 }
 
-func (usecase *Usecase) CreateUser(data *model.User) error {
+func (usecase *UserUsecase) CreateUser(data *model.User) error {
 	if err := data.Validate(); err != nil {
 		return errors.Wrap(err, "CreateUser: ")
 	}
@@ -60,7 +60,7 @@ func (usecase *Usecase) CreateUser(data *model.User) error {
 	return nil
 }
 
-func (usecase * Usecase) EditUser(new *model.User, old * model.User) error {
+func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
 	if old.ID != new.ID {
 		return errors.Wrap(errors.New("wrong user ID"), "EditUser: ")
 	}
@@ -80,7 +80,7 @@ func (usecase * Usecase) EditUser(new *model.User, old * model.User) error {
 	return nil
 }
 
-func (usecase *Usecase) EditUserPassword(passwords *model.BodyPassword, user *model.User) error {
+func (usecase *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user *model.User) error {
 	if passwords.NewPassword != passwords.NewPasswordConfirmation {
 		return errors.New("new passwords are different")
 	}
@@ -102,7 +102,7 @@ func (usecase *Usecase) EditUserPassword(passwords *model.BodyPassword, user *mo
 	return nil
 }
 
-func (usecase *Usecase) GetAvatar(user *model.User) ([]byte, error) {
+func (usecase *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 	if user.Avatar != nil {
 		return user.Avatar, nil
 	}
@@ -129,7 +129,7 @@ func (usecase *Usecase) GetAvatar(user *model.User) ([]byte, error) {
 	return avatar, nil
 }
 
-func (usecase *Usecase) Find(id int64) (*model.User, error) {
+func (usecase *UserUsecase) Find(id int64) (*model.User, error) {
 	user, err := usecase.userRep.Find(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "userRep.Find(): ")
@@ -137,7 +137,7 @@ func (usecase *Usecase) Find(id int64) (*model.User, error) {
 	return user, nil
 }
 
-func (usecase *Usecase) SetUserType(user *model.User, userType string) error {
+func (usecase *UserUsecase) SetUserType(user *model.User, userType string) error {
 	if err := user.SetUserType(userType); err != nil {
 		return errors.Wrap(err, "SetUserType(): ")
 	}
@@ -148,7 +148,7 @@ func (usecase *Usecase) SetUserType(user *model.User, userType string) error {
 	return nil
 }
 
-func (usecase *Usecase) VerifyUser(currUser *model.User) (int64, error) {
+func (usecase *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 	u, err := usecase.userRep.FindByEmail(currUser.Email)
 	if err != nil {
 		return 0, errors.Wrapf(err, "userRep.FindByEmail(): ")

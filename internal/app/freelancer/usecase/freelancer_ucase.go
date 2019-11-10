@@ -1,0 +1,54 @@
+package usecase
+
+import (
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/pkg/errors"
+)
+
+type FreelancerUsecase struct {
+	userRep			user.Repository
+	freelancerRep	freelancer.Repository
+}
+
+func NewFreelancerUsecase(u user.Repository, f freelancer.Repository) freelancer.Usecase {
+	return &FreelancerUsecase{
+		userRep:		u,
+		freelancerRep:	f,
+	}
+}
+
+func (u *FreelancerUsecase) FindByUser(user *model.User) (*model.Freelancer, error) {
+	f, err := u.freelancerRep.FindByUser(user.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
+	}
+	return f, nil
+}
+
+func (u *FreelancerUsecase) Find(id int64) (*model.Freelancer, error) {
+	f, err := u.freelancerRep.Find(id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
+	}
+	return f, nil
+}
+
+func (u *FreelancerUsecase) Edit(user *model.User, freelancer *model.Freelancer) error {
+	f, err := u.freelancerRep.FindByUser(user.ID)
+	if err != nil {
+		return errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
+	}
+
+	if freelancer.ID != f.ID ||
+		freelancer.AccountId != f.AccountId ||
+		freelancer.RegistrationDate != f.RegistrationDate {
+		return errors.New("no access")
+	}
+
+	if err := u.freelancerRep.Edit(freelancer); err != nil {
+		return errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
+	}
+	return nil
+}
