@@ -1,10 +1,7 @@
 package jobUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -12,16 +9,12 @@ import (
 )
 
 type JobUsecase struct {
-	userRep			user.Repository
 	managerRep		manager.Repository
-	freelancerRep	freelancer.Repository
 	jobRep			user_job.Repository
-	contractRep		user_contract.Repository
 }
 
-func NewJobUsecase(u user.Repository, m manager.Repository, j user_job.Repository) user_job.Usecase {
+func NewJobUsecase(m manager.Repository, j user_job.Repository) user_job.Usecase {
 	return &JobUsecase{
-		userRep:		u,
 		managerRep:		m,
 		jobRep:			j,
 	}

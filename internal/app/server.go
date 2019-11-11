@@ -2,7 +2,6 @@ package apiserver
 
 import (
 	"database/sql"
-	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
@@ -71,20 +70,21 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
+// TODO: separate function
 func (s *server) ConfigureServer() {
 	userRep := userRepository.NewUserRepository(s.db)
 	managerRep := managerRepository.NewManagerRepository(s.db)
 	freelancerRep := freelancerRepository.NewFreelancerRepository(s.db)
-	companyRep := companyRepository.NewCompanyRepository(s.db)
+	//companyRep := companyRepository.NewCompanyRepository(s.db)
 	jobRep := jobRepository.NewJobRepository(s.db)
 	responseRep := responseRepository.NewResponseRepository(s.db)
 	contractRep := contractRepository.NewContractRepository(s.db)
 
 	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep)
-	freelancerU := freelancerUcase.NewFreelancerUsecase(userRep, freelancerRep)
-	jobU := jobUcase.NewJobUsecase(userRep, managerRep, jobRep)
-	responseU := responseUcase.NewResponseUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep)
-	contractU := contractUcase.NewContractUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep, contractRep, companyRep)
+	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
+	jobU := jobUcase.NewJobUsecase(managerRep, jobRep)
+	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
+	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
 
 	s.usecase = userU
 	mainHttp.NewMainHandler(s.mux, userU, s.sanitizer, s.logger, s.sessionStore)

@@ -2,19 +2,16 @@ package freelancerUcase
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 )
 
 type FreelancerUsecase struct {
-	userRep			user.Repository
 	freelancerRep	freelancer.Repository
 }
 
-func NewFreelancerUsecase(u user.Repository, f freelancer.Repository) freelancer.Usecase {
+func NewFreelancerUsecase(f freelancer.Repository) freelancer.Usecase {
 	return &FreelancerUsecase{
-		userRep:		u,
 		freelancerRep:	f,
 	}
 }

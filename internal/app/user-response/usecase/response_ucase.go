@@ -3,7 +3,6 @@ package responseUcase
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -12,20 +11,15 @@ import (
 )
 
 type ResponseUsecase struct {
-	userRep			user.Repository
 	managerRep		manager.Repository
 	freelancerRep	freelancer.Repository
 	jobRep			user_job.Repository
 	responseRep		user_response.Repository
 }
 
-func NewResponseUsecase(u user.Repository,
-	m manager.Repository,
-	f freelancer.Repository,
-	j user_job.Repository,
-	r user_response.Repository) user_response.Usecase {
+func NewResponseUsecase( m manager.Repository, f freelancer.Repository,
+	j user_job.Repository, r user_response.Repository) user_response.Usecase {
 	return &ResponseUsecase{
-		userRep:		u,
 		managerRep:		m,
 		freelancerRep:	f,
 		jobRep:			j,
