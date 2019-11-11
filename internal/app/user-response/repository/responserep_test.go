@@ -1,10 +1,9 @@
-package repository
+package responseRepository
 
 import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"testing"
 	"time"
 )
@@ -40,7 +39,7 @@ func TestResponseRepository_Create(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewResponseRepository(db)
 	rows := sqlmock.
 		NewRows([]string{"id"})
 
@@ -66,7 +65,7 @@ func TestResponseRepository_Create(t *testing.T) {
 		WithArgs(r.FreelancerId, r.JobId, r.Files, r.Date, r.StatusManager, r.StatusFreelancer, r.PaymentAmount).
 		WillReturnRows(rows)
 
-	err = store.Response().Create(r)
+	err = repo.Create(r)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -87,7 +86,7 @@ func TestResponseRepository_Create(t *testing.T) {
 		WithArgs(r.FreelancerId, r.JobId, r.Files, r.Date, r.StatusManager, r.StatusFreelancer, r.PaymentAmount).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Response().Create(r)
+	err = repo.Create(r)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -108,7 +107,7 @@ func TestResponseRepository_Edit(t *testing.T) {
 			t.Fatal(err)
 		}
 	}()
-	store := sqlstore.New(db)
+	repo := NewResponseRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"id"})
@@ -137,7 +136,7 @@ func TestResponseRepository_Edit(t *testing.T) {
 		WithArgs(r.Files, r.StatusManager, r.StatusFreelancer, r.PaymentAmount, r.ID).
 		WillReturnRows(rows)
 
-	err = store.Response().Edit(r)
+	err = repo.Edit(r)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,9 +184,9 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 		WithArgs(freelancerId).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewResponseRepository(db)
 
-	responses, err := store.Response().ListForFreelancer(freelancerId)
+	responses, err := repo.ListForFreelancer(freelancerId)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -210,7 +209,7 @@ func TestResponseRepository_ListForFreelancer(t *testing.T) {
 			"FROM responses WHERE").
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Response().ListForFreelancer(freelancerId)
+	_, err = repo.ListForFreelancer(freelancerId)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -259,9 +258,9 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 		WithArgs(managerId).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewResponseRepository(db)
 
-	responses, err := store.Response().ListForManager(managerId)
+	responses, err := repo.ListForManager(managerId)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -288,7 +287,7 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 		"WHERE ").
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Response().ListForManager(managerId)
+	_, err = repo.ListForManager(managerId)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -332,9 +331,9 @@ func TestResponseRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewResponseRepository(db)
 
-	item, err := store.Response().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -356,7 +355,7 @@ func TestResponseRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Response().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return

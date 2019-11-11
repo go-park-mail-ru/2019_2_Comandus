@@ -1,10 +1,9 @@
-package repository
+package freelancerRepository
 
 import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"reflect"
 	"testing"
 	"time"
@@ -35,7 +34,8 @@ func TestFreelancerRep_Create(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewFreelancerRepository(db)
+
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
 
@@ -62,7 +62,7 @@ func TestFreelancerRep_Create(t *testing.T) {
 			f.Overview, f.ExperienceLevelId, f.SpecialityId).
 		WillReturnRows(rows)
 
-	err = store.Freelancer().Create(f)
+	err = repo.Create(f)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -84,7 +84,7 @@ func TestFreelancerRep_Create(t *testing.T) {
 			f.Overview, f.ExperienceLevelId, f.SpecialityId).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Freelancer().Create(f)
+	err = repo.Create(f)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -128,9 +128,9 @@ func TestFreelancerRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewFreelancerRepository(db)
 
-	item, err := store.Freelancer().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -152,7 +152,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Freelancer().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -174,7 +174,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	_, err = store.Freelancer().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -219,9 +219,9 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 		WithArgs(1).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewFreelancerRepository(db)
 
-	item, err := store.Freelancer().FindByUser(1)
+	item, err := repo.FindByUser(1)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -243,7 +243,7 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 		WithArgs(1).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Freelancer().FindByUser(1)
+	_, err = repo.FindByUser(1)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -265,7 +265,7 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 		WithArgs(1).
 		WillReturnRows(rows)
 
-	_, err = store.Freelancer().FindByUser(1)
+	_, err = repo.FindByUser(1)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -289,7 +289,7 @@ func TestFreelancerRep_Edit(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewFreelancerRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
@@ -320,7 +320,7 @@ func TestFreelancerRep_Edit(t *testing.T) {
 		f.Overview, f.ExperienceLevelId, f.SpecialityId, f.ID).
 		WillReturnRows(rows)
 
-	err = store.Freelancer().Edit(f)
+	err = repo.Edit(f)
 	if err != nil {
 		t.Fatal(err)
 	}

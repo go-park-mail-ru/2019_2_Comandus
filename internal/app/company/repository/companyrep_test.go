@@ -1,10 +1,9 @@
-package repository
+package companyRepository
 
 import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"reflect"
 	"testing"
 )
@@ -36,7 +35,8 @@ func TestCompanyRep_Create(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewCompanyRepository(db)
+
 	rows := sqlmock.
 		NewRows([]string{"id"})
 
@@ -62,7 +62,7 @@ func TestCompanyRep_Create(t *testing.T) {
 		WithArgs(c.CompanyName, c.Site, c.TagLine, c.Description, c.Country, c.City, c.Address, c.Phone).
 		WillReturnRows(rows)
 
-	err = store.Company().Create(c)
+	err = repo.Create(c)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -83,7 +83,7 @@ func TestCompanyRep_Create(t *testing.T) {
 		WithArgs(c.CompanyName, c.Site, c.TagLine, c.Description, c.Country, c.City, c.Address, c.Phone).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Company().Create(c)
+	err = repo.Create(c)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -104,6 +104,7 @@ func TestCompanyRep_Find(t *testing.T) {
 			t.Fatal(err)
 		}
 	}()
+	repo := NewCompanyRepository(db)
 
 	var elemID int64 = 1
 
@@ -127,9 +128,7 @@ func TestCompanyRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
-
-	item, err := store.Company().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -151,7 +150,7 @@ func TestCompanyRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Company().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -173,7 +172,7 @@ func TestCompanyRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	_, err = store.Company().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -197,7 +196,7 @@ func TestCompanyRep_Edit(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewCompanyRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"id"})
@@ -226,7 +225,7 @@ func TestCompanyRep_Edit(t *testing.T) {
 		WithArgs(c.CompanyName, c.Site, c.TagLine, c.Description, c.Country, c.City, c.Address, c.Phone, c.ID).
 		WillReturnRows(rows)
 
-	err = store.Company().Edit(c)
+	err = repo.Edit(c)
 	if err != nil {
 		t.Fatal(err)
 	}

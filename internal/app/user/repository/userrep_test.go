@@ -1,4 +1,4 @@
-package repository
+package userRepository
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	//"database/sql"
 	//"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	//"net/http"
 	//"net/http/httptest"
 	"reflect"
@@ -34,13 +33,14 @@ func TestUserRepository_Find(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
+	repo := NewUserRepository(db)
 
 	var elemID int64 = 1
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"accountId", "firsName", "secondName", "username", "email", "password", "encryptPassword",
-			"avatar", "userType"})
+	NewRows([]string{"accountId", "firsName", "secondName", "username", "email", "password", "encryptPassword",
+		"avatar", "userType"})
 	expect := []*model.User{
 		testUser(t),
 	}
@@ -56,8 +56,7 @@ func TestUserRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
-	repo := store.User()
+	//store := sqlstore.New(db)
 
 	item, err := repo.Find(elemID)
 	if err != nil {
@@ -117,7 +116,7 @@ func TestUserRepository_Create(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	store := sqlstore.New(db)
+	repo := NewUserRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
@@ -145,7 +144,7 @@ func TestUserRepository_Create(t *testing.T) {
 		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
 		WillReturnRows(rows)
 
-	err = store.User().Create(u)
+	err = repo.Create(u)
 
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -167,7 +166,7 @@ func TestUserRepository_Create(t *testing.T) {
 		WithArgs(u.FirstName, u.SecondName, u.UserName, u.Email, u.EncryptPassword, u.UserType).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.User().Create(u)
+	err = repo.Create(u)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -205,8 +204,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 		WithArgs(u.Email).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
-	repo := store.User()
+	repo := NewUserRepository(db)
 
 	item, err := repo.FindByEmail(u.Email)
 	if err != nil {
@@ -266,7 +264,7 @@ func TestUserRepository_Edit(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	store := sqlstore.New(db)
+	repo := NewUserRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
@@ -295,7 +293,7 @@ func TestUserRepository_Edit(t *testing.T) {
 		WithArgs(u.FirstName, u.SecondName, u.UserName, u.EncryptPassword, u.Avatar, u.UserType, u.ID).
 		WillReturnRows(rows)
 
-	err = store.User().Edit(u)
+	err = repo.Edit(u)
 	if err != nil {
 		t.Fatal(err)
 	}

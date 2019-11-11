@@ -1,4 +1,4 @@
-package repository
+package freelancerRepository
 
 import (
 	"database/sql"

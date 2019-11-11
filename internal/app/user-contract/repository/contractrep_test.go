@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"reflect"
 	"testing"
 	"time"
@@ -56,7 +55,7 @@ func TestContractRep_Create(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewContractRepository(db)
 	rows := sqlmock.
 		NewRows([]string{"id"})
 
@@ -83,7 +82,7 @@ func TestContractRep_Create(t *testing.T) {
 			contract.EndTime, contract.Status, contract.Grade, contract.PaymentAmount).
 		WillReturnRows(rows)
 
-	err = store.Contract().Create(contract)
+	err = repo.Create(contract)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -105,7 +104,7 @@ func TestContractRep_Create(t *testing.T) {
 			contract.EndTime, contract.Status, contract.Grade, contract.PaymentAmount).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Contract().Create(contract)
+	err = repo.Create(contract)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -150,9 +149,9 @@ func TestContractRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewContractRepository(db)
 
-	item, err := store.Contract().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -174,7 +173,7 @@ func TestContractRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Contract().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -196,7 +195,7 @@ func TestContractRep_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	_, err = store.Contract().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -220,7 +219,7 @@ func TestContractRep_Edit(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewContractRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"id"})
@@ -250,7 +249,7 @@ func TestContractRep_Edit(t *testing.T) {
 			contract.PaymentAmount, contract.ID).
 		WillReturnRows(rows)
 
-	err = store.Contract().Edit(contract)
+	err = repo.Edit(contract)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,9 +303,9 @@ func TestContractRepository_ListCompany(t *testing.T) {
 		WithArgs(companyId).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewContractRepository(db)
 
-	contracts, err := store.Contract().List(companyId, "company")
+	contracts, err := repo.List(companyId, "company")
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -330,7 +329,7 @@ func TestContractRepository_ListCompany(t *testing.T) {
 		WithArgs(companyId).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Contract().List(companyId, "company")
+	_, err = repo.List(companyId, "company")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -369,7 +368,7 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 		c3,
 	}
 
-	store := sqlstore.New(db)
+	repo := NewContractRepository(db)
 
 	// freelancer mode
 	for _, item := range expect {
@@ -383,7 +382,7 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 		WithArgs(freelancerId).
 		WillReturnRows(rows)
 
-	contracts, err := store.Contract().List(freelancerId, "freelancer")
+	contracts, err := repo.List(freelancerId, "freelancer")
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -407,7 +406,7 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 		WithArgs(freelancerId).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Contract().List(freelancerId, "freelancer")
+	_, err = repo.List(freelancerId, "freelancer")
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"reflect"
 	"testing"
 	"time"
@@ -32,7 +31,7 @@ func TestManagerRepository_Create(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewManagerRepository(db)
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
 
@@ -59,7 +58,7 @@ func TestManagerRepository_Create(t *testing.T) {
 		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
 		WillReturnRows(rows)
 
-	err = store.Manager().Create(m)
+	err = repo.Create(m)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -80,7 +79,7 @@ func TestManagerRepository_Create(t *testing.T) {
 		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Manager().Create(m)
+	err = repo.Create(m)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -121,9 +120,9 @@ func TestManagerRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewManagerRepository(db)
 
-	item, err := store.Manager().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -144,7 +143,7 @@ func TestManagerRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Manager().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -165,7 +164,7 @@ func TestManagerRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	_, err = store.Manager().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -205,9 +204,9 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 		WithArgs(1).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewManagerRepository(db)
 
-	item, err := store.Manager().FindByUser(1)
+	item, err := repo.FindByUser(1)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -228,7 +227,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 		WithArgs(1).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Manager().FindByUser(1)
+	_, err = repo.FindByUser(1)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -249,7 +248,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 		WithArgs(1).
 		WillReturnRows(rows)
 
-	_, err = store.Manager().FindByUser(1)
+	_, err = repo.FindByUser(1)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -273,7 +272,7 @@ func TestManagerRepository_Edit(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewManagerRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"accountId"})
@@ -303,7 +302,7 @@ func TestManagerRepository_Edit(t *testing.T) {
 		WithArgs(m.Location, m.CompanyID, m.ID).
 		WillReturnRows(rows)
 
-	err = store.Manager().Edit(m)
+	err = repo.Edit(m)
 	if err != nil {
 		t.Fatal(err)
 	}

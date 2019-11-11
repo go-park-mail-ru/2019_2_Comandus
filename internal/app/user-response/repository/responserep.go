@@ -1,4 +1,4 @@
-package repository
+package responseRepository
 
 import (
 	"database/sql"

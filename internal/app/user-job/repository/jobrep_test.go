@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
 	"reflect"
 	"testing"
 )
@@ -36,7 +35,7 @@ func TestJobRepository_Create(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewJobRepository(db)
 	rows := sqlmock.
 		NewRows([]string{"id"})
 
@@ -69,7 +68,7 @@ func TestJobRepository_Create(t *testing.T) {
 			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnRows(rows)
 
-	err = store.Job().Create(j, m)
+	err = repo.Create(j, m)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -91,7 +90,7 @@ func TestJobRepository_Create(t *testing.T) {
 			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = store.Job().Create(j, m)
+	err = repo.Create(j, m)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -137,9 +136,9 @@ func TestJobRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewJobRepository(db)
 
-	item, err := store.Job().Find(elemID)
+	item, err := repo.Find(elemID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -161,7 +160,7 @@ func TestJobRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Job().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -183,7 +182,7 @@ func TestJobRepository_Find(t *testing.T) {
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
-	_, err = store.Job().Find(elemID)
+	_, err = repo.Find(elemID)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
@@ -207,7 +206,7 @@ func TestJobRepository_Edit(t *testing.T) {
 		}
 	}()
 
-	store := sqlstore.New(db)
+	repo := NewJobRepository(db)
 
 	rows := sqlmock.
 		NewRows([]string{"id"})
@@ -240,7 +239,7 @@ func TestJobRepository_Edit(t *testing.T) {
 			j.City, j.JobTypeId, j.Status, j.ID).
 		WillReturnRows(rows)
 
-	err = store.Job().Edit(j)
+	err = repo.Edit(j)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -301,9 +300,9 @@ func TestJobRepository_List(t *testing.T) {
 			"country, city, jobTypeId, date, status FROM jobs LIMIT 10").
 		WillReturnRows(rows)
 
-	store := sqlstore.New(db)
+	repo := NewJobRepository(db)
 
-	jobs, err := store.Job().List()
+	jobs, err := repo.List()
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -326,7 +325,7 @@ func TestJobRepository_List(t *testing.T) {
 			"country, city, jobTypeId, date, status FROM jobs LIMIT 10").
 		WillReturnError(fmt.Errorf("db_error"))
 
-	_, err = store.Job().List()
+	_, err = repo.List()
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
