@@ -38,8 +38,8 @@ import (
 type ctxKey int8
 
 const (
-	ctxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
+	CtxKeyUser  ctxKey = iota
+	sessionName        = "user-session"
 )
 
 var (
@@ -117,7 +117,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 
 	// only for auth users
 	private := s.mux.PathPrefix("").Subrouter()
-	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
+	private.Use(s.AuthenticateUser)//, s.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.sanitizer, s.logger, s.sessionStore)
 	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.sanitizer, s.logger, s.sessionStore)

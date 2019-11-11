@@ -14,17 +14,6 @@ import (
 	"strconv"
 )
 
-type ctxKey int8
-
-const (
-	ctxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
-)
-
-/*type ResponseError struct {
-	Message string `json:"message"`
-}*/
-
 type JobHandler struct {
 	jobUsecase   user_job.Usecase
 	sanitizer    *bluemonday.Policy
@@ -66,7 +55,7 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -122,7 +111,7 @@ func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob: ")
 		general.Error(w, r, http.StatusUnauthorized, err)

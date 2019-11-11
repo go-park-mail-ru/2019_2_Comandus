@@ -14,13 +14,6 @@ import (
 	"strconv"
 )
 
-type ctxKey int8
-
-const (
-	ctxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
-)
-
 type ResponseError struct {
 	Message string `json:"message"`
 }
@@ -65,7 +58,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 		return
 	}*/
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -96,7 +89,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -125,7 +118,7 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
 		general.Error(w, r, http.StatusUnauthorized, err)

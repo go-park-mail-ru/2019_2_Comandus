@@ -7,6 +7,12 @@ import (
 	"net/http"
 )
 
+type ctxKey int8
+
+const (
+	CtxKeyUser              ctxKey = iota
+)
+
 func Error(w http.ResponseWriter, r *http.Request, code int, err error) {
 	// TODO: fix logger
 	/*ctx := r.Context()

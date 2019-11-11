@@ -16,7 +16,7 @@ import (
 type ctxKey int8
 
 const (
-	ctxKeyUser              ctxKey = iota
+	CtxKeyUser              ctxKey = iota
 	sessionName                    = "user-session"
 )
 

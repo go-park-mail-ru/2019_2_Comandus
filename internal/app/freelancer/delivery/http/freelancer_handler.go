@@ -14,13 +14,6 @@ import (
 	"strconv"
 )
 
-type ctxKey int8
-
-const (
-	ctxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
-)
-
 type ResponseError struct {
 	Message string `json:"message"`
 }
@@ -47,7 +40,7 @@ func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluem
 func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleEditFreelancer: ")
 		general.Error(w, r, http.StatusUnauthorized, err)

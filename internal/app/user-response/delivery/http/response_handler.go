@@ -13,17 +13,6 @@ import (
 	"strconv"
 )
 
-type ctxKey int8
-
-const (
-	ctxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
-)
-
-type ResponseError struct {
-	Message string `json:"message"`
-}
-
 type ResponseHandler struct {
 	ResponseUsecase	user_response.Usecase
 	sanitizer		*bluemonday.Policy
@@ -57,7 +46,7 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 	}
 	jobId := int64(id)
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseJob: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -77,7 +66,7 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleGetResponses: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -110,7 +99,7 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 	}
 	responseId := int64(id)
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -139,7 +128,7 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 	}
 	responseId := int64(id)
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept: ")
 		general.Error(w, r, http.StatusUnauthorized, err)

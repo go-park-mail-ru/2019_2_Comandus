@@ -29,7 +29,7 @@ func (s *Server) AuthenticateUser(next http.Handler) http.Handler {
 		if err != nil {
 			general.Error(w, r, http.StatusNotFound, err)
 		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyUser, &u)))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), general.CtxKeyUser, u)))
 	})
 }
 

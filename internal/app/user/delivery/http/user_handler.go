@@ -17,10 +17,7 @@ import (
 	"strconv"
 )
 
-type ctxKey int8
-
 const (
-	ctxKeyUser              ctxKey = iota
 	sessionName                    = "user-session"
 )
 
@@ -56,7 +53,7 @@ func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy
 func (h *UserHandler) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleShowProfile: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -70,7 +67,7 @@ func (h *UserHandler) HandleShowProfile(w http.ResponseWriter, r *http.Request) 
 func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -107,7 +104,7 @@ func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) 
 func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -161,7 +158,7 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 		}
 	}()
 
-	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -186,7 +183,7 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
-	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleDownloadAvatar: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -274,7 +271,7 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleSetUserType: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
@@ -308,7 +305,7 @@ func (h * UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) HandleRoles(w http.ResponseWriter, r *http.Request) {
-	currUser, ok := r.Context().Value(ctxKeyUser).(*model.User)
+	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleRoles: ")
 		general.Error(w, r, http.StatusUnauthorized, err)
