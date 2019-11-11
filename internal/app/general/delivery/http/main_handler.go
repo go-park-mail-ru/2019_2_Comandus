@@ -13,17 +13,6 @@ import (
 	"net/http"
 )
 
-type ctxKey int8
-
-const (
-	CtxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
-)
-
-type ResponseError struct {
-	Message string `json:"message"`
-}
-
 type MainHandler struct {
 	UserUsecase		user.Usecase
 	sanitizer		*bluemonday.Policy
@@ -73,7 +62,7 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.sessionStore.Get(r, sessionName)
+	session, err := h.sessionStore.Get(r, general.SessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-sessionGet: ")
 		general.Error(w, r, http.StatusInternalServerError, err)
@@ -117,7 +106,7 @@ func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	session, err := h.sessionStore.Get(r, sessionName)
+	session, err := h.sessionStore.Get(r, general.SessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-sessionGet:")
 		general.Error(w, r, http.StatusInternalServerError, err)
