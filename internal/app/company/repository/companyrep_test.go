@@ -12,7 +12,7 @@ func testCompany(t *testing.T) *model.Company {
 	t.Helper()
 	return &model.Company{
 		ID:          1,
-		CompanyName: "test company",
+		CompanyName: "mocks company",
 		Site:        "www.testcompany.com",
 		TagLine:     "no tags",
 		Description: "no description",

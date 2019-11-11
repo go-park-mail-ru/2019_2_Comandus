@@ -4,8 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
+	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/pkg/errors"
+	//"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
+	//"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +20,9 @@ import (
 	"testing"
 )
 
-func TestServer_HandleCreateUser(t *testing.T) {
+func testServer(t *testing.T) (*apiserver.Server, *MockUserUsecase) {
+	t.Helper()
+
 	config := apiserver.NewConfig()
 	zapLogger, _ := zap.NewProduction()
 	sugaredLogger := zapLogger.Sugar()
@@ -32,66 +39,88 @@ func TestServer_HandleCreateUser(t *testing.T) {
 	sanitizer := bluemonday.UGCPolicy()
 	sessionStore := sessions.NewCookieStore([]byte("config.SessionKey"))
 
+	userU := NewMockUserUsecase(gomock.NewController(t))
 
-	s := apiserver.NewServer(sessionStore, sugaredLogger, token, sanitizer, nil)
+	m := mux.NewRouter()
 
+	s := apiserver.NewServer(m, sessionStore, sugaredLogger, token, sanitizer)
+	mainHttp.NewMainHandler(m, userU, sanitizer, sugaredLogger, sessionStore)
+	return s, userU
+}
+
+func TestServer_HandleMain(t *testing.T) {
+	s, _ := testServer(t)
+
+	b := &bytes.Buffer{}
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/", b)
+	s.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestServer_HandleCreateUser(t *testing.T) {
+	s, userU := testServer(t)
 	testCases := []struct {
-		name         string
-		payload      interface{}
-		expectedCode int
-		expectCreate bool
+		name			string
+		payload			interface{}
+		user			*model.User
+		expectRun		bool
+		expectedCode	int
+		expectError		error
 	}{
 		{
-			name: "valid",
-			payload: map[string]interface{}{
+			name:			"valid",
+			payload:		map[string]interface{}{
 				"email":    "user@example.org",
 				"password": "secret",
 			},
-			expectedCode: http.StatusCreated,
-			expectCreate: true,
-		},
-		{
-			name:         "invalid payload",
-			payload:      "invalid",
-			expectedCode: http.StatusBadRequest,
-			expectCreate: false,
-		},
-		{
-			name: "invalid params",
-			payload: map[string]interface{}{
-				"email":    "invalid",
-				"password": "short",
+			user:			&model.User{
+				Email:           "user@example.org",
+				Password:        "secret",
 			},
-			expectedCode: http.StatusBadRequest,
-			expectCreate: false,
+			expectedCode:	http.StatusCreated,
+			expectError:	nil,
+			expectRun:		true,
+		},
+		{
+			name:			"invalid payload",
+			payload:		"invalid",
+			user:			nil,
+			expectedCode:	http.StatusBadRequest,
+			expectError:	nil,
+			expectRun:		false,
+		},
+		{
+			name:			"invalid params",
+			payload:		map[string]interface{}{
+				"email":    "1",
+				"password": "1",
+			},
+			user:			&model.User{
+				Email:           "1",
+				Password:        "1",
+			},
+			expectedCode:	http.StatusBadRequest,
+			expectError:	errors.New("CreateUser: : email: must be a valid email address; password: the length must be between 6 and 100."),
+			expectRun:		false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.expectCreate {
-				store.userRepository.
-					EXPECT().
-					Create(gomock.Any()).
-					Return(nil)
-
-				store.freelancerRepository.
-					EXPECT().
-					Create(gomock.Any()).
-					Return(nil)
-
-				store.managerRepository.
-					EXPECT().
-					Create(gomock.Any()).
-					Return(nil)
-			}
+			userU.
+				EXPECT().
+				CreateUser(tc.user).
+				Return(tc.expectError)
 
 			b := &bytes.Buffer{}
 			if err := json.NewEncoder(b).Encode(tc.payload); err != nil {
 				t.Fatal()
 			}
+
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodPost, "/signup", b)
+
 			s.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 		})
@@ -99,63 +128,43 @@ func TestServer_HandleCreateUser(t *testing.T) {
 }
 
 func TestServer_HandleSessionCreate(t *testing.T) {
-	config := apiserver.NewConfig()
-	zapLogger, _ := zap.NewProduction()
-	sugaredLogger := zapLogger.Sugar()
-
-	token, err := apiserver.NewHMACHashToken(config.TokenSecret)
-	if err != nil {
-	}
-	store := New(t)
-
-	defer func() {
-		if err := zapLogger.Sync(); err != nil {
-		}
-	}()
-
-
-	sessionStore := sessions.NewCookieStore([]byte("config.SessionKey"))
-	sanitizer := bluemonday.UGCPolicy()
-	s := apiserver.NewServer(sessionStore, store, sugaredLogger, token, sanitizer)
+	s, userU := testServer(t)
 
 	testCases := []struct {
-		name         string
-		payload      interface{}
-		expectedCode int
-		expectFind bool
+		name			string
+		payload			interface{}
+		user			*model.User
+		expectedCode	int
+		expectFind		bool
 	}{
 		{
-			name: "valid",
-			payload: map[string]interface{}{
+			name: 			"valid",
+			payload:		map[string]interface{}{
 				"email":    "user@example.org",
 				"password": "password",
 			},
-			expectedCode: http.StatusOK,
-			expectFind: true,
+			user:			&model.User{
+				Email:           "user@example.org",
+				Password:        "password",
+			},
+			expectedCode:	http.StatusOK,
+			expectFind:		true,
 		},
 		{
-			name:         "invalid payload",
-			payload:      "invalid",
-			expectedCode: http.StatusBadRequest,
-			expectFind: false,
+			name:			"invalid payload",
+			payload:		"invalid",
+			expectedCode:	http.StatusBadRequest,
+			expectFind:		false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			user := &model.User{
-				ID:              1,
-				Email:           "user@example.org",
-				Password:        "password",
-			}
-
-			_ = user.BeforeCreate()
-
 			if tc.expectFind {
-				store.userRepository.
+				userU.
 					EXPECT().
-					FindByEmail("user@example.org").
-					Return(&model.User{}, nil)
+					VerifyUser(tc.user).
+					Return(int64(1), nil)
 			}
 
 			b := &bytes.Buffer{}

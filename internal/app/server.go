@@ -2,18 +2,25 @@ package apiserver
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
+	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
+	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
 	contractRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
 	contractUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/usecase"
+	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
 	jobRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
 	jobUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
+	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
 	responseRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
 	responseUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
@@ -40,9 +47,8 @@ var (
 	errNotAuthenticated         = errors.New("not authenticated")
 )
 
-type server struct {
+type Server struct {
 	mux				*mux.Router
-	db				*sql.DB
 	sessionStore	sessions.Store
 	config			*Config
 	logger			*zap.SugaredLogger
@@ -52,33 +58,51 @@ type server struct {
 	usecase			user.Usecase
 }
 
-func NewServer(sessionStore sessions.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy, db *sql.DB) *server {
-	s := &server{
-		mux:          	mux.NewRouter(),
+type ServerRepos struct {
+	userRep			user.Repository
+	managerRep		manager.Repository
+	freelancerRep	freelancer.Repository
+	companyRep		company.Repository
+	jobRep			user_job.Repository
+	responseRep		user_response.Repository
+	contractRep		user_contract.Repository
+}
+
+func (sr *ServerRepos) NewRepos(db *sql.DB) {
+	sr.userRep = userRepository.NewUserRepository(db)
+	sr.managerRep = managerRepository.NewManagerRepository(db)
+	sr.freelancerRep = freelancerRepository.NewFreelancerRepository(db)
+	sr.companyRep = companyRepository.NewCompanyRepository(db)
+	sr.jobRep = jobRepository.NewJobRepository(db)
+	sr.responseRep = responseRepository.NewResponseRepository(db)
+	sr.contractRep = contractRepository.NewContractRepository(db)
+}
+
+func NewServer(m *mux.Router,sessionStore sessions.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy) *Server {
+	s := &Server{
+		mux:          	m,
 		sessionStore: 	sessionStore,
 		logger:		  	thisLogger,
 		clientUrl:    	"https://comandus.now.sh",
 		token:	  	  	thisToken,
 		sanitizer:	  	thisSanitizer,
-		db:				db,
 	}
-	s.ConfigureServer()
 	return s
 }
 
-func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
 // TODO: separate function
-func (s *server) ConfigureServer() {
-	userRep := userRepository.NewUserRepository(s.db)
-	managerRep := managerRepository.NewManagerRepository(s.db)
-	freelancerRep := freelancerRepository.NewFreelancerRepository(s.db)
+func (s *Server) ConfigureServer(db *sql.DB) {
+	userRep := userRepository.NewUserRepository(db)
+	managerRep := managerRepository.NewManagerRepository(db)
+	freelancerRep := freelancerRepository.NewFreelancerRepository(db)
 	//companyRep := companyRepository.NewCompanyRepository(s.db)
-	jobRep := jobRepository.NewJobRepository(s.db)
-	responseRep := responseRepository.NewResponseRepository(s.db)
-	contractRep := contractRepository.NewContractRepository(s.db)
+	jobRep := jobRepository.NewJobRepository(db)
+	responseRep := responseRepository.NewResponseRepository(db)
+	contractRep := contractRepository.NewContractRepository(db)
 
 	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)

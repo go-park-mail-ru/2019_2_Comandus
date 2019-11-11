@@ -3,6 +3,7 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/create"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
@@ -48,7 +49,9 @@ func Start(config *Config) error {
 	sanitizer := bluemonday.UGCPolicy()
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 
-	srv := NewServer(sessionStore, sugaredLogger, token, sanitizer, db)
+	m := mux.NewRouter()
+	srv := NewServer(m, sessionStore, sugaredLogger, token, sanitizer)
+	srv.ConfigureServer(db)
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 

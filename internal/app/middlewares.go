@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func (s *server) AuthenticateUser(next http.Handler) http.Handler {
+func (s *Server) AuthenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionStore.Get(r, sessionName)
 		if err != nil {
@@ -33,7 +33,7 @@ func (s *server) AuthenticateUser(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) RequestIDMiddleware (next http.Handler) http.Handler {
+func (s *Server) RequestIDMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := strconv.Itoa(rand.Int())
 		ctx := r.Context()
@@ -43,7 +43,7 @@ func (s *server) RequestIDMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) AccessLogMiddleware (next http.Handler) http.Handler {
+func (s *Server) AccessLogMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.logger.Info(r.URL.Path,
 			zap.String("method:", r.Method),
@@ -54,7 +54,7 @@ func (s *server) AccessLogMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) CORSMiddleware (next http.Handler) http.Handler {
+func (s *Server) CORSMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
@@ -69,7 +69,7 @@ func (s *server) CORSMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) CheckTokenMiddleware (next http.Handler) http.Handler {
+func (s *Server) CheckTokenMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.RequestURI != "/token" {
 			sess, err := s.sessionStore.Get(r, sessionName)

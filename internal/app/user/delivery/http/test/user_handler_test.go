@@ -188,7 +188,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 		{
 			name: "correct user",
 			payload: map[string]interface{}{
-				"title":                    "test job",
+				"title":                    "mocks job",
 				"paymentAmount":     		"100",
 				"country":		            "russia",
 				"city":		                "moscow",
@@ -202,7 +202,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 		{
 			name: "user without user type",
 			payload: map[string]interface{}{
-				"title":                    "test job",
+				"title":                    "mocks job",
 				"paymentAmount":     		"100",
 				"country":           		"russia",
 				"city":              		"moscow",
@@ -255,7 +255,7 @@ func TestServer_HandleCreateJob(t *testing.T) {
 			job := &model.Job{
 				ID:                0,
 				HireManagerId:     0,
-				Title:             "test job",
+				Title:             "mocks job",
 				Country:		   "russia",
 				City:		   	   "moscow",
 				PaymentAmount:     100,
