@@ -2,7 +2,7 @@
 // Source: internal/app/user-contract/repository.go
 
 // Package mock_user_contract is a generated GoMock package.
-package mock_user_contract
+package test
 
 import (
 	model "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"

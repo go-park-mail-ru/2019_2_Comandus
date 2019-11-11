@@ -2,7 +2,7 @@
 // Source: internal/app/freelancer/repository.go
 
 // Package mock_freelancer is a generated GoMock package.
-package mock_freelancer
+package test
 
 import (
 	model "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"

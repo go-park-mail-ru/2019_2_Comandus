@@ -4,23 +4,23 @@ import (
 	"database/sql"
 	coRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/freelancerUcase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	fRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	generalHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	mRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/contractUcase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/usecase"
 	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
 	cRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
 	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/jobUcase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
 	jRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
 	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
 	rRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/responseUcase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
 	userHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
 	uRep "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/repository"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/userUcase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
@@ -80,11 +80,11 @@ func (s *server) ConfigureServer() {
 	responseRep := rRep.NewResponseRepository(s.db)
 	contractRep := cRep.NewContractRepository(s.db)
 
-	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep)
-	freelancerU := freelancerUcase.NewFreelancerUsecase(userRep, freelancerRep)
-	jobU := jobUcase.NewJobUsecase(userRep, managerRep, jobRep)
-	responseU := responseUcase.NewResponseUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep)
-	contractU := contractUcase.NewContractUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep, contractRep, companyRep)
+	userU := usecase.NewUserUsecase(userRep, managerRep, freelancerRep)
+	freelancerU := usecase.NewFreelancerUsecase(userRep, freelancerRep)
+	jobU := usecase.NewJobUsecase(userRep, managerRep, jobRep)
+	responseU := usecase.NewResponseUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep)
+	contractU := usecase.NewContractUsecase(userRep, managerRep, freelancerRep, jobRep, responseRep, contractRep, companyRep)
 
 	s.usecase = userU
 	generalHttp.NewMainHandler(s.mux, userU, s.sanitizer, s.logger, s.sessionStore)

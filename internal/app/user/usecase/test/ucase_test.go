@@ -3,7 +3,7 @@ package test
 import (
 	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/userUcase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/securecookie"
@@ -42,7 +42,7 @@ func TestUcase_CreateUser(t *testing.T) {
 		},*/
 	}
 
-	ucase := userUcase.NewUserUsecase(initUserRep(t))
+	ucase := usecase.NewUserUsecase(initUserRep(t))
 
 
 	for _, tc := range testCases {
