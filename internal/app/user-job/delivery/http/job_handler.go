@@ -1,4 +1,4 @@
-package http
+package jobHttp
 
 import (
 	"encoding/json"

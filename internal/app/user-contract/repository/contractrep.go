@@ -1,4 +1,4 @@
-package repository
+package contractRepository
 
 import (
 	"database/sql"

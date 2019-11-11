@@ -2,7 +2,7 @@
 // Source: internal/app/user/usecase.go
 
 // Package mock_user is a generated GoMock package.
-package mock_user
+package test
 
 import (
 	model "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"

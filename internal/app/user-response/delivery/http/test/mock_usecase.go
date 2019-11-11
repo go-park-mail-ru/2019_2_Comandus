@@ -2,7 +2,7 @@
 // Source: internal/app/user-response/usecase.go
 
 // Package mock_user_response is a generated GoMock package.
-package mock_user_response
+package test
 
 import (
 	model "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"

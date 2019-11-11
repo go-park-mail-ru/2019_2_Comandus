@@ -1,4 +1,4 @@
-package http
+package freelancerHttp
 
 import (
 	"encoding/json"

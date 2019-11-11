@@ -1,4 +1,4 @@
-package http
+package responseHttp
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"

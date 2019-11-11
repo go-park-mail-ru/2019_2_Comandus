@@ -2,7 +2,7 @@
 // Source: internal/app/user-job/usecase.go
 
 // Package mock_user_job is a generated GoMock package.
-package mock_user_job
+package test
 
 import (
 	model "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
