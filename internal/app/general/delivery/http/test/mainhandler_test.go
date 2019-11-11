@@ -31,6 +31,8 @@ func TestServer_HandleCreateUser(t *testing.T) {
 
 	sanitizer := bluemonday.UGCPolicy()
 	sessionStore := sessions.NewCookieStore([]byte("config.SessionKey"))
+
+
 	s := apiserver.NewServer(sessionStore, sugaredLogger, token, sanitizer, nil)
 
 	testCases := []struct {

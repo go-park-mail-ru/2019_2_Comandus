@@ -372,3 +372,4 @@ func TestServer_HandleLogout(t *testing.T) {
 		})
 	}
 }
+
