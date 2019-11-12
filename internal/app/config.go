@@ -22,6 +22,6 @@ func NewConfig() *Config {
 		DatabaseURL: "host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d",
 		Store:       sqlstore.NewConfig(),
 		TokenSecret: "golangsecpark",
-		ClientUrl:   "https://comandus.now.sh/",
+		ClientUrl:   "https://comandus.now.sh",
 	}
 }

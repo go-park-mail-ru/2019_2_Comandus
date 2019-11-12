@@ -44,10 +44,10 @@ func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: get files from request
 	response := model.Response{
-		ID:               0,
-		FreelancerId:     freelancer.ID,
-		JobId:            jobId,
-		Files:            "",
+		//ID:               0,
+		FreelancerId: freelancer.ID,
+		JobId:        jobId,
+		//Files:            "",
 		Date:             time.Now(),
 		StatusManager:    model.ResponseStatusReview,
 		StatusFreelancer: model.ResponseStatusBlock,
@@ -63,10 +63,10 @@ func (s *server) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, http.StatusInternalServerError, err)
 	}
 
-	s.respond(w, r, http.StatusOK, struct {}{})
+	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
-func (s * server) getManagerResponses(userId int64) (*[]model.Response, error){
+func (s *server) getManagerResponses(userId int64) (*[]model.Response, error) {
 	manager, err := s.store.Manager().FindByUser(userId)
 	if err != nil {
 		err = errors.Wrapf(err, " GetManagerResponses<-Manager().FindByUser: ")
@@ -81,14 +81,14 @@ func (s * server) getManagerResponses(userId int64) (*[]model.Response, error){
 	return &responses, nil
 }
 
-func (s * server) getFreelancerResponses(userId int64) (*[]model.Response, error){
+func (s *server) getFreelancerResponses(userId int64) (*[]model.Response, error) {
 	freelancer, err := s.store.Freelancer().FindByUser(userId)
 	if err != nil {
 		err = errors.Wrapf(err, " GetManagerResponses<-Manager().FindByUser: ")
 		return nil, err
 	}
 
-	responses, err := s.store.Response().ListForManager(freelancer.ID)
+	responses, err := s.store.Response().ListForFreelancer(freelancer.ID)
 	if err != nil {
 		err = errors.Wrapf(err, "GetManagerResponses<-Responses().ListForManager: ")
 		return nil, err
@@ -122,13 +122,13 @@ func (s *server) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	for i, _ := range *responses{
+	for i, _ := range *responses {
 		(*responses)[i].Sanitize(s.sanitizer)
 	}
 	s.respond(w, r, http.StatusOK, responses)
 }
 
-func (s * server) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
@@ -203,7 +203,7 @@ func (s * server) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
-func (s * server) HandleResponseDeny(w http.ResponseWriter, r *http.Request) {
+func (s *server) HandleResponseDeny(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)

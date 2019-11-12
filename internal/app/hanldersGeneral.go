@@ -68,9 +68,20 @@ func (s *server) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	company := model.Company{
+		CompanyName: "",
+	}
+	err = s.store.Company().Create(&company)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleCreateUser<-CreateCompany:")
+		s.error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
 	m := model.HireManager{
 		AccountID:        user.ID,
 		RegistrationDate: time.Now(),
+		CompanyID:        company.ID,
 	}
 
 	err = s.store.Manager().Create(&m)

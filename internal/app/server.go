@@ -60,6 +60,8 @@ func (s *server) ConfigureServer() {
 	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost, http.MethodOptions)
 	s.mux.Use(s.RequestIDMiddleware, s.CORSMiddleware, s.AccessLogMiddleware)
 
+	s.mux.HandleFunc("/jobs", s.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
+
 	// only for authenticated users
 	private := s.mux.PathPrefix("").Subrouter()
 	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
@@ -84,12 +86,14 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
 
-	private.HandleFunc("/jobs/{id:[0-9]+}/response}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
-	private.HandleFunc("/responses", s.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/responses/{id:[0-9]+}/accept", s.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/responses/{id:[0-9]+}/deny", s.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
+	// todo: Почему для "/jobs/{id:[0-9]+}/response}" метод options возращает 404, а для "/jobs/response/{id:[0-9]+}" 200?
+	//private.HandleFunc("/jobs/{id:[0-9]+}/response}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
+	private.HandleFunc("/jobs/proposal/{id:[0-9]+}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
+	private.HandleFunc("/proposals", s.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/proposals/{id:[0-9]+}/accept", s.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/proposals/{id:[0-9]+}/deny", s.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
 
-	private.HandleFunc("/responses/{id:[0-9]+}/contract", s.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
+	private.HandleFunc("/proposals/{id:[0-9]+}/contract", s.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
 	private.HandleFunc("/contract/{id:[0-9]+/done}", s.HandleTickContractAsDone).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/contract/{id:[0-9]+}", s.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
 
