@@ -11,23 +11,23 @@ import (
 )
 
 type ResponseUsecase struct {
-	managerRep		manager.Repository
-	freelancerRep	freelancer.Repository
-	jobRep			user_job.Repository
-	responseRep		user_response.Repository
+	managerRep    manager.Repository
+	freelancerRep freelancer.Repository
+	jobRep        user_job.Repository
+	responseRep   user_response.Repository
 }
 
-func NewResponseUsecase( m manager.Repository, f freelancer.Repository,
+func NewResponseUsecase(m manager.Repository, f freelancer.Repository,
 	j user_job.Repository, r user_response.Repository) user_response.Usecase {
 	return &ResponseUsecase{
-		managerRep:		m,
-		freelancerRep:	f,
-		jobRep:			j,
-		responseRep:	r,
+		managerRep:    m,
+		freelancerRep: f,
+		jobRep:        j,
+		responseRep:   r,
 	}
 }
 
-func (u * ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
+func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 	if user.IsManager() {
 		return errors.New("to response user need to be freelancer")
 	}
@@ -58,7 +58,7 @@ func (u * ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 	return nil
 }
 
-func (u * ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, error){
+func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, error) {
 	var responses []model.Response
 
 	if user.IsManager() {
@@ -90,7 +90,7 @@ func (u * ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, er
 	return &responses, nil
 }
 
-func (u * ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
+func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
 	response, err := u.responseRep.Find(responseId)
 	if err != nil {
 		return errors.Wrapf(err, "responseRep.Find(): ")
@@ -125,8 +125,12 @@ func (u * ResponseUsecase) AcceptResponse(user *model.User, responseId int64) er
 		if response.StatusFreelancer == model.ResponseStatusBlock {
 			return errors.New("freelancer can't accept response before manager")
 		}
-
-		response.StatusManager = model.ResponseStatusAccepted
+	}
+	response.StatusManager = model.ResponseStatusAccepted
+	err = u.responseRep.Edit(response)
+	if err != nil {
+		err = errors.Wrapf(err, "response_usecase <- responseRep.Edit:")
+		return err
 	}
 	return nil
 }
@@ -167,8 +171,12 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 		if response.StatusFreelancer == model.ResponseStatusBlock {
 			return errors.New("freelancer can't accept response before manager")
 		}
-
-		response.StatusManager = model.ResponseStatusDenied
+	}
+	response.StatusManager = model.ResponseStatusDenied
+	err = u.responseRep.Edit(response)
+	if err != nil {
+		err = errors.Wrapf(err, "response_usecase <- responseRep.Edit:")
+		return err
 	}
 	return nil
 }

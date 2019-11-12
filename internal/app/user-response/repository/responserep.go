@@ -16,8 +16,8 @@ func NewResponseRepository(db *sql.DB) user_response.Repository {
 
 func (r *ResponseRepository) Create(response *model.Response) error {
 	return r.db.QueryRow(
-		"INSERT INTO responses (freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount) " +
-			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING accountId",
+		"INSERT INTO responses (freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
 		response.FreelancerId,
 		response.JobId,
 		response.Files,
@@ -30,12 +30,12 @@ func (r *ResponseRepository) Create(response *model.Response) error {
 
 func (r *ResponseRepository) Edit(response *model.Response) error {
 	return r.db.QueryRow(
-		"UPDATE responses SET files = $1, statusManager = $2, statusFreelancer = $3, paymentAmount = $4 WHERE id = $5 " +
-			"RETURNING accountId",
+		"UPDATE responses SET files = $1, statusmanager = $2, statusFreelancer = $3, paymentAmount = $4 WHERE id = $5 "+
+			"RETURNING id",
 		response.Files,
 		response.StatusManager,
 		response.StatusFreelancer,
-		response.PaymentAmount,
+		response.PaymentAmount, /**/
 		response.ID,
 	).Scan(&response.ID)
 }
@@ -43,7 +43,7 @@ func (r *ResponseRepository) Edit(response *model.Response) error {
 func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, error) {
 	var responses []model.Response
 	rows, err := r.db.Query(
-		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount " +
+		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount "+
 			"FROM responses WHERE freelancerId = $1", id)
 
 	if err != nil {
@@ -55,9 +55,9 @@ func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, erro
 		err := rows.Scan(&r.ID, &r.FreelancerId, &r.JobId, &r.Files, &r.Date, &r.StatusManager,
 			&r.StatusFreelancer, &r.PaymentAmount)
 		if err != nil {
-			return nil , err
+			return nil, err
 		}
-		responses = append(responses , r)
+		responses = append(responses, r)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -68,11 +68,11 @@ func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, erro
 func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) {
 	var responses []model.Response
 	rows, err := r.db.Query(
-		"SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, " +
-			"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
-			"FROM responses " +
-			"INNER JOIN jobs " +
-			"ON jobs.id = responses.jobId " +
+		"SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, "+
+			"responses.statusManager, responses.statusFreelancer, responses.paymentAmount "+
+			"FROM responses "+
+			"INNER JOIN jobs "+
+			"ON jobs.id = responses.jobId "+
 			"WHERE jobs.managerId = $1", id)
 
 	if err != nil {
@@ -84,9 +84,9 @@ func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) 
 		err := rows.Scan(&r.ID, &r.FreelancerId, &r.JobId, &r.Files, &r.Date, &r.StatusManager,
 			&r.StatusFreelancer, &r.PaymentAmount)
 		if err != nil {
-			return nil , err
+			return nil, err
 		}
-		responses = append(responses , r)
+		responses = append(responses, r)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) 
 	return responses, nil
 }
 
-func (r * ResponseRepository) Find(id int64) (*model.Response, error) {
+func (r *ResponseRepository) Find(id int64) (*model.Response, error) {
 	response := &model.Response{}
 	if err := r.db.QueryRow(
 		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount FROM responses WHERE id = $1",
