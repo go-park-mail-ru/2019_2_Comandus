@@ -14,10 +14,10 @@ func NewCompanyRepository(db *sql.DB) company.Repository {
 	return &CompanyRepository{db}
 }
 
-func (r *CompanyRepository)  Create(company *model.Company) error {
+func (r *CompanyRepository) Create(company *model.Company) error {
 	return r.db.QueryRow(
 		"INSERT INTO companies (companyName, site, tagLine, description, country, city, address, phone) " +
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING accountId",
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
 		company.CompanyName,
 		company.Site,
 		company.TagLine,

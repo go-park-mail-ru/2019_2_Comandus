@@ -3,7 +3,9 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
+	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
+	companyUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
@@ -20,7 +22,7 @@ import (
 	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
 	jobRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
 	jobUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
-	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
+	userresponse "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
 	responseRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
 	responseUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
@@ -48,24 +50,24 @@ var (
 )
 
 type Server struct {
-	mux				*mux.Router
-	sessionStore	sessions.Store
-	config			*Config
-	logger			*zap.SugaredLogger
-	clientUrl		string
-	token			*HashToken
-	sanitizer		*bluemonday.Policy
-	usecase			user.Usecase
+	mux          *mux.Router
+	sessionStore sessions.Store
+	config       *Config
+	logger       *zap.SugaredLogger
+	clientUrl    string
+	token        *HashToken
+	sanitizer    *bluemonday.Policy
+	usecase      user.Usecase
 }
 
 type ServerRepos struct {
-	userRep			user.Repository
-	managerRep		manager.Repository
-	freelancerRep	freelancer.Repository
-	companyRep		company.Repository
-	jobRep			user_job.Repository
-	responseRep		user_response.Repository
-	contractRep		user_contract.Repository
+	userRep       user.Repository
+	managerRep    manager.Repository
+	freelancerRep freelancer.Repository
+	companyRep    company.Repository
+	jobRep        user_job.Repository
+	responseRep   userresponse.Repository
+	contractRep   user_contract.Repository
 }
 
 func (sr *ServerRepos) NewRepos(db *sql.DB) {
@@ -78,14 +80,14 @@ func (sr *ServerRepos) NewRepos(db *sql.DB) {
 	sr.contractRep = contractRepository.NewContractRepository(db)
 }
 
-func NewServer(m *mux.Router,sessionStore sessions.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy) *Server {
+func NewServer(m *mux.Router, sessionStore sessions.Store, thisLogger *zap.SugaredLogger, thisToken *HashToken, thisSanitizer *bluemonday.Policy) *Server {
 	s := &Server{
-		mux:          	m,
-		sessionStore: 	sessionStore,
-		logger:		  	thisLogger,
-		clientUrl:    	"https://comandus.now.sh",
-		token:	  	  	thisToken,
-		sanitizer:	  	thisSanitizer,
+		mux:          m,
+		sessionStore: sessionStore,
+		logger:       thisLogger,
+		clientUrl:    "https://comandus.now.sh",
+		token:        thisToken,
+		sanitizer:    thisSanitizer,
 	}
 	return s
 }
@@ -99,12 +101,13 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	userRep := userRepository.NewUserRepository(db)
 	managerRep := managerRepository.NewManagerRepository(db)
 	freelancerRep := freelancerRepository.NewFreelancerRepository(db)
-	//companyRep := companyRepository.NewCompanyRepository(s.db)
+	companyRep := companyRepository.NewCompanyRepository(db)
 	jobRep := jobRepository.NewJobRepository(db)
 	responseRep := responseRepository.NewResponseRepository(db)
 	contractRep := contractRepository.NewContractRepository(db)
 
-	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep)
+	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
+	companyU := companyUcase.NewCompanyUsecase(companyRep, managerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
 	jobU := jobUcase.NewJobUsecase(managerRep, jobRep)
 	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
@@ -117,12 +120,12 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 
 	// only for auth users
 	private := s.mux.PathPrefix("").Subrouter()
-	private.Use(s.AuthenticateUser)//, s.CheckTokenMiddleware)
+	private.Use(s.AuthenticateUser) //, s.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.sanitizer, s.logger, s.sessionStore)
 	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.sanitizer, s.logger, s.sessionStore)
+	companyHttp.NewCompanyHandler(private, companyU, s.sanitizer, s.logger, s.sessionStore)
 	jobHttp.NewJobHandler(private, jobU, s.sanitizer, s.logger, s.sessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.sanitizer, s.logger, s.sessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.sanitizer, s.logger, s.sessionStore)
 }
-

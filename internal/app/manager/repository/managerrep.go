@@ -66,3 +66,16 @@ func (r *ManagerRepository) Edit(m * model.HireManager) error {
 		m.ID,
 	).Scan(&m.ID)
 }
+
+func (r *ManagerRepository) GetCompanyIDByUserID(accountId int64) (int64, error) {
+	var companyID int64
+	if err := r.db.QueryRow(
+		"SELECT companyId FROM managers WHERE accountId = $1",
+		accountId,
+	).Scan(
+		&companyID,
+	); err != nil {
+		return -1, err
+	}
+	return companyID, nil
+}
