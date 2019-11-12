@@ -19,11 +19,12 @@ type UserUsecase struct {
 	companyRep		company.Repository
 }
 
-func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository) user.Usecase {
+func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository, c company.Repository ) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
 		managerRep:		m,
 		freelancerRep:	f,
+		companyRep:		c,
 	}
 }
 
@@ -40,10 +41,16 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 		return errors.Wrap(err, "CreateUser<-userRep.Create(): ")
 	}
 
+	c := &model.Company{}
+
+	if err := usecase.companyRep.Create(c); err != nil {
+		return errors.Wrap(err, "CreateUser<-companyRep.Create(): ")
+	}
+
 	m := &model.HireManager{
 		AccountID:        data.ID,
 		RegistrationDate: time.Now(),
-		CompanyID:        0,		//TODO: set default company
+		CompanyID:        c.ID,		//TODO: set default company
 	}
 
 	if err := usecase.managerRep.Create(m); err != nil {
@@ -63,19 +70,22 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 }
 
 func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
-	if old.ID != new.ID {
-		return errors.Wrap(errors.New("wrong user ID"), "EditUser: ")
-	}
-
-	if old.Email != new.Email {
-		return errors.Wrap(errors.New("can't change email"), "EditUser: ")
-	}
-
-	if !old.ComparePassword(new.Password) {
-		return errors.Wrap(errors.New("can't change password without validation"),
-			"ComparePassword: ")
-	}
-
+	//if old.ID != new.ID {
+	//	return errors.Wrap(errors.New("wrong user ID"), "EditUser: ")
+	//}
+	//
+	//if old.Email != new.Email {
+	//	return errors.Wrap(errors.New("can't change email"), "EditUser: ")
+	//}
+	//
+	//if !old.ComparePassword(new.Password) {
+	//	return errors.Wrap(errors.New("can't change password without validation"),
+	//		"ComparePassword: ")
+	//}
+	new.ID = old.ID
+	new.Email = old.Email
+	new.EncryptPassword = old.EncryptPassword
+	new.UserType = old.UserType
 	if err := usecase.userRep.Edit(new); err != nil {
 		return errors.Wrap(err, "userRep.Edit(): ")
 	}

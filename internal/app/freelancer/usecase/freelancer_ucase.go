@@ -7,12 +7,12 @@ import (
 )
 
 type FreelancerUsecase struct {
-	freelancerRep	freelancer.Repository
+	freelancerRep freelancer.Repository
 }
 
 func NewFreelancerUsecase(f freelancer.Repository) freelancer.Usecase {
 	return &FreelancerUsecase{
-		freelancerRep:	f,
+		freelancerRep: f,
 	}
 }
 
@@ -37,13 +37,9 @@ func (u *FreelancerUsecase) Edit(user *model.User, freelancer *model.Freelancer)
 	if err != nil {
 		return errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
 	}
-
-	if freelancer.ID != f.ID ||
-		freelancer.AccountId != f.AccountId ||
-		freelancer.RegistrationDate != f.RegistrationDate {
-		return errors.New("no access")
-	}
-
+	freelancer.ID = f.ID
+	freelancer.AccountId = f.AccountId
+	freelancer.RegistrationDate = f.RegistrationDate
 	if err := u.freelancerRep.Edit(freelancer); err != nil {
 		return errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
 	}

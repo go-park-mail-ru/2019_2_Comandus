@@ -76,17 +76,19 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
-	ids := vars["id"]
+	ids := vars["freelancerId"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-Atoi(wrong id): ")
 		general.Error(w, r, http.StatusBadRequest, err)
+		return
 	}
 
 	currFreelancer, err := h.FreelancerUsecase.Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
 		general.Error(w, r, http.StatusNotFound, err)
+		return
 	}
 
 	currFreelancer.Sanitize(h.sanitizer)
