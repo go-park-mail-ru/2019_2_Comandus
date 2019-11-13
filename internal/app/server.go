@@ -1,121 +1,97 @@
 package apiserver
 
 import (
-	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store"
+	"database/sql"
+	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
+	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
+	companyUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/usecase"
+	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
+	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
+	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
+	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
+	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
+	contractRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
+	contractUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/usecase"
+	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
+	jobRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
+	jobUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
+	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
+	responseRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
+	responseUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
+	userHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
+	userRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/repository"
+	userUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/middleware"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"net/http"
 )
 
-type ctxKey int8
-
-const (
-	ctxKeyUser              ctxKey = iota
-	sessionName                    = "user-session"
-	hireManagerIdCookieName        = "hire-manager-id"
-)
-
-var (
-	errIncorrectEmailOrPassword = errors.New("incorrect email or password")
-	errNotAuthenticated         = errors.New("not authenticated")
-)
-
-type server struct {
-	mux          *mux.Router
-	store        store.Store
-	sessionStore sessions.Store
-	config       *Config
-	logger       *zap.SugaredLogger
-	clientUrl    string
-	token        *HashToken
-	sanitizer    *bluemonday.Policy
+type Server struct {
+	Mux          *mux.Router
+	SessionStore sessions.Store
+	Config       *Config
+	Logger       *zap.SugaredLogger
+	Token        *token.HashToken
+	Sanitizer    *bluemonday.Policy
 }
 
-func NewServer(sessionStore sessions.Store, store store.Store, thisLogger *zap.SugaredLogger,
-	thisToken *HashToken, thisSanitizer *bluemonday.Policy, clientUrl string) *server {
-	s := &server{
-		mux:          mux.NewRouter(),
-		sessionStore: sessionStore,
-		logger:       thisLogger,
-		clientUrl:    clientUrl,
-		store:        store,
-		token:        thisToken,
-		sanitizer:    thisSanitizer,
+func NewServer(config *Config, logger *zap.SugaredLogger) (*Server, error) {
+	token, err := token.NewHMACHashToken(config.TokenSecret)
+	if err != nil {
+		return nil, err
 	}
-	s.ConfigureServer()
-	return s
-}
 
-func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.mux.ServeHTTP(w, r)
-}
-
-func (s *server) ConfigureServer() {
-	s.mux.HandleFunc("/", s.HandleMain)
-	s.mux.HandleFunc("/signup", s.HandleCreateUser).Methods(http.MethodPost, http.MethodOptions)
-	s.mux.HandleFunc("/login", s.HandleSessionCreate).Methods(http.MethodPost, http.MethodOptions)
-	s.mux.Use(s.RequestIDMiddleware, s.CORSMiddleware, s.AccessLogMiddleware)
-
-	s.mux.HandleFunc("/jobs", s.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
-
-	// only for authenticated users
-	private := s.mux.PathPrefix("").Subrouter()
-	private.Use(s.AuthenticateUser, s.CheckTokenMiddleware)
-	private.HandleFunc("/token", s.HandleGetToken).Methods(http.MethodGet)
-
-	private.HandleFunc("/setusertype", s.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
-	private.HandleFunc("/account", s.HandleShowProfile).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/account", s.HandleEditProfile).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/account/upload-avatar", s.HandleUploadAvatar).Methods(http.MethodPost, http.MethodOptions)
-
-	private.HandleFunc("/account/download-avatar", s.HandleDownloadAvatar).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/account/avatar/{id:[0-9]}", s.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
-
-	private.HandleFunc("/account/settings/password", s.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/account/settings/notifications", s.HandleEditNotifications).Methods(http.MethodPut, http.MethodOptions)
-	//private.HandleFunc("/account/settings/auth-history", s.HandleGetAuthHistory).Methods(http.MethodGet, http.MethodOptions)
-
-	private.HandleFunc("/roles", s.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/logout", s.HandleLogout).Methods(http.MethodDelete, http.MethodOptions)
-	private.HandleFunc("/jobs", s.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)
-	private.HandleFunc("/jobs", s.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/jobs/{id:[0-9]+}", s.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
-
-	// todo: Почему для "/jobs/{id:[0-9]+}/response}" метод options возращает 404, а для "/jobs/response/{id:[0-9]+}" 200?
-	//private.HandleFunc("/jobs/{id:[0-9]+}/response}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
-	private.HandleFunc("/jobs/proposal/{id:[0-9]+}", s.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
-	private.HandleFunc("/proposals", s.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/proposals/{id:[0-9]+}/accept", s.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/proposals/{id:[0-9]+}/deny", s.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
-
-	private.HandleFunc("/proposals/{id:[0-9]+}/contract", s.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
-	private.HandleFunc("/contract/{id:[0-9]+/done}", s.HandleTickContractAsDone).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/contract/{id:[0-9]+}", s.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
-
-	private.HandleFunc("/freelancer", s.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
-}
-
-func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {
-	s.respond(w, r, http.StatusOK, "hello from server")
-}
-
-// error handler
-func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
-	ctx := r.Context()
-	reqID := ctx.Value("rIDKey").(string)
-	s.logger.Infof("Request ID: %s | error : %s", reqID, err.Error())
-	s.respond(w, r, code, map[string]string{"error": errors.Cause(err).Error()})
-}
-
-func (s *server) respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {
-	w.WriteHeader(code)
-	if data != nil {
-		_ = json.NewEncoder(w).Encode(data)
+	s := &Server{
+		Mux:          mux.NewRouter(),
+		SessionStore: sessions.NewCookieStore([]byte(config.SessionKey)),
+		Logger:       logger,
+		Token:        token,
+		Sanitizer:    bluemonday.UGCPolicy(),
+		Config:       config,
 	}
+	return s, nil
+}
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.Mux.ServeHTTP(w, r)
+}
+
+// TODO: separate function
+func (s *Server) ConfigureServer(db *sql.DB) {
+
+	userRep := userRepository.NewUserRepository(db)
+	managerRep := managerRepository.NewManagerRepository(db)
+	freelancerRep := freelancerRepository.NewFreelancerRepository(db)
+	companyRep := companyRepository.NewCompanyRepository(db)
+	jobRep := jobRepository.NewJobRepository(db)
+	responseRep := responseRepository.NewResponseRepository(db)
+	contractRep := contractRepository.NewContractRepository(db)
+
+	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
+	companyU := companyUcase.NewCompanyUsecase(companyRep, managerRep)
+	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
+	jobU := jobUcase.NewJobUsecase(managerRep, jobRep)
+	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
+	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
+
+	mainHttp.NewMainHandler(s.Mux, userU, s.Sanitizer, s.Logger, s.SessionStore)
+
+	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, userU, s.Config.ClientUrl)
+	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
+
+	// only for auth users
+	private := s.Mux.PathPrefix("").Subrouter()
+	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
+
+	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
+	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
+	jobHttp.NewJobHandler(private, jobU, s.Sanitizer, s.Logger, s.SessionStore)
+	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
+	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
+	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
 }

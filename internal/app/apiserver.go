@@ -3,12 +3,10 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/create"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/sqlstore"
-	"github.com/gorilla/sessions"
-	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"os"
 )
 
 type responseWriter struct {
@@ -21,14 +19,36 @@ func (w *responseWriter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func Start(config *Config) error {
+func Start() error {
+	config := NewConfig()
+
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = ":8080"
+	} else {
+		port = ":" + port
+	}
+	config.BindAddr = port
+
+	url :=  os.Getenv("DATABASE_URL")
+	if len(url) != 0 {
+		config.DatabaseURL = url
+	}
+
 	zapLogger, _ := zap.NewProduction()
+	defer func() {
+		if err := zapLogger.Sync(); err != nil {
+			log.Println("HEHEHEG",err)
+		}
+	}()
 	sugaredLogger := zapLogger.Sugar()
-	db, err := newDB(config.DatabaseURL)
+
+	srv, err := NewServer(config, sugaredLogger)
 	if err != nil {
 		return err
 	}
-	token, err := NewHMACHashToken(config.TokenSecret)
+
+	db, err := newDB(config.DatabaseURL)
 	if err != nil {
 		return err
 	}
@@ -38,15 +58,8 @@ func Start(config *Config) error {
 			log.Println(err)
 		}
 	}()
-	defer func() {
-		if err := zapLogger.Sync(); err != nil {
-			log.Println(err)
-		}
-	}()
-	sanitizer := bluemonday.UGCPolicy()
-	store := sqlstore.New(db)
-	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-	srv := NewServer(sessionStore, store, sugaredLogger, token, sanitizer, config.ClientUrl)
+
+	srv.ConfigureServer(db)
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 
@@ -56,9 +69,7 @@ func newDB(dbURL string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// MAX CONNECTIONS
 	db.SetMaxOpenConns(20)
-
 	if err := create.CreateTables(db); err != nil {
 		return nil, err
 	}

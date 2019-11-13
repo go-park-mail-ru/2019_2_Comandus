@@ -14,12 +14,12 @@ const (
 )
 
 type User struct {
-	ID              int64  `json:"id" valid:"int, optional"`
-	FirstName       string `json:"firstName" valid:"utfletter, required"`
-	SecondName      string `json:"secondName" valid:"utfletter"`
-	UserName        string `json:"username" valid:"alphanum"`
-	Email           string `json:"email" valid:"email"`
-	Password        string `json:"password" valid:"length(6|100)"`
+	ID 				int64 `json:"-" valid:"int, optional"`
+	FirstName 		string `json:"firstName" valid:"utfletter, required"`
+	SecondName 		string `json:"secondName" valid:"utfletter"`
+	UserName     	string `json:"username" valid:"alphanum"`
+	Email 			string `json:"email" valid:"email"`
+	Password		string `json:"password" valid:"length(6|100)"`
 	EncryptPassword string `json:"-" valid:"-"`
 	Avatar          []byte `json:"-" valid:"-"`
 	UserType        string `json:"type" valid:"in(client|freelancer)"`
