@@ -6,7 +6,6 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func testManager(t *testing.T) *model.HireManager {
@@ -14,7 +13,6 @@ func testManager(t *testing.T) *model.HireManager {
 	return &model.HireManager{
 		ID:					1,
 		AccountID: 			1,
-		RegistrationDate:	time.Now(),
 		Location:			"Moscow",
 	}
 }
@@ -55,7 +53,7 @@ func TestManagerRepository_Create(t *testing.T) {
 	// id, accountId, registrationDate, location, companyId FROM managers WHERE accountId = $1
 	mock.
 		ExpectQuery(`INSERT INTO managers`).
-		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
+		WithArgs(m.AccountID, m.Location, m.CompanyID).
 		WillReturnRows(rows)
 
 	err = repo.Create(m)
@@ -76,7 +74,7 @@ func TestManagerRepository_Create(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery(`INSERT INTO managers`).
-		WithArgs(m.AccountID, m.RegistrationDate, m.Location, m.CompanyID).
+		WithArgs(m.AccountID, m.Location, m.CompanyID).
 		WillReturnError(fmt.Errorf("bad query"))
 
 	err = repo.Create(m)
@@ -105,18 +103,18 @@ func TestManagerRepository_Find(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "registrationDate", "location", "companyId" })
+		NewRows([]string{"id", "accountId", "location", "companyId" })
 
 	expect := []*model.HireManager{
 		testManager(t),
 	}
 
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.AccountID, item.RegistrationDate, item.Location, item.CompanyID)
+		rows = rows.AddRow(item.ID, item.AccountID, item.Location, item.CompanyID)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT id, accountId, location, companyId FROM managers WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -139,7 +137,7 @@ func TestManagerRepository_Find(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT id, accountId, location, companyId FROM managers WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -160,7 +158,7 @@ func TestManagerRepository_Find(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT id, accountId, location, companyId FROM managers WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -189,18 +187,18 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "registrationDate", "location", "companyId" })
+		NewRows([]string{"id", "accountId", "location", "companyId" })
 
 	expect := []*model.HireManager{
 		testManager(t),
 	}
 
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.AccountID, item.RegistrationDate, item.Location, item.CompanyID)
+		rows = rows.AddRow(item.ID, item.AccountID, item.Location, item.CompanyID)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT id, accountId, location, companyId FROM managers WHERE").
 		WithArgs(1).
 		WillReturnRows(rows)
 
@@ -223,7 +221,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT id, accountId, location, companyId FROM managers WHERE").
 		WithArgs(1).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -244,7 +242,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE").
+		ExpectQuery("SELECT id, accountId, location, companyId FROM managers WHERE").
 		WithArgs(1).
 		WillReturnRows(rows)
 

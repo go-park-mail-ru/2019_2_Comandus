@@ -32,15 +32,16 @@ func (u *FreelancerUsecase) Find(id int64) (*model.Freelancer, error) {
 	return f, nil
 }
 
-func (u *FreelancerUsecase) Edit(user *model.User, freelancer *model.Freelancer) error {
-	f, err := u.freelancerRep.FindByUser(user.ID)
-	if err != nil {
-		return errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
+func (u *FreelancerUsecase) Edit(new *model.Freelancer, old *model.Freelancer) error {
+	if new.ID != old.ID {
+		return errors.New("can't change ID")
 	}
-	freelancer.ID = f.ID
-	freelancer.AccountId = f.AccountId
-	freelancer.RegistrationDate = f.RegistrationDate
-	if err := u.freelancerRep.Edit(freelancer); err != nil {
+
+	if new.AccountId != old.AccountId {
+		return errors.New("can't change user associated with")
+	}
+
+	if err := u.freelancerRep.Edit(new); err != nil {
 		return errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
 	}
 	return nil

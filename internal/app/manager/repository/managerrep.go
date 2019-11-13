@@ -16,10 +16,9 @@ func NewManagerRepository(db *sql.DB) manager.Repository {
 
 func (r *ManagerRepository) Create(m *model.HireManager) error {
 	return r.db.QueryRow(
-		"INSERT INTO managers (accountId, registrationDate, location, companyId) " +
+		"INSERT INTO managers (accountId, location, companyId) " +
 			"VALUES ($1, $2, $3, $4) RETURNING id",
 		m.AccountID,
-		m.RegistrationDate,
 		m.Location,
 		m.CompanyID,
 	).Scan(&m.ID)
@@ -28,12 +27,11 @@ func (r *ManagerRepository) Create(m *model.HireManager) error {
 func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
 	m := &model.HireManager{}
 	if err := r.db.QueryRow(
-		"SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE id = $1",
+		"SELECT id, accountId, location, companyId FROM managers WHERE id = $1",
 		id,
 	).Scan(
 		&m.ID,
 		&m.AccountID,
-		&m.RegistrationDate,
 		&m.Location,
 		&m.CompanyID,
 	); err != nil {
@@ -45,12 +43,11 @@ func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
 func (r *ManagerRepository) FindByUser(accountId int64) (*model.HireManager, error) {
 	m := &model.HireManager{}
 	if err := r.db.QueryRow(
-		"SELECT id, accountId, registrationDate, location, companyId FROM managers WHERE accountId = $1",
+		"SELECT id, accountId, location, companyId FROM managers WHERE accountId = $1",
 		accountId,
 	).Scan(
 		&m.ID,
 		&m.AccountID,
-		&m.RegistrationDate,
 		&m.Location,
 		&m.CompanyID,
 	); err != nil {

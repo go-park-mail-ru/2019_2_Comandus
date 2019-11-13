@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
 func testUcase(t *testing.T) (*mocks.MockUserRepository, user.Usecase){
@@ -66,6 +65,11 @@ func TestUcase_CreateUser(t *testing.T) {
 				Return(tc.expectError)
 
 			if tc.expectRun {
+				companyRep.
+					EXPECT().
+					Create(gomock.Any()).
+					Return(nil)
+
 				freelancerRep.
 					EXPECT().
 					Create(gomock.Any()).
@@ -122,6 +126,7 @@ func TestUcase_EditUser(t *testing.T) {
 				Password:	"",
 				EncryptPassword: user.EncryptPassword,
 				UserType:	model.UserFreelancer,
+				RegistrationDate:	user.RegistrationDate,
 			},
 			expectError:	nil,
 		},
@@ -132,6 +137,7 @@ func TestUcase_EditUser(t *testing.T) {
 				Email:		"user@example.org",
 				Password:	"secret",
 				UserType:	model.UserCustomer,
+				RegistrationDate:	user.RegistrationDate,
 			},
 			expectError:	errors.New("can't change user type by edit"),
 		},
@@ -142,6 +148,7 @@ func TestUcase_EditUser(t *testing.T) {
 				Email:           "user@example.org",
 				Password:        "1",
 				UserType:	model.UserFreelancer,
+				RegistrationDate:	user.RegistrationDate,
 			},
 			expectError:	errors.Wrap(errors.New("can't change password without validation"), "ComparePassword"),
 		},
@@ -152,6 +159,7 @@ func TestUcase_EditUser(t *testing.T) {
 				Email:           "user1@example.org",
 				Password:        "secret",
 				UserType:	model.UserFreelancer,
+				RegistrationDate:	user.RegistrationDate,
 			},
 			expectError:	errors.Wrap(errors.New("can't change email"), "EditUser"),
 		},
@@ -434,7 +442,6 @@ func TestUcase_GetRoles(t *testing.T) {
 	manager := &model.HireManager{
 		ID:               1,
 		AccountID:        1,
-		RegistrationDate: time.Now(),
 		Location:         "moscow",
 		CompanyID:        1,
 	}

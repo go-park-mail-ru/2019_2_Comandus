@@ -6,6 +6,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 const (
@@ -14,15 +15,16 @@ const (
 )
 
 type User struct {
-	ID 				int64 `json:"-" valid:"int, optional"`
-	FirstName 		string `json:"firstName" valid:"utfletter, required"`
-	SecondName 		string `json:"secondName" valid:"utfletter"`
-	UserName     	string `json:"username" valid:"alphanum"`
-	Email 			string `json:"email" valid:"email"`
-	Password		string `json:"password" valid:"length(6|100)"`
-	EncryptPassword string `json:"-" valid:"-"`
-	Avatar          []byte `json:"-" valid:"-"`
-	UserType        string `json:"type" valid:"in(client|freelancer)"`
+	ID 					int64 `json:"-" valid:"int, optional"`
+	FirstName 			string `json:"firstName" valid:"utfletter, required"`
+	SecondName 			string `json:"secondName" valid:"utfletter"`
+	UserName     		string `json:"username" valid:"alphanum"`
+	Email 				string `json:"email" valid:"email"`
+	Password			string `json:"password" valid:"length(6|100)"`
+	EncryptPassword 	string `json:"-" valid:"-"`
+	Avatar          	[]byte `json:"-" valid:"-"`
+	RegistrationDate  	time.Time `json:"registrationDate" valid:"-"`
+	UserType        	string `json:"type" valid:"in(client|freelancer)"`
 }
 
 func (u *User) BeforeCreate() error {
@@ -37,7 +39,10 @@ func (u *User) BeforeCreate() error {
 		}
 		u.EncryptPassword = enc
 	}
+
 	u.Password = ""
+	u.RegistrationDate = time.Now()
+
 	return nil
 }
 
@@ -71,15 +76,6 @@ func (u *User) Validate() error {
 		validation.Field(&u.Email, validation.Required, is.Email),
 		validation.Field(&u.Password, validation.Required, validation.Length(6, 100)),
 	)
-}
-
-func requiredIf(cond bool) validation.RuleFunc {
-	return func(value interface{}) error {
-		if cond {
-			return validation.Validate(value, validation.Required)
-		}
-		return nil
-	}
 }
 
 func (u *User) Sanitize(sanitizer *bluemonday.Policy) {

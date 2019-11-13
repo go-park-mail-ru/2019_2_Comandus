@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"os"
-	"time"
 )
 
 type UserUsecase struct {
@@ -41,19 +40,17 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 		return errors.Wrap(err, "CreateUser<-userRep.Create()")
 	}
 
-	/*c := &model.Company{
+	c := &model.Company{
 		CompanyName: "default",
 	}
 
 	if err := usecase.companyRep.Create(c); err != nil {
 		return errors.Wrap(err, "CreateUser<-companyRep.Create(): ")
-	}*/
+	}
 
 	m := &model.HireManager{
 		AccountID:        data.ID,
-		RegistrationDate: time.Now(),
-		//CompanyID:      	c.ID,		//TODO: set default company
-		CompanyID:			0,
+		CompanyID:      	c.ID,
 	}
 
 	if err := usecase.managerRep.Create(m); err != nil {
@@ -62,7 +59,6 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 
 	f := &model.Freelancer{
 		AccountId:         data.ID,
-		RegistrationDate:  time.Now(),
 	}
 
 	if err := usecase.freelancerRep.Create(f); err != nil {
@@ -88,6 +84,10 @@ func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
 	if new.Password != "" || new.EncryptPassword != old.EncryptPassword {
 		return errors.Wrap(errors.New("can't change password without validation"),
 			"ComparePassword")
+	}
+
+	if old.RegistrationDate != new.RegistrationDate {
+		return errors.New("cant change registration date")
 	}
 
 	if err := usecase.userRep.Edit(new); err != nil {

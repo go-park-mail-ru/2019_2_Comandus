@@ -54,16 +54,22 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 		}
 	}()
 
-	currFreelancer := new(model.Freelancer)
+	freelancer, err := h.FreelancerUsecase.FindByUser(u)
+	if err != nil {
+		err = errors.Wrap(err, "FreelancerUsecase.FindByUser()")
+		general.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	currFreelancer := freelancer
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(currFreelancer)
+	err = decoder.Decode(currFreelancer)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-Decode(): ")
 		general.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := h.FreelancerUsecase.Edit(u, currFreelancer); err != nil {
+	if err := h.FreelancerUsecase.Edit(freelancer, currFreelancer); err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-FreelancerUsecase.Edit(): ")
 		general.Error(w, r, http.StatusBadRequest, err)
 		return

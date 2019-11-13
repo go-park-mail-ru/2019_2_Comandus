@@ -26,6 +26,7 @@ func CreateTables(db *sql.DB) error {
 		email varchar not null unique,
 		encryptPassword varchar not null,
 		avatar bytea,
+		registrationDate timestamp,
 		userType varchar not null
 	);`
 	if _, err := db.Exec(usersQuery); err != nil {
@@ -35,7 +36,6 @@ func CreateTables(db *sql.DB) error {
 	managersQuery := `CREATE TABLE IF NOT EXISTS managers (
 		id bigserial not null primary key,
 		accountId bigserial references users,
-		registrationDate timestamp,
 		location varchar,
 		companyId bigserial references companies
 	);`
@@ -46,7 +46,6 @@ func CreateTables(db *sql.DB) error {
 	freelancersQuery := `CREATE TABLE IF NOT EXISTS freelancers (
 		id bigserial not null primary key,
 		accountId bigserial not null references users,
-		registrationDate timestamp,
 		country varchar,
 		city varchar,
 		address varchar,

@@ -6,7 +6,6 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func testFreelancer(t *testing.T) *model.Freelancer {
@@ -14,7 +13,6 @@ func testFreelancer(t *testing.T) *model.Freelancer {
 	return &model.Freelancer{
 		ID:				   1,
 		AccountId:         1,
-		RegistrationDate:  time.Now(),
 		Country:           "Russia",
 		City:              "Moscow",
 		Address:           "moscow",
@@ -58,7 +56,7 @@ func TestFreelancerRep_Create(t *testing.T) {
 	//ok query
 	mock.
 		ExpectQuery(`INSERT INTO freelancers`).
-		WithArgs(f.AccountId, f.RegistrationDate, f.Country, f.City, f.Address, f.Phone, f.TagLine,
+		WithArgs(f.AccountId, f.Country, f.City, f.Address, f.Phone, f.TagLine,
 			f.Overview, f.ExperienceLevelId, f.SpecialityId).
 		WillReturnRows(rows)
 
@@ -80,7 +78,7 @@ func TestFreelancerRep_Create(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery(`INSERT INTO freelancers`).
-		WithArgs(f.AccountId, f.RegistrationDate, f.Country, f.City, f.Address, f.Phone, f.TagLine,
+		WithArgs(f.AccountId, f.Country, f.City, f.Address, f.Phone, f.TagLine,
 			f.Overview, f.ExperienceLevelId, f.SpecialityId).
 		WillReturnError(fmt.Errorf("bad query"))
 
@@ -110,7 +108,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "registrationDate", "country", "city", "address", "phone", "tagLine",
+		NewRows([]string{"id", "accountId", "country", "city", "address", "phone", "tagLine",
 		"overview", "experienceLevelId", "specialityId" })
 
 	expect := []*model.Freelancer{
@@ -118,12 +116,12 @@ func TestFreelancerRep_Find(t *testing.T) {
 	}
 
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.AccountId, item.RegistrationDate, item.Country, item.City, item.Address,
+		rows = rows.AddRow(item.ID, item.AccountId, item.Country, item.City, item.Address,
 			item.Phone, item.TagLine, item.Overview, item.ExperienceLevelId, item.SpecialityId)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
 		"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
@@ -147,7 +145,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
 		"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
@@ -169,7 +167,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
 		"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
@@ -201,7 +199,7 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "registrationDate", "country", "city", "address", "phone", "tagLine",
+		NewRows([]string{"id", "accountId", "country", "city", "address", "phone", "tagLine",
 			"overview", "experienceLevelId", "specialityId" })
 
 	expect := []*model.Freelancer{
@@ -209,12 +207,12 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 	}
 
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.AccountId, item.RegistrationDate, item.Country, item.City, item.Address,
+		rows = rows.AddRow(item.ID, item.AccountId, item.Country, item.City, item.Address,
 			item.Phone, item.TagLine, item.Overview, item.ExperienceLevelId, item.SpecialityId)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(1).
 		WillReturnRows(rows)
@@ -238,7 +236,7 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(1).
 		WillReturnError(fmt.Errorf("db_error"))
@@ -260,7 +258,7 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(1).
 		WillReturnRows(rows)

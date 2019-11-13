@@ -16,10 +16,9 @@ func NewFreelancerRepository(db *sql.DB) freelancer.Repository {
 
 func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 	return r.db.QueryRow(
-		"INSERT INTO freelancers (accountId, registrationDate, country, city, address, phone, tagLine, " +
-			"overview, experienceLevelId, specialityId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+		"INSERT INTO freelancers (accountId, country, city, address, phone, tagLine, " +
+			"overview, experienceLevelId, specialityId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
 		f.AccountId,
-		f.RegistrationDate,
 		f.Country,
 		f.City,
 		f.Address,
@@ -34,13 +33,12 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 	f := &model.Freelancer{}
 	if err := r.db.QueryRow(
-		"SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		"SELECT id, accountId, country, city, address, phone, tagLine, " +
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE id = $1",
 		id,
 	).Scan(
 		&f.ID,
 		&f.AccountId,
-		&f.RegistrationDate,
 		&f.Country,
 		&f.City,
 		&f.Address,
@@ -58,13 +56,12 @@ func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, error) {
 	f := &model.Freelancer{}
 	if err := r.db.QueryRow(
-		"SELECT id, accountId, registrationDate, country, city, address, phone, tagLine, " +
+		"SELECT id, accountId, country, city, address, phone, tagLine, " +
 			"overview, experienceLevelId, specialityId FROM freelancers WHERE accountId = $1",
 		accountId,
 	).Scan(
 		&f.ID,
 		&f.AccountId,
-		&f.RegistrationDate,
 		&f.Country,
 		&f.City,
 		&f.Address,
