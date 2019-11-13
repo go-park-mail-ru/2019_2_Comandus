@@ -75,7 +75,7 @@ func TestServer_HandleSetUserType(t *testing.T) {
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
 	private := s.Mux.PathPrefix("").Subrouter()
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
-	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)te
+	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
 
 	sc := securecookie.New([]byte(s.Config.SessionKey), nil)
 	user := &model.User{
