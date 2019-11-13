@@ -14,7 +14,7 @@ const (
 	)
 
 type User struct {
-	ID 				int64 `json:"id" valid:"int, optional"`
+	ID 				int64 `json:"-" valid:"int, optional"`
 	FirstName 		string `json:"firstName" valid:"utfletter, required"`
 	SecondName 		string `json:"secondName" valid:"utfletter"`
 	UserName     	string `json:"username" valid:"alphanum"`

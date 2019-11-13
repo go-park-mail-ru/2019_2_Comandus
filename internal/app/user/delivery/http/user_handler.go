@@ -90,7 +90,6 @@ func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-
 	if err := h.UserUsecase.EditUser(userInput, currUser); err != nil {
 		err = errors.Wrapf(err, "HandleEditProfile<-EditUser: ")
 		general.Error(w, r, http.StatusBadRequest, err)

@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	userHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/middleware"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/golang/mock/gomock"
 	"github.com/gorilla/securecookie"
-	"github.com/microcosm-cc/bluemonday"
 	"log"
 	"time"
 
-	//"github.com/golang/mock/gomock"
-	"github.com/gorilla/sessions"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -22,75 +22,16 @@ import (
 	"testing"
 )
 
-
-func TestServer_AuthenticateUser(t *testing.T) {
-	testCases := []struct {
-		name         string
-		cookieValue  map[interface{}]interface{}
-		expectedCode int
-	}{
-		{
-			name: "authenticated",
-			cookieValue: map[interface{}]interface{}{
-				"user_id": 1,
-			},
-			expectedCode: http.StatusOK,
-		},
-		/*{
-			name:         "not authenticated",
-			cookieValue:  nil,
-			expectedCode: http.StatusUnauthorized,
-		},*/
-	}
-
-	config := apiserver.NewConfig()
-	zapLogger, _ := zap.NewProduction()
-	sugaredLogger := zapLogger.Sugar()
-
-	token, err := apiserver.NewHMACHashToken(config.TokenSecret)
-	if err != nil {
-	}
-	store := New(t)
-
-	defer func() {
-		if err := zapLogger.Sync(); err != nil {
-		}
-	}()
-
-	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-
-	sanitizer := bluemonday.UGCPolicy()
-	s := apiserver.NewServer(sessionStore, store, sugaredLogger, token, sanitizer)
-
-	sc := securecookie.New([]byte(config.SessionKey), nil)
-
-	mw := s.AuthenticateUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			if tc.expectedCode == http.StatusOK {
-				store.userRepository.
-					EXPECT().
-					Find(int64(1)).
-					Return(&model.User{}, nil)
-			}
-			rec := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodGet, "/", nil)
-			cookieStr, _ := sc.Encode("user-session", tc.cookieValue)
-			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", "user-session", cookieStr))
-			mw.ServeHTTP(rec, req)
-			assert.Equal(t, tc.expectedCode, rec.Code)
-		})
-	}
+func TestServer(t *testing.T) {
+	t.Helper()
 }
 
 func TestServer_HandleSetUserType(t *testing.T) {
 	testCases := []struct {
-		name         string
-		payload      interface{}
-		expectedCode int
+		name			string
+		payload			interface{}
+		expectedCode	int
+		userType		string
 	}{
 		{
 			name: "valid customer",
@@ -98,6 +39,7 @@ func TestServer_HandleSetUserType(t *testing.T) {
 				"type": "client",
 			},
 			expectedCode: http.StatusOK,
+			userType: model.UserCustomer,
 		},
 		{
 			name: "valid",
@@ -105,54 +47,56 @@ func TestServer_HandleSetUserType(t *testing.T) {
 				"type": "freelancer",
 			},
 			expectedCode: http.StatusOK,
+			userType:	model.UserFreelancer,
 		},
 		{
 			name:         "invalid params",
 			payload:      "invalid",
 			expectedCode: http.StatusBadRequest,
+			userType:		"wrong type",
 		},
 	}
 
-	config := apiserver.NewConfig()
 	zapLogger, _ := zap.NewProduction()
-	sugaredLogger := zapLogger.Sugar()
 	defer func() {
 		if err := zapLogger.Sync(); err != nil {
+			log.Println(err)
 		}
 	}()
+	sugaredLogger := zapLogger.Sugar()
 
-	token, err := apiserver.NewHMACHashToken(config.TokenSecret)
+	s, err := apiserver.NewServer(apiserver.NewConfig(), sugaredLogger)
 	if err != nil {
-		log.Println("TOKEN ERROR")
+		t.Fatal()
 	}
 
-	store := New(t)
+	userU := NewMockUserUsecase(gomock.NewController(t))
+	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, userU, s.Config.ClientUrl)
+	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
+	private := s.Mux.PathPrefix("").Subrouter()
+	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
+	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)te
 
-	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
-
-	sanitizer := bluemonday.UGCPolicy()
-	s := apiserver.NewServer(sessionStore, store, sugaredLogger, token, sanitizer)
-	sc := securecookie.New([]byte(config.SessionKey), nil)
+	sc := securecookie.New([]byte(s.Config.SessionKey), nil)
+	user := &model.User{
+		ID:              1,
+		Email:           "ddjhd@mail.com",
+		UserType:        model.UserFreelancer,
+	}
 
 	for _, tc := range testCases {
 		log.Println(1)
 		t.Run(tc.name, func(t *testing.T) {
 
-			user := &model.User{
-				ID:              1,
-				Email:           "ddjhd@mail.com",
-				UserType:        "client",
-			}
 
-			store.userRepository.EXPECT().
-				Find(int64(1)).
-				Return(user, nil).
-				AnyTimes()
-
-			store.userRepository.EXPECT().
-				Edit(user).
-				Return(nil).
-				AnyTimes()
+			userU.
+				EXPECT().
+				Find(user.ID).
+				Return(user, nil)
+			userU.
+				EXPECT().
+				SetUserType(user, tc.userType).
+				Return(nil)
 
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
@@ -162,13 +106,13 @@ func TestServer_HandleSetUserType(t *testing.T) {
 
 
 			cookieStr, _ := sc.Encode("user-session", map[interface{}]interface{}{
-				"user_id": 1,
+				"user_id": int64(1),
 			})
 
 			req.Header.Set("Cookie", fmt.Sprintf("%s=%s", "user-session", cookieStr))
 
-			sess, _ := sessionStore.Get(req, "user-session")
-			token, _ := token.Create(sess, time.Now().Add(24*time.Hour).Unix())
+			sess, _ := s.SessionStore.Get(req, "user-session")
+			token, _ := s.Token.Create(sess, time.Now().Add(24*time.Hour).Unix())
 			req.Header.Set("csrf-token", token)
 
 			s.ServeHTTP(rec, req)
@@ -177,7 +121,7 @@ func TestServer_HandleSetUserType(t *testing.T) {
 	}
 }
 
-func TestServer_HandleCreateJob(t *testing.T) {
+/*func TestServer_HandleCreateJob(t *testing.T) {
 	testCases := []struct {
 		name         string
 		payload      interface{}
@@ -316,7 +260,7 @@ func TestServer_HandleLogout(t *testing.T) {
 			cookie : "invalid",
 			expectedCode: http.StatusUnauthorized,
 		},*/
-	}
+	/*}
 
 	config := apiserver.NewConfig()
 	zapLogger, _ := zap.NewProduction()
@@ -371,5 +315,5 @@ func TestServer_HandleLogout(t *testing.T) {
 			assert.Equal(t, tc.expectedCode, rec.Code)
 		})
 	}
-}
+}*/
 

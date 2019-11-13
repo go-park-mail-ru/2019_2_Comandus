@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	token2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	//"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
@@ -27,7 +28,7 @@ func testServer(t *testing.T) (*apiserver.Server, *MockUserUsecase) {
 	zapLogger, _ := zap.NewProduction()
 	sugaredLogger := zapLogger.Sugar()
 
-	token, err := apiserver.NewHMACHashToken(config.TokenSecret)
+	token, err := token2.NewHMACHashToken(config.TokenSecret)
 	if err != nil {
 	}
 

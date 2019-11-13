@@ -19,25 +19,26 @@ type UserUsecase struct {
 	companyRep		company.Repository
 }
 
-func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository) user.Usecase {
+func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository, c company.Repository) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
 		managerRep:		m,
 		freelancerRep:	f,
+		companyRep:		c,
 	}
 }
 
 func (usecase *UserUsecase) CreateUser(data *model.User) error {
 	if err := data.Validate(); err != nil {
-		return errors.Wrap(err, "CreateUser: ")
+		return errors.Wrap(err, "CreateUser")
 	}
 
 	if err := data.BeforeCreate(); err != nil {
-		return errors.Wrap(err, "CreateUser: ")
+		return errors.Wrap(err, "CreateUser")
 	}
 
 	if err := usecase.userRep.Create(data); err != nil {
-		return errors.Wrap(err, "CreateUser<-userRep.Create(): ")
+		return errors.Wrap(err, "CreateUser<-userRep.Create()")
 	}
 
 	m := &model.HireManager{
@@ -47,7 +48,7 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 	}
 
 	if err := usecase.managerRep.Create(m); err != nil {
-		return errors.Wrap(err, "CreateUser<-managerRep.Create(): ")
+		return errors.Wrap(err, "CreateUser<-managerRep.Create()")
 	}
 
 	f := &model.Freelancer{
@@ -56,28 +57,33 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 	}
 
 	if err := usecase.freelancerRep.Create(f); err != nil {
-		return errors.Wrap(err, "CreateUser<-managerRep.Create(): ")
+		return errors.Wrap(err, "CreateUser<-managerRep.Create()")
 	}
 
 	return nil
 }
 
 func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
-	if old.ID != new.ID {
-		return errors.Wrap(errors.New("wrong user ID"), "EditUser: ")
-	}
+	new.ID = old.ID
 
 	if old.Email != new.Email {
-		return errors.Wrap(errors.New("can't change email"), "EditUser: ")
+		return errors.Wrap(errors.New("can't change email"), "EditUser")
 	}
 
 	if !old.ComparePassword(new.Password) {
 		return errors.Wrap(errors.New("can't change password without validation"),
-			"ComparePassword: ")
+			"ComparePassword")
 	}
 
+	if old.UserType != new.UserType {
+		return errors.New("can't change user type by edit")
+	}
+
+	new.Password = ""
+	new.EncryptPassword = old.EncryptPassword
+
 	if err := usecase.userRep.Edit(new); err != nil {
-		return errors.Wrap(err, "userRep.Edit(): ")
+		return errors.Wrap(err, "userRep.Edit()")
 	}
 	return nil
 }
@@ -89,17 +95,17 @@ func (usecase *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user
 
 	if !user.ComparePassword(passwords.Password) {
 		err := errors.New("wrong old password")
-		return errors.Wrapf(err, "model.user.ComparePassword: ")
+		return errors.Wrapf(err, "model.user.ComparePassword")
 	}
 
 	newEncryptPassword, err := model.EncryptString(passwords.NewPassword)
 	if err != nil {
-		return errors.Wrap(err,"model.EncryptString: ")
+		return errors.Wrap(err,"model.EncryptString")
 	}
 	user.EncryptPassword = newEncryptPassword
 
 	if err := usecase.userRep.Edit(user); err != nil {
-		return errors.Wrapf(err, "userRep.Edit: ")
+		return errors.Wrapf(err, "userRep.Edit")
 	}
 	return nil
 }
@@ -110,22 +116,24 @@ func (usecase *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 	}
 
 	var openFile *os.File
-	filename := "internal/store/avatars/default.png"
+
+	// TODO: create default user in database, get default image from it
+	filename := "../../../../store/avatars/default.png"
 	openFile, err := os.Open(filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "Open: ")
+		return nil, errors.Wrap(err, "Open")
 	}
 
 	defer func() {
 		if err := openFile.Close(); err != nil {
 			// TODO: write in correct logger
-			log.Println(errors.Wrap(err, "GetAvatar<-Close(): "))
+			log.Println(errors.Wrap(err, "GetAvatar<-Close()"))
 		}
 	}()
 
 	avatar := make([]byte, 0)
 	if _, err := openFile.Read(avatar); err != nil {
-		return nil, errors.Wrap(err, "Read(): ")
+		return nil, errors.Wrap(err, "Read()")
 	}
 
 	return avatar, nil
@@ -134,18 +142,18 @@ func (usecase *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 func (usecase *UserUsecase) Find(id int64) (*model.User, error) {
 	user, err := usecase.userRep.Find(id)
 	if err != nil {
-		return nil, errors.Wrap(err, "userRep.Find(): ")
+		return nil, errors.Wrap(err, "userRep.Find()")
 	}
 	return user, nil
 }
 
 func (usecase *UserUsecase) SetUserType(user *model.User, userType string) error {
 	if err := user.SetUserType(userType); err != nil {
-		return errors.Wrap(err, "SetUserType(): ")
+		return errors.Wrap(err, "SetUserType()")
 	}
 
 	if err := usecase.userRep.Edit(user); err != nil {
-		return errors.Wrap(err, "userRep.Edit(): ")
+		return errors.Wrap(err, "userRep.Edit()")
 	}
 	return nil
 }
@@ -153,7 +161,7 @@ func (usecase *UserUsecase) SetUserType(user *model.User, userType string) error
 func (usecase *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 	u, err := usecase.userRep.FindByEmail(currUser.Email)
 	if err != nil {
-		return 0, errors.Wrapf(err, "userRep.FindByEmail(): ")
+		return 0, errors.Wrapf(err, "userRep.FindByEmail()")
 	}
 
 	if !u.ComparePassword(currUser.Password) {
@@ -166,7 +174,7 @@ func (usecase *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 func (usecase *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
 	currManager, err := usecase.managerRep.FindByUser(user.ID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "managerRep.FindByUser(): ")
+		return nil, errors.Wrapf(err, "managerRep.FindByUser()")
 	}
 
 	currCompany, err := usecase.companyRep.Find(currManager.CompanyID)
