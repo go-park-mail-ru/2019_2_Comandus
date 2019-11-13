@@ -90,21 +90,6 @@ func (mr *MockUserUsecaseMockRecorder) EditUserPassword(passwords, user interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditUserPassword", reflect.TypeOf((*MockUserUsecase)(nil).EditUserPassword), passwords, user)
 }
 
-// GetAvatar mocks base method
-func (m *MockUserUsecase) GetAvatar(user *model.User) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAvatar", user)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAvatar indicates an expected call of GetAvatar
-func (mr *MockUserUsecaseMockRecorder) GetAvatar(user interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAvatar", reflect.TypeOf((*MockUserUsecase)(nil).GetAvatar), user)
-}
-
 // Find mocks base method
 func (m *MockUserUsecase) Find(arg0 int64) (*model.User, error) {
 	m.ctrl.T.Helper()
@@ -147,4 +132,19 @@ func (m *MockUserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
 func (mr *MockUserUsecaseMockRecorder) GetRoles(user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoles", reflect.TypeOf((*MockUserUsecase)(nil).GetRoles), user)
+}
+
+// GetAvatar mocks base method
+func (m *MockUserUsecase) GetAvatar(user *model.User) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAvatar", user)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAvatar indicates an expected call of GetAvatar
+func (mr *MockUserUsecaseMockRecorder) GetAvatar(user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAvatar", reflect.TypeOf((*MockUserUsecase)(nil).GetAvatar), user)
 }

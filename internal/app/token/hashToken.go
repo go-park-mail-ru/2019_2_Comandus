@@ -1,4 +1,4 @@
-package apiserver
+package token
 
 import (
 	"crypto/hmac"

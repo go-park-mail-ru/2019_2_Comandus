@@ -5,16 +5,13 @@ import (
 	"encoding/json"
 	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/middleware"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/pkg/errors"
-	//"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	//"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
-	"github.com/microcosm-cc/bluemonday"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,28 +20,23 @@ import (
 func testServer(t *testing.T) (*apiserver.Server, *MockUserUsecase) {
 	t.Helper()
 
-	config := apiserver.NewConfig()
 	zapLogger, _ := zap.NewProduction()
-	sugaredLogger := zapLogger.Sugar()
-
-	token, err := apiserver.NewHMACHashToken(config.TokenSecret)
-	if err != nil {
-	}
-
 	defer func() {
 		if err := zapLogger.Sync(); err != nil {
+			log.Println(err)
 		}
 	}()
+	sugaredLogger := zapLogger.Sugar()
 
-	sanitizer := bluemonday.UGCPolicy()
-	sessionStore := sessions.NewCookieStore([]byte("config.SessionKey"))
+	s, err := apiserver.NewServer(apiserver.NewConfig(), sugaredLogger)
+	if err != nil {
+		t.Fatal()
+	}
 
 	userU := NewMockUserUsecase(gomock.NewController(t))
-
-	m := mux.NewRouter()
-
-	s := apiserver.NewServer(m, sessionStore, sugaredLogger, token, sanitizer)
-	mainHttp.NewMainHandler(m, userU, sanitizer, sugaredLogger, sessionStore)
+	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, userU, s.Config.ClientUrl)
+	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
+	mainHttp.NewMainHandler(s.Mux, userU, s.Sanitizer, s.Logger, s.SessionStore)
 	return s, userU
 }
 
@@ -59,6 +51,7 @@ func TestServer_HandleMain(t *testing.T) {
 }
 
 func TestServer_HandleCreateUser(t *testing.T) {
+
 	s, userU := testServer(t)
 	testCases := []struct {
 		name			string

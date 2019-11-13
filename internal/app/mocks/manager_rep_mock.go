@@ -90,3 +90,18 @@ func (mr *MockManagerRepositoryMockRecorder) Edit(manager interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockManagerRepository)(nil).Edit), manager)
 }
+
+// GetCompanyIDByUserID mocks base method
+func (m *MockManagerRepository) GetCompanyIDByUserID(accountId int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCompanyIDByUserID", accountId)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCompanyIDByUserID indicates an expected call of GetCompanyIDByUserID
+func (mr *MockManagerRepositoryMockRecorder) GetCompanyIDByUserID(accountId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCompanyIDByUserID", reflect.TypeOf((*MockManagerRepository)(nil).GetCompanyIDByUserID), accountId)
+}

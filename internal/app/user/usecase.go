@@ -7,8 +7,8 @@ type Usecase interface {
 	VerifyUser(*model.User) (int64, error)
 	EditUser(newUser *model.User, oldUser *model.User) error
 	EditUserPassword(passwords *model.BodyPassword, user *model.User) error
-	GetAvatar(user *model.User) ([]byte, error)
 	Find(int64) (*model.User, error)
 	SetUserType(user *model.User, userType string) error
 	GetRoles(user *model.User) ([]*model.Role, error)
+	GetAvatar(user *model.User) ([]byte, error)
 }
