@@ -98,7 +98,7 @@ func (s *server) ConfigureServer() {
 	private.HandleFunc("/contract/{id:[0-9]+}", s.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
 
 	private.HandleFunc("/freelancer", s.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
-	private.HandleFunc("/freelancer/{freelancerId}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/freelancers/{id}", s.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (s *server) HandleMain(w http.ResponseWriter, r *http.Request) {

@@ -23,6 +23,9 @@ type User struct {
 	EncryptPassword string `json:"-" valid:"-"`
 	Avatar          []byte `json:"-" valid:"-"`
 	UserType        string `json:"type" valid:"in(client|freelancer)"`
+	FreelancerId    int64  `json:"freelancerId" valid:"int, optional"`
+	HireManagerId   int64  `json:"hireManagerId" valid:"int, optional"`
+	CompanyId       int64  `json:"companyId" valid:"int, optional"`
 }
 
 func (u *User) BeforeCreate() error {

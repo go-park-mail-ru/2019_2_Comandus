@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
@@ -179,12 +180,19 @@ func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, r, http.StatusOK, struct{}{})
 }
 
+type combined struct {
+	*model.Freelancer
+	*model.User
+}
+
 func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
+	fmt.Println("freelancer get")
 	vars := mux.Vars(r)
 	ids := vars["id"]
+	fmt.Println(ids)
 	id, err := strconv.Atoi(ids)
+
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-Atoi(wrong id): ")
 		s.error(w, r, http.StatusBadRequest, err)
@@ -195,6 +203,12 @@ func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
 		s.error(w, r, http.StatusNotFound, err)
 	}
-	freelancer.Sanitize(s.sanitizer)
-	s.respond(w, r, http.StatusOK, &freelancer)
+	user, _ := s.store.User().Find(freelancer.AccountId)
+	combine := combined{
+		Freelancer: freelancer,
+		User:       user,
+	}
+
+	//freelancer.Sanitize(s.sanitizer)
+	s.respond(w, r, http.StatusOK, &combine)
 }

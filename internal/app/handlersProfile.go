@@ -24,7 +24,14 @@ func (s *server) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 		s.error(w, r, codeStatus, err)
 		return
 	}
-	user.Sanitize(s.sanitizer)
+	//user.Sanitize(s.sanitizer)
+
+	freelancer, _ := s.store.Freelancer().FindByUser(user.ID)
+	user.FreelancerId = freelancer.ID
+	manager, _ := s.store.Manager().FindByUser(user.ID)
+	user.HireManagerId = manager.ID
+	user.CompanyId = manager.CompanyID
+
 	s.respond(w, r, http.StatusOK, user)
 }
 
