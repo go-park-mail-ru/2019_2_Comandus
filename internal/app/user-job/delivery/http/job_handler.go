@@ -67,7 +67,7 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		general.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
-	general.Respond(w, r, http.StatusOK, struct{}{})
+	general.Respond(w, r, http.StatusOK, job)
 }
 
 func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {

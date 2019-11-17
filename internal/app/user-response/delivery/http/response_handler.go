@@ -28,10 +28,10 @@ func NewResponseHandler(m *mux.Router, rs user_response.Usecase, sanitizer *blue
 		sessionStore:		sessionStore,
 	}
 
-	m.HandleFunc("/jobs/{id:[0-9]+}/response", handler.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
-	m.HandleFunc("/responses", handler.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/responses/{id:[0-9]+}/accept", handler.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/responses/{id:[0-9]+}/deny", handler.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/jobs/proposal/{id:[0-9]+}", handler.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
+	m.HandleFunc("/proposals", handler.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/proposals/{id:[0-9]+}/accept", handler.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/proposals/{id:[0-9]+}/deny", handler.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
 }
 
 func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
