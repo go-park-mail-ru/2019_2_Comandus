@@ -82,7 +82,7 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status FROM jobs LIMIT 10")
+			"country, city, jobTypeId, date, status FROM jobs ORDER BY id DESC LIMIT 10")
 
 	if err != nil {
 		return nil, err
