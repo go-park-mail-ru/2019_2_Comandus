@@ -77,7 +77,8 @@ func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
 
 	new.UserType = old.UserType
 	new.EncryptPassword = old.EncryptPassword
-
+	// TODO можно аватар через отдельный метод изменять
+	new.Avatar = old.Avatar
 	if err := usecase.userRep.Edit(new); err != nil {
 		return errors.Wrap(err, "userRep.Edit()")
 	}
