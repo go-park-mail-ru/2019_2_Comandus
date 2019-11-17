@@ -45,7 +45,7 @@ func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy
 	m.HandleFunc("/account/settings/password", handler.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/account/upload-avatar", handler.HandleUploadAvatar).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/account/download-avatar", handler.HandleDownloadAvatar).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/account/avatar/{id:[0-9]}", handler.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/account/avatar/{id:[0-9]+}", handler.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/setusertype", handler.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/roles", handler.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
 }
@@ -304,6 +304,7 @@ func (h * UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) HandleRoles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleRoles: ")

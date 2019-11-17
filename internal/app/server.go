@@ -41,7 +41,7 @@ type Server struct {
 }
 
 func NewServer(config *Config, logger *zap.SugaredLogger) (*Server, error) {
-	token, err := token.NewHMACHashToken(config.TokenSecret)
+	hashToken, err := token.NewHMACHashToken(config.TokenSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func NewServer(config *Config, logger *zap.SugaredLogger) (*Server, error) {
 		Mux:          mux.NewRouter(),
 		SessionStore: sessions.NewCookieStore([]byte(config.SessionKey)),
 		Logger:       logger,
-		Token:        token,
+		Token:        hashToken,
 		Sanitizer:    bluemonday.UGCPolicy(),
 		Config:       config,
 	}
@@ -79,13 +79,14 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
 	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
 
-	mainHttp.NewMainHandler(s.Mux, userU, s.Sanitizer, s.Logger, s.SessionStore)
+	private := s.Mux.PathPrefix("").Subrouter()
+
+	mainHttp.NewMainHandler(s.Mux, private, userU, s.Sanitizer, s.Logger, s.SessionStore, s.Token)
 
 	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, userU, s.Config.ClientUrl)
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
 
 	// only for auth users
-	private := s.Mux.PathPrefix("").Subrouter()
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)

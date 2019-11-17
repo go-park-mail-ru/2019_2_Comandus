@@ -41,17 +41,15 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 		return errors.Wrap(err, "CreateUser<-userRep.Create()")
 	}
 
-	/*c := &model.Company{}
-
+	c := &model.Company{}
 	if err := usecase.companyRep.Create(c); err != nil {
 		return errors.Wrap(err, "CreateUser<-companyRep.Create(): ")
-	}*/
+	}
 
 	m := &model.HireManager{
 		AccountID:        data.ID,
 		RegistrationDate: time.Now(),
-		//CompanyID:      	c.ID,		//TODO: set default company
-		CompanyID:			0,
+		CompanyID:      	c.ID,
 	}
 
 	if err := usecase.managerRep.Create(m); err != nil {
@@ -77,16 +75,10 @@ func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
 		return errors.Wrap(errors.New("can't change email"), "EditUser")
 	}
 
-	if !old.ComparePassword(new.Password) {
-		return errors.Wrap(errors.New("can't change password without validation"),
-			"ComparePassword")
-	}
-
 	if old.UserType != new.UserType {
 		return errors.New("can't change user type by edit")
 	}
 
-	new.Password = ""
 	new.EncryptPassword = old.EncryptPassword
 
 	if err := usecase.userRep.Edit(new); err != nil {
