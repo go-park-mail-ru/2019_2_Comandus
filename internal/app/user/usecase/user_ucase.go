@@ -143,6 +143,20 @@ func (usecase *UserUsecase) Find(id int64) (*model.User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "userRep.Find()")
 	}
+	currFreelancer, err := usecase.freelancerRep.FindByUser(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "userRep.Find()")
+	}
+
+	currManager, err := usecase.managerRep.FindByUser(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "userRep.Find()")
+	}
+
+	user.FreelancerId = currFreelancer.ID
+	user.HireManagerId = currManager.ID
+	user.CompanyId = currManager.CompanyID
+
 	return user, nil
 }
 
