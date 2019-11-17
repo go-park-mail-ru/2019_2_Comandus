@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -20,18 +21,21 @@ type ResponseError struct {
 
 type FreelancerHandler struct {
 	FreelancerUsecase		freelancer.Usecase
+	UserUsecase				user.Usecase
 	sanitizer				*bluemonday.Policy
 	logger					*zap.SugaredLogger
 	sessionStore			sessions.Store
 }
 
-func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
-	handler := &FreelancerHandler{
-		FreelancerUsecase:	uf,
-		sanitizer:			sanitizer,
-		logger:				logger,
-		sessionStore:		sessionStore,
-	}
+func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, uc user.Usecase, sanitizer *bluemonday.Policy,
+	logger *zap.SugaredLogger, sessionStore sessions.Store) {
+		handler := &FreelancerHandler{
+			FreelancerUsecase:	uf,
+			UserUsecase:		uc,
+			sanitizer:			sanitizer,
+			logger:				logger,
+			sessionStore:		sessionStore,
+		}
 
 	m.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/freelancers/{freelancerId}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
@@ -72,6 +76,11 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 	general.Respond(w, r, http.StatusOK, struct{}{})
 }
 
+type combined struct {
+	Freelancer *model.Freelancer
+	User *model.User
+}
+
 func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -86,11 +95,24 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 
 	currFreelancer, err := h.FreelancerUsecase.Find(int64(id))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
+		err = errors.Wrapf(err, "HandleGetFreelancer<-FindFreelancer: ")
+		general.Error(w, r, http.StatusNotFound, err)
+		return
+	}
+
+	currUser, err := h.UserUsecase.Find(currFreelancer.AccountId)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancer<-FindUser: ")
 		general.Error(w, r, http.StatusNotFound, err)
 		return
 	}
 
 	currFreelancer.Sanitize(h.sanitizer)
-	general.Respond(w, r, http.StatusOK, currFreelancer)
+	currUser.Sanitize(h.sanitizer)
+
+	combined  := combined {
+		Freelancer: currFreelancer,
+		User:       currUser,
+	}
+	general.Respond(w, r, http.StatusOK, combined)
 }
