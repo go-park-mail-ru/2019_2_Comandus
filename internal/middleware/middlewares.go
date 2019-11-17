@@ -82,12 +82,12 @@ func (m *Middleware) AccessLogMiddleware (next http.Handler) http.Handler {
 func (m *Middleware) CORSMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,X-Lol")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,csrf-token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Origin", m.clientUrl)
 		if r.Method == http.MethodOptions{
 			// TODO: http.StatusOK?
-			general.Error(w , r , http.StatusOK, nil)
+			general.Respond(w , r , http.StatusOK, nil)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -96,7 +96,7 @@ func (m *Middleware) CORSMiddleware (next http.Handler) http.Handler {
 
 func (m *Middleware) CheckTokenMiddleware (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.RequestURI != "/token" {
+		if r.Method != http.MethodGet {
 			sess, err := m.sessionStore.Get(r, SessionName)
 			if err != nil {
 				err = errors.Wrapf(err, "CheckTokenMiddleware<-sessionStore.Get :")
@@ -106,6 +106,7 @@ func (m *Middleware) CheckTokenMiddleware (next http.Handler) http.Handler {
 
 			isEqual, err := m.token.Check(sess, r.Header.Get("csrf-token"))
 			if !isEqual {
+				err = errors.New("Bad token data")
 				err = errors.Wrapf(err, "CheckTokenMiddleware<-Check:")
 				general.Error(w, r, http.StatusBadRequest, err)
 				return
