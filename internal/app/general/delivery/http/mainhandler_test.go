@@ -1,13 +1,16 @@
-package test
+package mainHttp
 
 import (
 	"bytes"
 	"encoding/json"
-	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
-	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/mocks/ucase_mocks"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/middleware"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -17,9 +20,8 @@ import (
 	"testing"
 )
 
-func testServer(t *testing.T) (*apiserver.Server, *MockUserUsecase) {
+func testConf(t *testing.T) (*mux.Router, *ucase_mocks.MockUserUsecase) {
 	t.Helper()
-
 	zapLogger, _ := zap.NewProduction()
 	defer func() {
 		if err := zapLogger.Sync(); err != nil {
@@ -28,31 +30,37 @@ func testServer(t *testing.T) (*apiserver.Server, *MockUserUsecase) {
 	}()
 	sugaredLogger := zapLogger.Sugar()
 
-	s, err := apiserver.NewServer(apiserver.NewConfig(), sugaredLogger)
+	sessionKey := "jdfhdfdj"
+	tokenSecret := "golangsecpark"
+	clientUrl := "https://comandus.now.sh"
+
+	token, err := token.NewHMACHashToken(tokenSecret)
 	if err != nil {
 		t.Fatal()
 	}
+	sanitizer := bluemonday.UGCPolicy()
+	m := mux.NewRouter()
+	ss := sessions.NewCookieStore([]byte(sessionKey))
 
-	userU := NewMockUserUsecase(gomock.NewController(t))
-	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, userU, s.Config.ClientUrl)
-	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
-	mainHttp.NewMainHandler(s.Mux, userU, s.Sanitizer, s.Logger, s.SessionStore)
-	return s, userU
+	userU := ucase_mocks.NewMockUserUsecase(gomock.NewController(t))
+	mid := middleware.NewMiddleware(ss, sugaredLogger, token, userU, clientUrl)
+	m.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
+	NewMainHandler(m, userU, sanitizer, sugaredLogger, ss)
+	return m, userU
 }
 
 func TestServer_HandleMain(t *testing.T) {
-	s, _ := testServer(t)
-
+	m, _ := testConf(t)
 	b := &bytes.Buffer{}
 	rec := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/", b)
-	s.ServeHTTP(rec, req)
+	m.ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestServer_HandleCreateUser(t *testing.T) {
+	m, userU := testConf(t)
 
-	s, userU := testServer(t)
 	testCases := []struct {
 		name			string
 		payload			interface{}
@@ -114,14 +122,14 @@ func TestServer_HandleCreateUser(t *testing.T) {
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodPost, "/signup", b)
 
-			s.ServeHTTP(rec, req)
+			m.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 		})
 	}
 }
 
 func TestServer_HandleSessionCreate(t *testing.T) {
-	s, userU := testServer(t)
+	m, userU := testConf(t)
 
 	testCases := []struct {
 		name			string
@@ -166,7 +174,7 @@ func TestServer_HandleSessionCreate(t *testing.T) {
 			}
 			rec := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodPost, "/login", b)
-			s.ServeHTTP(rec, req)
+			m.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 		})
 	}

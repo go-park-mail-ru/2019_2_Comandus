@@ -34,7 +34,7 @@ func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluem
 	}
 
 	m.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/freelancer/{freelancerId}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/freelancer/{freelancerId:[0-9]+}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {

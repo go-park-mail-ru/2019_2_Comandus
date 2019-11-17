@@ -1,9 +1,8 @@
-package test
+package userUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/mocks"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/mocks/repository_mocks"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	userUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -11,24 +10,24 @@ import (
 	"testing"
 )
 
-func testUcase(t *testing.T) (*mocks.MockUserRepository, user.Usecase){
+func testUcase(t *testing.T) (*repository_mocks.MockUserRepository, user.Usecase){
 	t.Helper()
 	ctrl := gomock.NewController(t)
-	userRep := mocks.NewMockUserRepository(ctrl)
-	freelancerRep := mocks.NewMockFreelancerRepository(ctrl)
-	managerRep := mocks.NewMockManagerRepository(ctrl)
-	companyRep := mocks.NewMockCompanyRepository(ctrl)
-	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
+	userRep := repository_mocks.NewMockUserRepository(ctrl)
+	freelancerRep := repository_mocks.NewMockFreelancerRepository(ctrl)
+	managerRep := repository_mocks.NewMockManagerRepository(ctrl)
+	companyRep := repository_mocks.NewMockCompanyRepository(ctrl)
+	userU := NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
 	return userRep, userU
 }
 
 func TestUcase_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	userRep := mocks.NewMockUserRepository(ctrl)
-	freelancerRep := mocks.NewMockFreelancerRepository(ctrl)
-	managerRep := mocks.NewMockManagerRepository(ctrl)
-	companyRep := mocks.NewMockCompanyRepository(ctrl)
-	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
+	userRep := repository_mocks.NewMockUserRepository(ctrl)
+	freelancerRep := repository_mocks.NewMockFreelancerRepository(ctrl)
+	managerRep := repository_mocks.NewMockManagerRepository(ctrl)
+	companyRep := repository_mocks.NewMockCompanyRepository(ctrl)
+	userU := NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
 
 	testCases := []struct {
 		name			string
@@ -426,11 +425,11 @@ func TestUcase_SetUserType(t *testing.T) {
 
 func TestUcase_GetRoles(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	userRep := mocks.NewMockUserRepository(ctrl)
-	freelancerRep := mocks.NewMockFreelancerRepository(ctrl)
-	managerRep := mocks.NewMockManagerRepository(ctrl)
-	companyRep := mocks.NewMockCompanyRepository(ctrl)
-	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
+	userRep := repository_mocks.NewMockUserRepository(ctrl)
+	freelancerRep := repository_mocks.NewMockFreelancerRepository(ctrl)
+	managerRep := repository_mocks.NewMockManagerRepository(ctrl)
+	companyRep := repository_mocks.NewMockCompanyRepository(ctrl)
+	userU := NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
 
 	user := &model.User{
 		ID:			1,

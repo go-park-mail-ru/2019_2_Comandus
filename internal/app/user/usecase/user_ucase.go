@@ -126,7 +126,7 @@ func (usecase *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 	var openFile *os.File
 
 	// TODO: create default user in database, get default image from it
-	filename := "../../../../store/avatars/default.png"
+	filename := "../../../store/avatars/default.png"
 	openFile, err := os.Open(filename)
 	if err != nil {
 		return nil, errors.Wrap(err, "Open")

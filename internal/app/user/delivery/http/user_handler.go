@@ -17,10 +17,6 @@ import (
 	"strconv"
 )
 
-const (
-	sessionName                    = "user-session"
-)
-
 type ResponseError struct {
 	Message string `json:"message"`
 }
@@ -45,7 +41,7 @@ func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy
 	m.HandleFunc("/account/settings/password", handler.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/account/upload-avatar", handler.HandleUploadAvatar).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/account/download-avatar", handler.HandleDownloadAvatar).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/account/avatar/{id:[0-9]}", handler.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/account/avatar/{id:[0-9]+}", handler.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/setusertype", handler.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/roles", handler.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
 }
@@ -260,25 +256,24 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 		}
 	}()
 
-
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)
 	err := decoder.Decode(newInput)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSetUserType<-Decode:")
+		err = errors.Wrapf(err, "HandleSetUserType<-Decode")
 		general.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currUser, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no currUser in context"), "HandleSetUserType: ")
+		err := errors.Wrapf(errors.New("no currUser in context"), "HandleSetUserType")
 		general.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.UserUsecase.SetUserType(currUser, newInput.UserType); err != nil {
-		err = errors.Wrapf(err, "HandleSetUserType<-UserUsecaseSetUserType:")
+		err = errors.Wrapf(err, "HandleSetUserType<-UserUsecaseSetUserType")
 		general.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -287,7 +282,7 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h * UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	session, err := h.sessionStore.Get(r, sessionName)
+	session, err := h.sessionStore.Get(r, general.SessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleLogout<-sessionGet:")
 		general.Error(w, r, http.StatusUnauthorized, err)
