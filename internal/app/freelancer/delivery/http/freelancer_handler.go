@@ -77,8 +77,8 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 }
 
 type combined struct {
-	Freelancer *model.Freelancer
-	User *model.User
+	*model.Freelancer
+	*model.User
 }
 
 func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
