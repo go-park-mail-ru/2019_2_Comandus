@@ -75,10 +75,7 @@ func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
 		return errors.Wrap(errors.New("can't change email"), "EditUser")
 	}
 
-	if old.UserType != new.UserType {
-		return errors.New("can't change user type by edit")
-	}
-
+	new.UserType = old.UserType
 	new.EncryptPassword = old.EncryptPassword
 
 	if err := usecase.userRep.Edit(new); err != nil {
