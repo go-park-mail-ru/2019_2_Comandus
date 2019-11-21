@@ -38,3 +38,11 @@ func (u *ManagerUsecase) FindByUser(id int64) (*model.HireManager, error) {
 	}
 	return m, nil
 }
+
+func (u *ManagerUsecase) Find(id int64) (*model.HireManager, error) {
+	m, err := u.managerRep.Find(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "managerRep.Find()")
+	}
+	return m, nil
+}

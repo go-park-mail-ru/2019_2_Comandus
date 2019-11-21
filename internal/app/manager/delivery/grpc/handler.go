@@ -75,3 +75,12 @@ func (s *ManagerServer) FindByUser(context context.Context, user *manager_grpc.U
 	res := s.TransformManagerRPC(newManager)
 	return res, nil
 }
+
+func (s *ManagerServer) Find(context context.Context, manager *manager_grpc.ManagerID) (*manager_grpc.Manager, error) {
+	newManager, err := s.Ucase.Find(manager.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "ManagerUcase.FindByUser")
+	}
+	res := s.TransformManagerRPC(newManager)
+	return res, nil
+}

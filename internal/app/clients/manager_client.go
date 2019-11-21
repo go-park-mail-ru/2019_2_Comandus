@@ -58,3 +58,29 @@ func GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
 	}
 	return currManager, nil
 }
+
+func GetManagerFromServer(id int64) (*manager_grpc.Manager, error){
+	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc.Dial()")
+	}
+
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("conn.Close()", err)
+		}
+	}()
+
+	client := manager_grpc.NewManagerHandlerClient(conn)
+
+	userReq := &manager_grpc.ManagerID {
+		ID:		id,
+	}
+
+	currManager, err := client.Find(context.Background(), userReq)
+	if err != nil {
+		return nil, errors.Wrapf(err, "client.Find()")
+	}
+	return currManager, nil
+}

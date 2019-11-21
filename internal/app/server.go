@@ -23,6 +23,7 @@ import (
 	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
 	jobRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
 	jobUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
+	regrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/grpc"
 	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
 	responseRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
 	responseUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
@@ -88,7 +89,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
 	jobU := jobUcase.NewJobUsecase(jobRep)
 	responseU := responseUcase.NewResponseUsecase(responseRep)
-	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
+	contractU := contractUcase.NewContractUsecase(contractRep)
 
 	private := s.Mux.PathPrefix("").Subrouter()
 
@@ -166,5 +167,19 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 		fmt.Println("starting server at :8085")
 		server.Serve(lis)
 	}()
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8086")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		regrpc.NewResponseServerGrpc(server, responseU)
+
+		fmt.Println("starting server at :8086")
+		server.Serve(lis)
+	}()
+
+
 }
 

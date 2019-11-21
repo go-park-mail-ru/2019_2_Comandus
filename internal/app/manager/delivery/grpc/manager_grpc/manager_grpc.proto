@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 service ManagerHandler {
     rpc CreateManager(Info) returns (Manager);
     rpc FindByUser(UserID) returns (Manager);
+    rpc Find(ManagerID) returns (Manager);
 }
 
 message Manager {
@@ -13,6 +14,10 @@ message Manager {
     google.protobuf.Timestamp RegistrationDate=3;
     string Location=4;
     int64 CompanyId=5;
+}
+
+message ManagerID {
+    int64 ID=1;
 }
 
 message UserID {

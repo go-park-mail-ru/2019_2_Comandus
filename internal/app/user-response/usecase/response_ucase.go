@@ -40,11 +40,11 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 	}
 
 	if err := response.Validate(0); err != nil {
-		return errors.Wrapf(err, "Validate: ")
+		return errors.Wrapf(err, "Validate()")
 	}
 
 	if err := u.responseRep.Create(response); err != nil {
-		return errors.Wrapf(err, "responseRep.Create(): ")
+		return errors.Wrapf(err, "responseRep.Create()")
 	}
 	return nil
 }
@@ -61,7 +61,7 @@ func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, err
 
 		responses, err = u.responseRep.ListForManager(currManager.ID)
 		if err != nil {
-			err = errors.Wrapf(err, "GetManagerResponses<-Responses().ListForManager: ")
+			err = errors.Wrapf(err, "responseRep.ListForManager()")
 			return nil, err
 		}
 	} else {
@@ -73,7 +73,7 @@ func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, err
 
 		responses, err = u.responseRep.ListForFreelancer(currFreelancer.ID)
 		if err != nil {
-			err = errors.Wrapf(err, "GetManagerResponses<-Responses().ListForManager: ")
+			err = errors.Wrapf(err, "responseRep.ListForFreelancer()")
 			return nil, err
 		}
 	}
@@ -84,18 +84,18 @@ func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, err
 func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
 	response, err := u.responseRep.Find(responseId)
 	if err != nil {
-		return errors.Wrapf(err, "responseRep.Find(): ")
+		return errors.Wrapf(err, "responseRep.Find()")
 	}
 
 	job, err := clients.GetJobFromServer(response.JobId)
 	if err != nil {
-		return errors.Wrapf(err, "getJobFromServer()")
+		return errors.Wrapf(err, "clients.getJobFromServer()")
 	}
 
 	if user.IsManager() {
 		currManager, err := clients.GetManagerByUserFromServer(user.ID)
 		if err != nil {
-			return errors.Wrapf(err, "getManagerByUserFromServer()")
+			return errors.Wrapf(err, "clients.getManagerByUserFromServer()")
 		}
 
 		if job.HireManagerId != currManager.ID {
@@ -106,7 +106,7 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 	} else {
 		currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
-			return errors.Wrapf(err, "getFreelancerByUserFromServer()")
+			return errors.Wrapf(err, "clients.getFreelancerByUserFromServer()")
 		}
 
 		if currFreelancer.ID != response.FreelancerId {
@@ -120,7 +120,7 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 	response.StatusManager = model.ResponseStatusAccepted
 	err = u.responseRep.Edit(response)
 	if err != nil {
-		err = errors.Wrapf(err, "response_usecase <- responseRep.Edit:")
+		err = errors.Wrapf(err, "responseRep.Edit()")
 		return err
 	}
 	return nil
@@ -129,7 +129,7 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error {
 	response, err := u.responseRep.Find(responseId)
 	if err != nil {
-		return errors.Wrapf(err, "responseRep.Find(): ")
+		return errors.Wrapf(err, "responseRep.Find()")
 	}
 
 	job, err := clients.GetJobFromServer(response.JobId)
@@ -166,8 +166,16 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 	response.StatusManager = model.ResponseStatusDenied
 	err = u.responseRep.Edit(response)
 	if err != nil {
-		err = errors.Wrapf(err, "response_usecase <- responseRep.Edit:")
+		err = errors.Wrapf(err, "responseRep.Edit()")
 		return err
 	}
 	return nil
+}
+
+func (u *ResponseUsecase) Find(id int64) (*model.Response, error) {
+	response, err := u.responseRep.Find(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "responseRep.Find()")
+	}
+	return response, nil
 }
