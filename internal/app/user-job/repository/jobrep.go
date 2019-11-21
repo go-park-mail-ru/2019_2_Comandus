@@ -15,11 +15,11 @@ func NewJobRepository(db *sql.DB) user_job.Repository {
 }
 
 // TODO: remove hire manager
-func (r *JobRepository) Create(j *model.Job, m *model.HireManager) error {
+func (r *JobRepository) Create(j *model.Job) error {
 	return r.db.QueryRow(
 		"INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 			"country, city, jobTypeId, date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
-		m.ID,
+		j.HireManagerId,
 		j.Title,
 		j.Description,
 		j.Files,

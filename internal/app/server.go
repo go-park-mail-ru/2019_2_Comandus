@@ -83,11 +83,11 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 
 	userU := userUcase.NewUserUsecase(userRep)
 	companyU := companyUcase.NewCompanyUsecase(companyRep)
+	managerU := managerUcase.NewManagerUsecase(managerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
-	jobU := jobUcase.NewJobUsecase(managerRep, jobRep)
+	jobU := jobUcase.NewJobUsecase(jobRep)
 	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
 	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
-	managerU := managerUcase.NewManagerUsecase(managerRep)
 
 	private := s.Mux.PathPrefix("").Subrouter()
 
