@@ -1,0 +1,21 @@
+syntax="proto3";
+package manager_grpc;
+import "google/protobuf/timestamp.proto";
+
+service ManagerHandler {
+    rpc CreateManager(Info) returns (Manager);
+}
+
+message Manager {
+    int64 ID=1;
+    int64 AccountId=2;
+    google.protobuf.Timestamp RegistrationDate=3;
+    string Location=4;
+    int64 CompanyId=5;
+}
+
+message Info {
+    int64 UserID=1;
+    int64 CompanyID=2;
+}
+

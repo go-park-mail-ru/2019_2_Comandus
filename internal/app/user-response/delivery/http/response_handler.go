@@ -1,7 +1,7 @@
 package responseHttp
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
@@ -42,48 +42,48 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleResponseJob<-strconv.Atoi: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 	jobId := int64(id)
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseJob: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.CreateResponse(u, jobId); err != nil {
 		err := errors.Wrapf(err,"HandleResponseJob<-ResponseUsecase.CreateResponse: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
-	general.Respond(w, r, http.StatusOK, struct {}{})
+	respond.Respond(w, r, http.StatusOK, struct {}{})
 }
 
 
 func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleGetResponses: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	responses, err := h.ResponseUsecase.GetResponses(u)
 	if err != nil {
 		err := errors.Wrapf(err,"HandleGetResponses<-ResponseUsecase.GetResponses: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	for i, _ := range *responses{
 		(*responses)[i].Sanitize(h.sanitizer)
 	}
-	general.Respond(w, r, http.StatusOK, responses)
+	respond.Respond(w, r, http.StatusOK, responses)
 }
 
 func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
@@ -94,25 +94,25 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 	responseId := int64(id)
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.AcceptResponse(u, responseId); err != nil {
 		err := errors.Wrapf(err,"HandleResponseAccept<-ResponseUsecase.AcceptResponse: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	general.Respond(w, r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Request) {
@@ -123,24 +123,24 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 	responseId := int64(id)
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.DenyResponse(u, responseId); err != nil {
 		err := errors.Wrapf(err,"HandleResponseAccept<-ResponseUsecase.AcceptResponse: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	general.Respond(w, r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/gorilla/sessions"
@@ -40,21 +40,21 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := m.sessionStore.Get(r, SessionName)
 		if err != nil {
-			general.Error(w, r, http.StatusUnauthorized, err)
+			respond.Error(w, r, http.StatusUnauthorized, err)
 			return
 		}
 
 		id, ok := session.Values["user_id"]
 		if !ok {
-			general.Error(w, r, http.StatusUnauthorized, errors.New("no user_id cookie"))
+			respond.Error(w, r, http.StatusUnauthorized, errors.New("no user_id cookie"))
 			return
 		}
 
 		u, err := m.usecase.Find(id.(int64))
 		if err != nil {
-			general.Error(w, r, http.StatusNotFound, err)
+			respond.Error(w, r, http.StatusNotFound, err)
 		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), general.CtxKeyUser, u)))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), respond.CtxKeyUser, u)))
 	})
 }
 
@@ -87,7 +87,7 @@ func (m *Middleware) CORSMiddleware (next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", m.clientUrl)
 		if r.Method == http.MethodOptions{
 			// TODO: http.StatusOK?
-			general.Respond(w , r , http.StatusOK, nil)
+			respond.Respond(w , r , http.StatusOK, nil)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -100,7 +100,7 @@ func (m *Middleware) CheckTokenMiddleware (next http.Handler) http.Handler {
 			sess, err := m.sessionStore.Get(r, SessionName)
 			if err != nil {
 				err = errors.Wrapf(err, "CheckTokenMiddleware<-sessionStore.Get :")
-				general.Error(w, r, http.StatusUnauthorized, err)
+				respond.Error(w, r, http.StatusUnauthorized, err)
 				return
 			}
 
@@ -108,7 +108,7 @@ func (m *Middleware) CheckTokenMiddleware (next http.Handler) http.Handler {
 			if !isEqual {
 				err = errors.New("Bad token data")
 				err = errors.Wrapf(err, "CheckTokenMiddleware<-Check:")
-				general.Error(w, r, http.StatusBadRequest, err)
+				respond.Error(w, r, http.StatusBadRequest, err)
 				return
 			}
 		}

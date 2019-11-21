@@ -2,14 +2,19 @@ package apiserver
 
 import (
 	"database/sql"
+	"fmt"
+	cogrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc"
 	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
 	companyUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/usecase"
+	fgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc"
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
+	managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
 	contractRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
@@ -20,6 +25,7 @@ import (
 	responseHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/http"
 	responseRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/repository"
 	responseUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/usecase"
+	ugrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc"
 	userHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/http"
 	userRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/repository"
 	userUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/usecase"
@@ -28,6 +34,9 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"log"
+	"net"
 	"net/http"
 )
 
@@ -78,10 +87,11 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	jobU := jobUcase.NewJobUsecase(managerRep, jobRep)
 	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
 	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
+	managerU := managerUcase.NewManagerUsecase(managerRep)
 
 	private := s.Mux.PathPrefix("").Subrouter()
 
-	mainHttp.NewMainHandler(s.Mux, private, userU, s.Sanitizer, s.Logger, s.SessionStore, s.Token)
+	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token)
 
 	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, userU, s.Config.ClientUrl)
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
@@ -95,4 +105,53 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8081")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		ugrpc.NewUserServerGrpc(server, userU)
+
+		fmt.Println("starting server at :8081")
+		server.Serve(lis)
+	}()
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8082")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		cogrpc.NewCompanyServerGrpc(server, companyU)
+
+		fmt.Println("starting server at :8082")
+		server.Serve(lis)
+	}()
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8083")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		fgrpc.NewFreelancerServerGrpc(server, freelancerU)
+
+		fmt.Println("starting server at :8083")
+		server.Serve(lis)
+	}()
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8084")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		mgrpc.NewManagerServerGrpc(server, managerU)
+
+		fmt.Println("starting server at :8084")
+		server.Serve(lis)
+	}()
 }
+

@@ -1,6 +1,7 @@
 package userUcase
 
 import (
+	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
@@ -9,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"os"
-	"time"
 )
 
 type UserUsecase struct {
@@ -29,6 +29,8 @@ func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Reposi
 }
 
 func (usecase *UserUsecase) CreateUser(data *model.User) error {
+	fmt.Println("UserUcase CreateUser:", data)
+
 	if err := data.Validate(); err != nil {
 		return errors.Wrap(err, "CreateUser")
 	}
@@ -39,30 +41,6 @@ func (usecase *UserUsecase) CreateUser(data *model.User) error {
 
 	if err := usecase.userRep.Create(data); err != nil {
 		return errors.Wrap(err, "CreateUser<-userRep.Create()")
-	}
-
-	c := &model.Company{}
-	if err := usecase.companyRep.Create(c); err != nil {
-		return errors.Wrap(err, "CreateUser<-companyRep.Create(): ")
-	}
-
-	m := &model.HireManager{
-		AccountID:        data.ID,
-		RegistrationDate: time.Now(),
-		CompanyID:      	c.ID,
-	}
-
-	if err := usecase.managerRep.Create(m); err != nil {
-		return errors.Wrap(err, "CreateUser<-managerRep.Create()")
-	}
-
-	f := &model.Freelancer{
-		AccountId:         data.ID,
-		RegistrationDate:  time.Now(),
-	}
-
-	if err := usecase.freelancerRep.Create(f); err != nil {
-		return errors.Wrap(err, "CreateUser<-managerRep.Create()")
 	}
 
 	return nil

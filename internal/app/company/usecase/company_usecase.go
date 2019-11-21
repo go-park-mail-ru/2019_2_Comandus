@@ -8,19 +8,28 @@ import (
 )
 
 type CompanyUsecase struct {
-	companyrep company.Repository
+	companyRep company.Repository
 	managerep  manager.Repository
 }
 
 func NewCompanyUsecase(c company.Repository, m manager.Repository) company.Usecase {
 	return &CompanyUsecase{
-		companyrep: c,
+		companyRep: c,
 		managerep:  m,
 	}
 }
 
+func (u * CompanyUsecase) Create() (*model.Company, error) {
+	c := &model.Company{}
+
+	if err := u.companyRep.Create(c); err != nil {
+		return nil, errors.Wrap(err, "Create<-companyRep.Create(): ")
+	}
+	return c, nil
+}
+
 func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
-	c, err := u.companyrep.Find(id)
+	c, err := u.companyRep.Find(id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "HandleEditCompany<-Find: ")
 	}
@@ -37,7 +46,7 @@ func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
 	//	return errors.Wrapf(err, "HandleEditCompany<-")
 	//}
 	company.ID = companyID
-	if err := u.companyrep.Edit(company); err != nil {
+	if err := u.companyRep.Edit(company); err != nil {
 		return errors.Wrapf(err, "HandleEditCompany<-Edit: ")
 	}
 	return nil

@@ -3,7 +3,7 @@ package companyhttp
 import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -40,17 +40,17 @@ func NewCompanyHandler(m *mux.Router, uc company.Usecase, sanitizer *bluemonday.
 func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"), "HandleEditCompany: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleEditCompany<-rBodyClose: ")
-			general.Error(w, r, http.StatusInternalServerError, err)
+			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
@@ -59,17 +59,17 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 	err := decoder.Decode(currCompany)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleEditCompany<-Decode(): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.CompanyUsecase.Edit(u, currCompany); err != nil {
 		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit(): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	general.Respond(w, r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request) {
@@ -80,15 +80,15 @@ func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetCompany<-Atoi(wrong id): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	currCompany, err := h.CompanyUsecase.Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetCompany<-Find: ")
-		general.Error(w, r, http.StatusNotFound, err)
+		respond.Error(w, r, http.StatusNotFound, err)
 	}
 
 	currCompany.Sanitize(h.sanitizer)
-	general.Respond(w, r, http.StatusOK, currCompany)
+	respond.Respond(w, r, http.StatusOK, currCompany)
 }

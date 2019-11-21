@@ -1,0 +1,25 @@
+syntax="proto3";
+package freelancer_grpc;
+import "google/protobuf/timestamp.proto";
+
+service FreelancerHandler {
+    rpc CreateFreelancer(UserID) returns (Freelancer);
+}
+
+message Freelancer {
+    int64 ID=1;
+    int64 AccountId=2;
+    google.protobuf.Timestamp RegistrationDate=3;
+    string Country=4;
+    string City=5;
+    string Address=6;
+    string Phone=7;
+    string TagLine=8;
+    string Overview=9;
+    int64 ExperienceLevelId=10;
+    int64 SpecialityId=11;
+}
+
+message UserID {
+    int64 ID=1;
+}

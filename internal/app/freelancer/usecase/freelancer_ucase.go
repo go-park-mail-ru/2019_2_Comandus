@@ -4,6 +4,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type FreelancerUsecase struct {
@@ -14,6 +15,19 @@ func NewFreelancerUsecase(f freelancer.Repository) freelancer.Usecase {
 	return &FreelancerUsecase{
 		freelancerRep: f,
 	}
+}
+
+func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
+	f := &model.Freelancer{
+		AccountId:         userId,
+		RegistrationDate:  time.Now(),
+	}
+
+	if err := u.freelancerRep.Create(f); err != nil {
+		return nil, errors.Wrap(err, "Create<-freelancerRep.Create()")
+	}
+
+	return f, nil
 }
 
 func (u *FreelancerUsecase) FindByUser(user *model.User) (*model.Freelancer, error) {

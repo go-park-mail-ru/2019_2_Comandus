@@ -15,8 +15,8 @@ type Freelancer struct {
 	Phone             string    `json:"phone" valid:"-"`
 	TagLine           string    `json:"tagline" valid:"-"`
 	Overview          string    `json:"overview" valid:"-"`
-	ExperienceLevelId int       `json:"experienceLevelId" valid:"in(1|2|3)"`
-	SpecialityId      int       `json:"specialityId,string" valid:"int"`
+	ExperienceLevelId int64		`json:"experienceLevelId" valid:"in(1|2|3)"`
+	SpecialityId      int64		`json:"specialityId,string" valid:"int"`
 }
 
 
