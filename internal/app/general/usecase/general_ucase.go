@@ -37,7 +37,7 @@ func (u *GeneralUsecase) SignUp(data *model.User) error {
 		for i := 0; i < 4; i++ {
 			if err := conns[i].Close(); err != nil {
 				// TODO: use zap logger
-				log.Println("GeneralUsecase<-CreateUser:", err)
+				log.Println("conn.Close()", err)
 			}
 		}
 	}()
@@ -78,6 +78,13 @@ func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "grpc.Dial()")
 	}
+
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("GeneralUsecase<-CreateUser:", err)
+		}
+	}()
 
 	client := user_grpc.NewUserHandlerClient(conn)
 

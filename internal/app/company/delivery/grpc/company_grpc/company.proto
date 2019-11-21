@@ -3,6 +3,7 @@ package company_grpc;
 
 service CompanyHandler {
     rpc CreateCompany(UserID) returns (Company);
+    rpc Find(CompanyID) returns (Company);
 }
 
 message Company {
@@ -15,6 +16,10 @@ message Company {
     string City=7;
     string Address=8;
     string Phone=9;
+}
+
+message CompanyID {
+    int64 ID=1;
 }
 
 message UserID {

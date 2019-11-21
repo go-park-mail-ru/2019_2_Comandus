@@ -1,52 +1,45 @@
 package userUcase
 
 import (
-	"fmt"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
+	"context"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc/company_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc/freelancer_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc/manager_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 	"log"
 	"os"
 )
 
 type UserUsecase struct {
 	userRep			user.Repository
-	managerRep		manager.Repository
-	freelancerRep	freelancer.Repository
-	companyRep		company.Repository
 }
 
-func NewUserUsecase(u user.Repository, m manager.Repository, f freelancer.Repository, c company.Repository) user.Usecase {
+func NewUserUsecase(u user.Repository) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
-		managerRep:		m,
-		freelancerRep:	f,
-		companyRep:		c,
 	}
 }
 
-func (usecase *UserUsecase) CreateUser(data *model.User) error {
-	fmt.Println("UserUcase CreateUser:", data)
-
+func (u *UserUsecase) CreateUser(data *model.User) error {
 	if err := data.Validate(); err != nil {
-		return errors.Wrap(err, "CreateUser")
+		return errors.Wrap(err, "user.Validate()")
 	}
 
 	if err := data.BeforeCreate(); err != nil {
-		return errors.Wrap(err, "CreateUser")
+		return errors.Wrap(err, "user.BeforeCreate()")
 	}
 
-	if err := usecase.userRep.Create(data); err != nil {
-		return errors.Wrap(err, "CreateUser<-userRep.Create()")
+	if err := u.userRep.Create(data); err != nil {
+		return errors.Wrap(err, "userRep.Create()")
 	}
 
 	return nil
 }
 
-func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
+func (u * UserUsecase) EditUser(new *model.User, old * model.User) error {
 	new.ID = old.ID
 
 	if old.Email != new.Email {
@@ -55,15 +48,16 @@ func (usecase * UserUsecase) EditUser(new *model.User, old * model.User) error {
 
 	new.UserType = old.UserType
 	new.EncryptPassword = old.EncryptPassword
-	// TODO можно аватар через отдельный метод изменять
+
+	// TODO: можно аватар через отдельный метод изменять// нужно ли это тут вообще если аватар грузится в другом месте
 	new.Avatar = old.Avatar
-	if err := usecase.userRep.Edit(new); err != nil {
+	if err := u.userRep.Edit(new); err != nil {
 		return errors.Wrap(err, "userRep.Edit()")
 	}
 	return nil
 }
 
-func (usecase *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user *model.User) error {
+func (u *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user *model.User) error {
 	if passwords.NewPassword != passwords.NewPasswordConfirmation {
 		return errors.New("new passwords are different")
 	}
@@ -79,13 +73,13 @@ func (usecase *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user
 	}
 	user.EncryptPassword = newEncryptPassword
 
-	if err := usecase.userRep.Edit(user); err != nil {
+	if err := u.userRep.Edit(user); err != nil {
 		return errors.Wrapf(err, "userRep.Edit")
 	}
 	return nil
 }
 
-func (usecase *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
+func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 	if user.Avatar != nil {
 		return user.Avatar, nil
 	}
@@ -114,61 +108,139 @@ func (usecase *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 	return avatar, nil
 }
 
-func (usecase *UserUsecase) Find(id int64) (*model.User, error) {
-	user, err := usecase.userRep.Find(id)
+func (u *UserUsecase) getFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
+	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "userRep.Find()")
+		return nil, errors.Wrap(err, "grpc.Dial()")
 	}
-	currFreelancer, err := usecase.freelancerRep.FindByUser(user.ID)
+
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("conn.Close()", err)
+		}
+	}()
+
+	client := freelancer_grpc.NewFreelancerHandlerClient(conn)
+	userReq := &freelancer_grpc.UserID{
+		ID:		id,
+	}
+
+	currFreelancer, err := client.FindByUser(context.Background(), userReq)
 	if err != nil {
 		return nil, errors.Wrap(err, "userRep.Find()")
 	}
 
-	currManager, err := usecase.managerRep.FindByUser(user.ID)
+	return currFreelancer, nil
+}
+
+func (u *UserUsecase) getManagerByUserFromServer(id int64) (*manager_grpc.Manager, error) {
+	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc.Dial()")
+	}
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("conn.Close()", err)
+		}
+	}()
+
+	client := manager_grpc.NewManagerHandlerClient(conn)
+
+	userReq := &manager_grpc.UserID{
+		ID:		id,
+	}
+
+	currManager, err := client.FindByUser(context.Background(), userReq)
 	if err != nil {
 		return nil, errors.Wrap(err, "userRep.Find()")
+	}
+
+	return currManager, nil
+}
+
+func (u *UserUsecase) getCompanyFromServer(id int64) (*company_grpc.Company, error) {
+	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc.Dial()")
+	}
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("conn.Close()", err)
+		}
+	}()
+
+	client := company_grpc.NewCompanyHandlerClient(conn)
+	companyReq := &company_grpc.CompanyID{
+		ID:		id,
+	}
+
+	currCompany, err := client.Find(context.Background(), companyReq)
+	if err != nil {
+		return nil, errors.Wrap(err, "userRep.Find()")
+	}
+
+	return currCompany, nil
+}
+
+func (u *UserUsecase) Find(id int64) (*model.User, error) {
+	user, err := u.userRep.Find(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "userRep.Find()")
+	}
+
+	currFreelancer, err := u.getFreelancerByUserFromServer(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "getFreelancerByUserFromServer()")
+	}
+
+	currManager, err := u.getManagerByUserFromServer(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "getManagerByUserFromServer()")
 	}
 
 	user.FreelancerId = currFreelancer.ID
 	user.HireManagerId = currManager.ID
-	user.CompanyId = currManager.CompanyID
+	user.CompanyId = currManager.CompanyId
 
 	return user, nil
 }
 
-func (usecase *UserUsecase) SetUserType(user *model.User, userType string) error {
+func (u *UserUsecase) SetUserType(user *model.User, userType string) error {
 	if err := user.SetUserType(userType); err != nil {
 		return errors.Wrap(err, "SetUserType()")
 	}
 
-	if err := usecase.userRep.Edit(user); err != nil {
+	if err := u.userRep.Edit(user); err != nil {
 		return errors.Wrap(err, "userRep.Edit()")
 	}
 	return nil
 }
 
-func (usecase *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
-	u, err := usecase.userRep.FindByEmail(currUser.Email)
+func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
+	us, err := u.userRep.FindByEmail(currUser.Email)
 	if err != nil {
 		return 0, errors.Wrapf(err, "userRep.FindByEmail()")
 	}
 
-	if !u.ComparePassword(currUser.Password) {
+	if !us.ComparePassword(currUser.Password) {
 		return 0, errors.New("wrong password")
 	}
 	
-	return u.ID, nil
+	return us.ID, nil
 }
 
-func (usecase *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
-	currManager, err := usecase.managerRep.FindByUser(user.ID)
+func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
+	currManager, err := u.getManagerByUserFromServer(user.ID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "managerRep.FindByUser()")
+		return nil, errors.Wrapf(err, "getManagerByUserFromServer()")
 	}
 
-	currCompany, err := usecase.companyRep.Find(currManager.CompanyID)
+	currCompany, err := u.getCompanyFromServer(currManager.CompanyId)
 	if err != nil {
-		return nil, errors.Wrap(err, "companyRep.Find()")
+		return nil, errors.Wrap(err, "getCompanyFromServer()")
 	}
 
 	var roles []*model.Role

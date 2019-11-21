@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"time"
 )
 
@@ -73,12 +72,20 @@ func (s *FreelancerServer) TransformFreelancerData(freelancer *freelancer_grpc.F
 }
 
 func (s *FreelancerServer) CreateFreelancer(context context.Context, userID *freelancer_grpc.UserID) (*freelancer_grpc.Freelancer, error) {
-	log.Println("Freelancer Server", userID)
 	newFreelancer, err := s.Ucase.Create(userID.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "UserUcase.CreateUser")
 	}
 
 	res := s.TransformFreelancerRPC(newFreelancer)
+	return res, nil
+}
+
+func (s *FreelancerServer) FindByUser(context context.Context, userID *freelancer_grpc.UserID) (*freelancer_grpc.Freelancer, error) {
+	currFreelancer, err := s.Ucase.FindByUser(userID.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Ucase.FindByUser()")
+	}
+	res := s.TransformFreelancerRPC(currFreelancer)
 	return res, nil
 }

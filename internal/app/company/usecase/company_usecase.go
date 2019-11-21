@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"log"
 )
 
 type CompanyUsecase struct {
@@ -41,6 +42,14 @@ func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}
+
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("conn.Close()", err)
+		}
+	}()
+
 	client := manager_grpc.NewManagerHandlerClient(conn)
 
 	userIdMes := &manager_grpc.UserID{

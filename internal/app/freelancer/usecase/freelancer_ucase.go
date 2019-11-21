@@ -30,8 +30,8 @@ func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
 	return f, nil
 }
 
-func (u *FreelancerUsecase) FindByUser(user *model.User) (*model.Freelancer, error) {
-	f, err := u.freelancerRep.FindByUser(user.ID)
+func (u *FreelancerUsecase) FindByUser(userId int64) (*model.Freelancer, error) {
+	f, err := u.freelancerRep.FindByUser(userId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
 	}

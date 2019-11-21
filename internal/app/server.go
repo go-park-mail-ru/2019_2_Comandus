@@ -81,7 +81,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	responseRep := responseRepository.NewResponseRepository(db)
 	contractRep := contractRepository.NewContractRepository(db)
 
-	userU := userUcase.NewUserUsecase(userRep, managerRep, freelancerRep, companyRep)
+	userU := userUcase.NewUserUsecase(userRep)
 	companyU := companyUcase.NewCompanyUsecase(companyRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
 	jobU := jobUcase.NewJobUsecase(managerRep, jobRep)

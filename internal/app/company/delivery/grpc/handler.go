@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 )
 
 type CompanyServer struct {
@@ -59,10 +58,19 @@ func (s *CompanyServer) TransformCompanyData(company *company_grpc.Company) *mod
 }
 
 func (s *CompanyServer) CreateCompany(context context.Context, userID *company_grpc.UserID) (*company_grpc.Company, error) {
-	log.Println("Company Server Create Company", userID)
 	newCompany, err := s.Ucase.Create()
 	if err != nil {
 		return nil, errors.Wrap(err, "UserUcase.CreateUser")
+	}
+
+	res := s.TransformCompanyRPC(newCompany)
+	return res, nil
+}
+
+func (s *CompanyServer) Find(context context.Context,company *company_grpc.CompanyID) (*company_grpc.Company, error) {
+	newCompany, err := s.Ucase.Find(company.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Ucase.Find()")
 	}
 
 	res := s.TransformCompanyRPC(newCompany)

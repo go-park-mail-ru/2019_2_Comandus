@@ -4,6 +4,7 @@ import "google/protobuf/timestamp.proto";
 
 service FreelancerHandler {
     rpc CreateFreelancer(UserID) returns (Freelancer);
+    rpc FindByUser(UserID) returns (Freelancer);
 }
 
 message Freelancer {
