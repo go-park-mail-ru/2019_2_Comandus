@@ -1,13 +1,10 @@
 package companyUsecase
 
 import (
-	"context"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc/manager_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-	"log"
 )
 
 type CompanyUsecase struct {
@@ -38,24 +35,7 @@ func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
 }
 
 func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
-	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
-	if err != nil {
-		return errors.Wrap(err, "grpc.Dial()")
-	}
-
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
-
-	client := manager_grpc.NewManagerHandlerClient(conn)
-
-	userIdMes := &manager_grpc.UserID{
-		ID:		user.ID,
-	}
-	m, err := client.FindByUser(context.Background(), userIdMes)
+	m, err := clients.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrapf(err, "client.FindByUser()")
 	}

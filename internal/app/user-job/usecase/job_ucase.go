@@ -1,13 +1,10 @@
 package jobUcase
 
 import (
-	"context"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc/manager_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-	"log"
 	"time"
 )
 
@@ -21,38 +18,12 @@ func NewJobUsecase(j user_job.Repository) user_job.Usecase {
 	}
 }
 
-func (u *JobUsecase) getManagerByUserFromServer(id int64) (*manager_grpc.Manager, error) {
-	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
-	}
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
-
-	client := manager_grpc.NewManagerHandlerClient(conn)
-
-	userReq := &manager_grpc.UserID{
-		ID:		id,
-	}
-
-	currManager, err := client.FindByUser(context.Background(), userReq)
-	if err != nil {
-		return nil, errors.Wrap(err, "userRep.Find()")
-	}
-
-	return currManager, nil
-}
-
 func (u *JobUsecase) CreateJob(currUser * model.User, job *model.Job) error {
 	if !currUser.IsManager() {
 		return errors.New("current user is not a manager")
 	}
 
-	currManager, err := u.getManagerByUserFromServer(currUser.ID)
+	currManager, err := clients.GetManagerByUserFromServer(currUser.ID)
 	if err != nil {
 		return errors.Wrapf(err, "getManagerByUserFromServer()")
 	}
@@ -92,7 +63,7 @@ func (u *JobUsecase) EditJob(user *model.User, inputJob *model.Job, id int64) er
 		return errors.Wrapf(err, "jobRep.Find(): ")
 	}
 
-	currManager, err := u.getManagerByUserFromServer(user.ID)
+	currManager, err := clients.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "getManagerByUserFromServer()")
 	}

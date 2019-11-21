@@ -55,10 +55,13 @@ func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
 	return res
 }
 
-func (s *UserServer) CreateUser(context context.Context,userReq *user_grpc.UserRequest) (*user_grpc.User, error) {
+func (s *UserServer) CreateUser(context context.Context,userReq *user_grpc.User) (*user_grpc.User, error) {
 	newUser := &model.User{
 		Email:		userReq.Email,
 		Password:	userReq.Password,
+		FirstName: 	userReq.FirstName,
+		SecondName:	userReq.SecondName,
+		UserType:	userReq.UserType,
 	}
 
 	if err := s.UserUcase.CreateUser(newUser); err != nil {

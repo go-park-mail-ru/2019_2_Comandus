@@ -19,6 +19,7 @@ import (
 	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/delivery/http"
 	contractRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/repository"
 	contractUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract/usecase"
+	jgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/grpc"
 	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/http"
 	jobRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/repository"
 	jobUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/usecase"
@@ -86,7 +87,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	managerU := managerUcase.NewManagerUsecase(managerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
 	jobU := jobUcase.NewJobUsecase(jobRep)
-	responseU := responseUcase.NewResponseUsecase(managerRep, freelancerRep, jobRep, responseRep)
+	responseU := responseUcase.NewResponseUsecase(responseRep)
 	contractU := contractUcase.NewContractUsecase(managerRep, freelancerRep, jobRep, responseRep, contractRep)
 
 	private := s.Mux.PathPrefix("").Subrouter()
@@ -151,6 +152,18 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 		mgrpc.NewManagerServerGrpc(server, managerU)
 
 		fmt.Println("starting server at :8084")
+		server.Serve(lis)
+	}()
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8085")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		jgrpc.NewJobServerGrpc(server, jobU)
+
+		fmt.Println("starting server at :8085")
 		server.Serve(lis)
 	}()
 }
