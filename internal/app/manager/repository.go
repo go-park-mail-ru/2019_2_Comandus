@@ -7,5 +7,4 @@ type Repository interface {
 	Find(int64) (*model.HireManager, error)
 	FindByUser(int64) (*model.HireManager, error)
 	Edit(manager *model.HireManager) error
-	GetCompanyIDByUserID(accountId int64) (int64, error)
 }

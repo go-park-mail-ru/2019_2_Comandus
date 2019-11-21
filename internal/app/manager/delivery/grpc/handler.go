@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"time"
 )
 
@@ -59,12 +58,20 @@ func (s *ManagerServer) TransformManagerData(manager *manager_grpc.Manager) *mod
 }
 
 func (s *ManagerServer) CreateManager(context context.Context, info *manager_grpc.Info) (*manager_grpc.Manager, error) {
-	log.Println("Manager Server", info.UserID, info.UserID)
 	newManager, err := s.Ucase.Create(info.UserID, info.CompanyID)
 	if err != nil {
 		return nil, errors.Wrap(err, "UserUcase.Create")
 	}
 
+	res := s.TransformManagerRPC(newManager)
+	return res, nil
+}
+
+func (s *ManagerServer) FindByUser(context context.Context, user *manager_grpc.UserID) (*manager_grpc.Manager, error) {
+	newManager, err := s.Ucase.FindByUser(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "ManagerUcase.FindByUser")
+	}
 	res := s.TransformManagerRPC(newManager)
 	return res, nil
 }

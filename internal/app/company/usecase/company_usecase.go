@@ -1,21 +1,21 @@
 package companyUsecase
 
 import (
+	"context"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc/manager_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 type CompanyUsecase struct {
 	companyRep company.Repository
-	managerep  manager.Repository
 }
 
-func NewCompanyUsecase(c company.Repository, m manager.Repository) company.Usecase {
+func NewCompanyUsecase(c company.Repository) company.Usecase {
 	return &CompanyUsecase{
 		companyRep: c,
-		managerep:  m,
 	}
 }
 
@@ -23,7 +23,7 @@ func (u * CompanyUsecase) Create() (*model.Company, error) {
 	c := &model.Company{}
 
 	if err := u.companyRep.Create(c); err != nil {
-		return nil, errors.Wrap(err, "Create<-companyRep.Create(): ")
+		return nil, errors.Wrap(err, "companyRep.Create()")
 	}
 	return c, nil
 }
@@ -31,21 +31,27 @@ func (u * CompanyUsecase) Create() (*model.Company, error) {
 func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
 	c, err := u.companyRep.Find(id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "HandleEditCompany<-Find: ")
+		return nil, errors.Wrapf(err, "companyRep.Find()")
 	}
 	return c, nil
 }
 
 func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
-	companyID, err := u.managerep.GetCompanyIDByUserID(user.ID)
+	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
 	if err != nil {
-		return errors.Wrapf(err, "HandleEditCompany<-GetCompanyIDByUserID: ")
+		return errors.Wrap(err, "grpc.Dial()")
 	}
-	//if companyID != company.ID {
-	//	err = errors.New("No access to this company")
-	//	return errors.Wrapf(err, "HandleEditCompany<-")
-	//}
-	company.ID = companyID
+	client := manager_grpc.NewManagerHandlerClient(conn)
+
+	userIdMes := &manager_grpc.UserID{
+		ID:		user.ID,
+	}
+	m, err := client.FindByUser(context.Background(), userIdMes)
+	if err != nil {
+		return errors.Wrapf(err, "client.FindByUser()")
+	}
+
+	company.ID = m.CompanyId
 	if err := u.companyRep.Edit(company); err != nil {
 		return errors.Wrapf(err, "HandleEditCompany<-Edit: ")
 	}

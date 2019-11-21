@@ -30,3 +30,11 @@ func (u *ManagerUsecase) Create(userId int64, compId int64) (*model.HireManager,
 
 	return m, nil
 }
+
+func (u *ManagerUsecase) FindByUser(id int64) (*model.HireManager, error) {
+	m, err := u.managerRep.FindByUser(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "managerRep.FindByUser()")
+	}
+	return m, nil
+}
