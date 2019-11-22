@@ -88,3 +88,13 @@ func (s *UserServer) VerifyUser(context context.Context,userReq *user_grpc.UserR
 	}
 	return res, nil
 }
+
+
+func (s *UserServer) Find(context context.Context,userId *user_grpc.UserID) (*user_grpc.User, error) {
+	currUser, err := s.UserUcase.Find(userId.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "UserUcase.Find()")
+	}
+	res := s.TransformUserRPC(currUser)
+	return res, nil
+}

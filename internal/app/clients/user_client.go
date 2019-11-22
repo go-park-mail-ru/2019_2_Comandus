@@ -48,7 +48,7 @@ func VerifyUserOnServer(user *model.User) (int64, error){
 	defer func(){
 		if err := conn.Close(); err != nil {
 			// TODO: use zap logger
-			log.Println("conn.Close", err)
+			log.Println("conn.Close()", err)
 		}
 	}()
 
@@ -60,8 +60,34 @@ func VerifyUserOnServer(user *model.User) (int64, error){
 	})
 
 	if err != nil {
-		return 0, errors.Wrap(err, "client.VerifyUser")
+		return 0, errors.Wrap(err, "client.VerifyUser()")
 	}
 
 	return mes.ID, nil
+}
+
+func GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error){
+	conn, err := grpc.Dial(":8081", grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc.Dial()")
+	}
+
+	defer func(){
+		if err := conn.Close(); err != nil {
+			// TODO: use zap logger
+			log.Println("conn.Close", err)
+		}
+	}()
+
+	client := user_grpc.NewUserHandlerClient(conn)
+
+	req := &user_grpc.UserID{
+		ID:                   userID.ID,
+	}
+	res, err := client.Find(context.Background(), req)
+	if err != nil {
+		return nil, errors.Wrap(err, "client.Find()")
+	}
+
+	return res, nil
 }

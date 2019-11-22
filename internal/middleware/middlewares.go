@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"context"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc/user_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -23,16 +25,14 @@ type Middleware struct {
 	logger			*zap.SugaredLogger
 	clientUrl		string
 	token			*token.HashToken
-	usecase			user.Usecase
 }
 
-func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken, ucase user.Usecase, clientUrl string) Middleware{
+func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken, clientUrl string) Middleware{
 	return Middleware{
 		sessionStore: ss,
 		logger:       logger,
 		clientUrl:    clientUrl,
 		token:        token,
-		usecase:      ucase,
 	}
 }
 
@@ -50,11 +50,25 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := m.usecase.Find(id.(int64))
+		req := &user_grpc.UserID{
+			ID:                   id.(int64),
+		}
+		u, err := clients.GetUserFromServer(req)
 		if err != nil {
 			respond.Error(w, r, http.StatusNotFound, err)
 		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), respond.CtxKeyUser, u)))
+
+		user := &model.User{
+			ID:              u.ID,
+			FirstName:       u.FirstName,
+			SecondName:      u.SecondName,
+			UserName:        u.UserType,
+			Email:           u.Email,
+			Password:        u.Password,
+			EncryptPassword: u.EncryptPassword,
+			UserType:        u.UserType,
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), respond.CtxKeyUser, user)))
 	})
 }
 

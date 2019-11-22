@@ -64,7 +64,8 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.GeneralUsecase.SignUp(newUser); err != nil {
+	id, err := h.GeneralUsecase.SignUp(newUser)
+	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateUser")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
@@ -77,7 +78,7 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session.Values["user_id"] = newUser.ID
+	session.Values["user_id"] = id
 	if err := h.sessionStore.Save(r, w, session); err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-sessionSave")
 		respond.Error(w, r, http.StatusInternalServerError, err)

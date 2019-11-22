@@ -15,28 +15,28 @@ func NewGeneralUsecase() general.Usecase {
 	}
 }
 
-func (u *GeneralUsecase) SignUp(data *model.User) error {
+func (u *GeneralUsecase) SignUp(data *model.User) (int64, error) {
 	user, err := clients.CreateUserOnServer(data)
 	if err != nil {
-		return errors.Wrap(err, "clients.CreateUserOnServer")
+		return 0, errors.Wrap(err, "clients.CreateUserOnServer")
 	}
 
 	company, err := clients.CreateCompanyOnServer(user.ID)
 	if err != nil {
-		return errors.Wrap(err, "clients.CreateCompanyOnServer()")
+		return 0, errors.Wrap(err, "clients.CreateCompanyOnServer()")
 	}
 
 	_, err = clients.CreateFreelancerOnServer(user.ID)
 	if err != nil {
-		return errors.Wrap(err, "clients.CreateFreelancerOnServer")
+		return 0, errors.Wrap(err, "clients.CreateFreelancerOnServer")
 	}
 
 	_, err = clients.CreateManagerOnServer(user.ID, company.ID)
 	if err != nil {
-		return errors.Wrap(err, "clients.CreateManagerOnServer()")
+		return 0, errors.Wrap(err, "clients.CreateManagerOnServer()")
 	}
 
-	return nil
+	return user.ID, nil
 }
 
 func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, error) {

@@ -4,6 +4,7 @@ package user_grpc;
 service UserHandler {
     rpc CreateUser(User) returns (User);
     rpc VerifyUser(UserRequest) returns (UserID);
+    rpc Find(UserID) returns (User);
 }
 
 message UserID {
