@@ -68,7 +68,7 @@ func (r *LocationRepository) CityListByCountry(id int64) ([]*model.City, error) 
 func (r *LocationRepository) FindCountry(id int64) (*model.Country, error) {
 	country := &model.Country{}
 	if err := r.db.QueryRow(
-		"SELECT id, name FROM country WHERE accountId = $1",
+		"SELECT id, name FROM country WHERE id = $1",
 		id,
 	).Scan(
 		&country.ID,
@@ -82,7 +82,7 @@ func (r *LocationRepository) FindCountry(id int64) (*model.Country, error) {
 func (r *LocationRepository) FindCity(id int64) (*model.City, error) {
 	city := &model.City{}
 	if err := r.db.QueryRow(
-		"SELECT id, name FROM country WHERE accountId = $1",
+		"SELECT id, country_id, name FROM city WHERE id = $1",
 		id,
 	).Scan(
 		&city.ID,
