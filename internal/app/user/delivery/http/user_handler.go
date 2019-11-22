@@ -127,7 +127,7 @@ func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.UserUsecase.EditUserPassword(bodyPassword, currUser); err != nil {
-		err = errors.Wrap(err, "HandleEditPassword<-UserUseCase.EditUserPassword: ")
+		err = errors.Wrap(err, "HandleEditPassword<-UserUseCase.EditUserPassword")
 		respond.Respond(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -139,14 +139,14 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleUploadAvatar<-ParseMultipartForm:")
+		err = errors.Wrapf(err, "HandleUploadAvatar<-ParseMultipartForm")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		err = errors.Wrapf(err, "HandleUploadAvatar<-FormFile:")
+		err = errors.Wrapf(err, "HandleUploadAvatar<-FormFile")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -159,7 +159,7 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile: ")
+		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -172,8 +172,9 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	currUser.Avatar = image.Bytes()
-	if err := h.UserUsecase.EditUser(currUser, currUser); err != nil {
+	newUser := currUser
+	newUser.Avatar = image.Bytes()
+	if err := h.UserUsecase.EditUser(newUser, currUser); err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-UserUsecase.EditUser(): ")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return

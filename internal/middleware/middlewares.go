@@ -59,15 +59,17 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 		}
 
 		user := &model.User{
-			ID:              u.ID,
-			FirstName:       u.FirstName,
-			SecondName:      u.SecondName,
-			UserName:        u.UserType,
-			Email:           u.Email,
-			Password:        u.Password,
-			EncryptPassword: u.EncryptPassword,
-			UserType:        u.UserType,
+			ID:              	u.ID,
+			FirstName:       	u.FirstName,
+			SecondName:      	u.SecondName,
+			UserName:        	u.UserType,
+			Email:           	u.Email,
+			Password:        	u.Password,
+			EncryptPassword: 	u.EncryptPassword,
+			UserType:        	u.UserType,
+			Avatar:				[]byte(u.Avatar),
 		}
+
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), respond.CtxKeyUser, user)))
 	})
 }

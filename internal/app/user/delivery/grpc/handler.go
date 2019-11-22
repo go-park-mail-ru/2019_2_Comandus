@@ -28,14 +28,18 @@ func (s *UserServer) TransformUserRPC(user *model.User) *user_grpc.User {
 	}
 
 	res := &user_grpc.User{
-		ID:                   user.ID,
-		FirstName:            user.FirstName,
-		SecondName:           user.SecondName,
-		UserName:             user.UserName,
-		Email:                user.Email,
-		Password:             user.Password,
-		EncryptPassword:      user.EncryptPassword,
-		UserType:             user.UserType,
+		ID:              	user.ID,
+		FirstName:       	user.FirstName,
+		SecondName:      	user.SecondName,
+		UserName:        	user.UserName,
+		Email:           	user.Email,
+		Password:        	user.Password,
+		EncryptPassword: 	user.EncryptPassword,
+		UserType:        	user.UserType,
+		FreelancerId:    	user.FreelancerId,
+		HireManagerId:   	user.HireManagerId,
+		CompanyId:       	user.CompanyId,
+		Avatar:				user.Avatar,
 	}
 	return res
 }
@@ -43,14 +47,18 @@ func (s *UserServer) TransformUserRPC(user *model.User) *user_grpc.User {
 
 func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
 	res := &model.User{
-		ID:              user.ID,
-		FirstName:       user.FirstName,
-		SecondName:      user.SecondName,
-		UserName:        user.UserName,
-		Email:           user.Email,
-		Password:        user.Password,
-		EncryptPassword: user.EncryptPassword,
-		UserType:        user.UserType,
+		ID:              	user.ID,
+		FirstName:       	user.FirstName,
+		SecondName:      	user.SecondName,
+		UserName:        	user.UserName,
+		Email:           	user.Email,
+		Password:        	user.Password,
+		EncryptPassword: 	user.EncryptPassword,
+		UserType:        	user.UserType,
+		FreelancerId:    	user.FreelancerId,
+		HireManagerId:   	user.HireManagerId,
+		CompanyId:       	user.CompanyId,
+		Avatar:				user.Avatar,
 	}
 	return res
 }
@@ -84,7 +92,7 @@ func (s *UserServer) VerifyUser(context context.Context,userReq *user_grpc.UserR
 	}
 
 	res := &user_grpc.UserID{
-		ID:                   id,
+		ID:		id,
 	}
 	return res, nil
 }

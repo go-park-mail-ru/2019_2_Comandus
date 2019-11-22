@@ -45,8 +45,6 @@ func (u * UserUsecase) EditUser(new *model.User, old * model.User) error {
 	new.UserType = old.UserType
 	new.EncryptPassword = old.EncryptPassword
 
-	// TODO: можно аватар через отдельный метод изменять// нужно ли это тут вообще если аватар грузится в другом месте
-	new.Avatar = old.Avatar
 	if err := u.userRep.Edit(new); err != nil {
 		return errors.Wrap(err, "userRep.Edit()")
 	}
