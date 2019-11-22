@@ -185,23 +185,25 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no currUser in context"), "HandleDownloadAvatar: ")
+		err := errors.Wrapf(errors.New("no currUser in context"), "HandleDownloadAvatar()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	avatar, err := h.UserUsecase.GetAvatar(currUser)
 	if err != nil {
-		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile<-UserUseCase.GetAvatar(): ")
+		err := errors.Wrapf(err, "HandleEditProfile<-UserUseCase.GetAvatar()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	if _, err := w.Write(avatar); err != nil {
-		err = errors.Wrapf(err, "HandleDownloadAvatar<-Write():")
+		err = errors.Wrapf(err, "HandleDownloadAvatar<-Write()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
+
+	log.Println("IMAGE SIZE:", len(avatar))
 
 	w.Header().Set("Content-Disposition", "attachment; filename=avatar")
 	w.Header().Set("Content-Type", "multipart/form-data")
@@ -215,27 +217,27 @@ func (h *UserHandler) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetAvatar<-Atoi(wrong id): ")
+		err = errors.Wrapf(err, "HandleGetAvatar<-Atoi(wrong id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currUser, err := h.UserUsecase.Find(int64(id))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetAvatar<-UserUseCase.Find(): ")
+		err = errors.Wrapf(err, "HandleGetAvatar<-UserUseCase.Find()")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
 
 	avatar, err := h.UserUsecase.GetAvatar(currUser)
 	if err != nil {
-		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile<-UserUseCase.GetAvatar(): ")
+		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile<-UserUseCase.GetAvatar()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	if _, err := w.Write(avatar); err != nil {
-		err = errors.Wrapf(err, "HandleDownloadAvatar<-Write():")
+		err = errors.Wrapf(err, "HandleDownloadAvatar<-Write()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -256,7 +258,7 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleSetUserType<-rBodyClose:")
+			err = errors.Wrapf(err, "HandleSetUserType<-rBodyClose()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
