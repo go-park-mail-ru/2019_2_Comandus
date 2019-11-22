@@ -1,0 +1,27 @@
+syntax="proto3";
+package location_grpc;
+
+service LocationHandler {
+    rpc GetCountry(CountryID) returns (Country);
+    rpc GetCity(CityID) returns (City);
+}
+
+message CountryID {
+    int64 ID=1;
+}
+
+message CityID {
+    int64 ID=1;
+}
+
+message Country {
+    int64 ID=1;
+    string Name=2;
+}
+
+message City {
+    int64 ID=1;
+    int64 CountryID=2;
+    string Name=3;
+}
+

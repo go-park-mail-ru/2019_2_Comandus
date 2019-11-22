@@ -12,6 +12,9 @@ import (
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	logrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/delivery/grpc"
+	locationRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/repository"
+	locationUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/usecase"
 	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
 	managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
@@ -82,6 +85,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	jobRep := jobRepository.NewJobRepository(db)
 	responseRep := responseRepository.NewResponseRepository(db)
 	contractRep := contractRepository.NewContractRepository(db)
+	locationRep := locationRepository.NewLocationRepository(db)
 
 	userU := userUcase.NewUserUsecase(userRep)
 	companyU := companyUcase.NewCompanyUsecase(companyRep)
@@ -90,6 +94,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	jobU := jobUcase.NewJobUsecase(jobRep)
 	responseU := responseUcase.NewResponseUsecase(responseRep)
 	contractU := contractUcase.NewContractUsecase(contractRep)
+	locationU := locationUcase.NewLocationUsecase(locationRep)
 
 	private := s.Mux.PathPrefix("").Subrouter()
 
@@ -177,6 +182,18 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 		regrpc.NewResponseServerGrpc(server, responseU)
 
 		fmt.Println("starting server at :8086")
+		server.Serve(lis)
+	}()
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8087")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		logrpc.NewLocationServerGrpc(server, locationU)
+
+		fmt.Println("starting server at :8087")
 		server.Serve(lis)
 	}()
 

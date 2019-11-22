@@ -16,7 +16,7 @@ func NewLocationUsecase(r location.Repository) location.Usecase {
 	}
 }
 
-func (u *LocationUsecase)CountryList() ([]*model.Country, error) {
+func (u *LocationUsecase) CountryList() ([]*model.Country, error) {
 	list, err := u.locationRep.CountryList()
 	if err != nil {
 		return nil, errors.Wrap(err, "locationRep.CountryList()")
@@ -24,10 +24,26 @@ func (u *LocationUsecase)CountryList() ([]*model.Country, error) {
 	return list, nil
 }
 
-func (u *LocationUsecase)CityListByCountry(id int64) ([]*model.City, error) {
+func (u *LocationUsecase) CityListByCountry(id int64) ([]*model.City, error) {
 	list, err := u.locationRep.CityListByCountry(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "locationRep.CityListByCountry()")
 	}
 	return list, nil
+}
+
+func (u *LocationUsecase) GetCountry(id int64) (*model.Country, error) {
+	country, err := u.locationRep.FindCountry(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "localRep.FindCountry()")
+	}
+	return country, nil
+}
+
+func (u *LocationUsecase) GetCity(id int64) (*model.City, error) {
+	city, err := u.locationRep.FindCity(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "localRep.FindCity()")
+	}
+	return city, nil
 }
