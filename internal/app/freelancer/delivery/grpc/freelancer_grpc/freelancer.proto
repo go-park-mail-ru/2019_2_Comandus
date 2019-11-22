@@ -9,8 +9,8 @@ service FreelancerHandler {
 message Freelancer {
     int64 ID=1;
     int64 AccountId=2;
-    string Country=3;
-    string City=4;
+    int64 Country=3;
+    int64 City=4;
     string Address=5;
     string Phone=6;
     string TagLine=7;

@@ -7,8 +7,8 @@ import (
 type Freelancer struct {
 	ID                int64		`json:"id" valid:"int, optional"`
 	AccountId         int64		`json:"accountId" valid:"int, optional"`
-	Country           string    `json:"country" valid:"utfletter"`
-	City              string    `json:"city" valid:"utfletter"`
+	Country           int64	    `json:"country" valid:"utfletter"`
+	City              int64		`json:"city" valid:"utfletter"`
 	Address           string    `json:"address" valid:"-"`
 	Phone             string    `json:"phone" valid:"-"`
 	TagLine           string    `json:"tagline" valid:"-"`
@@ -19,8 +19,6 @@ type Freelancer struct {
 
 
 func (freel *Freelancer) Sanitize (sanitizer *bluemonday.Policy)  {
-	freel.Country = sanitizer.Sanitize(freel.Country)
-	freel.City = sanitizer.Sanitize(freel.City)
 	freel.Address = sanitizer.Sanitize(freel.Address)
 	freel.Phone = sanitizer.Sanitize(freel.Phone)
 	freel.TagLine = sanitizer.Sanitize(freel.TagLine)
