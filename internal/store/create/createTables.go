@@ -68,8 +68,8 @@ func CreateTables(db *sql.DB) error {
 		specialityId bigserial,  --references specialities,
 		experienceLevelId bigserial,
 		paymentAmount decimal(8,2),
-		country varchar,
-		city varchar,
+		country integer,
+		city integer,
 		jobTypeId bigserial,
 		date timestamp,
 		status varchar
