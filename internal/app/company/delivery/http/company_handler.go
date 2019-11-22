@@ -42,14 +42,14 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"), "HandleEditCompany: ")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleGetCountries: ")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditCompany<-rBodyClose: ")
+			err = errors.Wrapf(err, "HandleGetCountries<-rBodyClose: ")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
@@ -58,13 +58,13 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(currCompany)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-Decode(): ")
+		err = errors.Wrapf(err, "HandleGetCountries<-Decode(): ")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.CompanyUsecase.Edit(u, currCompany); err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit(): ")
+		err = errors.Wrapf(err, "HandleGetCountries<-CompanyUsecase.Edit(): ")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}

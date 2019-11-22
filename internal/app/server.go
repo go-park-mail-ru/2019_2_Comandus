@@ -13,6 +13,7 @@ import (
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	logrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/delivery/grpc"
+	locationhttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/delivery/http"
 	locationRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/repository"
 	locationUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/usecase"
 	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
@@ -112,6 +113,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
+	locationhttp.NewLocationHandler(private, locationU, s.Sanitizer, s.Logger, s.SessionStore)
 
 	go func() {
 		lis, err := net.Listen("tcp", ":8081")

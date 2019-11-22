@@ -42,7 +42,7 @@ func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
 
 	company.ID = m.CompanyId
 	if err := u.companyRep.Edit(company); err != nil {
-		return errors.Wrapf(err, "HandleEditCompany<-Edit: ")
+		return errors.Wrapf(err, "HandleGetCountries<-Edit: ")
 	}
 	return nil
 }
