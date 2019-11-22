@@ -2,7 +2,7 @@ package contractHttp
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
@@ -44,7 +44,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleCreateContract<-Body.Close:")
-			general.Error(w, r, http.StatusInternalServerError, err)
+			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
@@ -58,10 +58,10 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 		return
 	}*/
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateContract<-strconv.Atoi: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 	responseId := int64(id)
@@ -78,21 +78,21 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 
 	if err := h.ContractUsecase.CreateContract(u, responseId); err != nil {
 		err = errors.Wrapf(err, "HandleCreateContract<-ContractUsecase.CreateContract(): ")
-		general.Error(w, r, http.StatusInternalServerError, err)
+		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	// TODO: other responses should be denied
-	general.Respond(w, r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -101,27 +101,27 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleTickContractAsDone<-strconv.Atoi: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	contractId := int64(id)
 	if err := h.ContractUsecase.SetAsDone(u, contractId); err != nil {
 		err = errors.Wrapf(err, "HandleTickContractAsDone<-ContractUsecase.SetAsDone(): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	general.Respond(w,r, http.StatusOK, struct{}{})
+	respond.Respond(w,r, http.StatusOK, struct{}{})
 }
 
 func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleReviewContract: ")
-			general.Error(w, r, http.StatusInternalServerError, err)
+			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
@@ -141,7 +141,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	input := new(Input)
 	if err := decoder.Decode(input); err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -150,7 +150,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract<-strconv.Atoi: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -158,10 +158,10 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	if err := h.ContractUsecase.ReviewContract(u, contractId, input.Grade); err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract(): ")
-		general.Error(w, r, http.StatusInternalServerError, err)
+		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	general.Respond(w,r, http.StatusOK, struct{}{})
+	respond.Respond(w,r, http.StatusOK, struct{}{})
 }
 

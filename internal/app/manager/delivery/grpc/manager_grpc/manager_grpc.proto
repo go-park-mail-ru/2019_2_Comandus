@@ -1,0 +1,29 @@
+syntax="proto3";
+package manager_grpc;
+
+service ManagerHandler {
+    rpc CreateManager(Info) returns (Manager);
+    rpc FindByUser(UserID) returns (Manager);
+    rpc Find(ManagerID) returns (Manager);
+}
+
+message Manager {
+    int64 ID=1;
+    int64 AccountId=2;
+    string Location=3;
+    int64 CompanyId=4;
+}
+
+message ManagerID {
+    int64 ID=1;
+}
+
+message UserID {
+    int64 ID=1;
+}
+
+message Info {
+    int64 UserID=1;
+    int64 CompanyID=2;
+}
+

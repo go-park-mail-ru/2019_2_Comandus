@@ -17,7 +17,7 @@ func NewManagerRepository(db *sql.DB) manager.Repository {
 func (r *ManagerRepository) Create(m *model.HireManager) error {
 	return r.db.QueryRow(
 		"INSERT INTO managers (accountId, location, companyId) " +
-			"VALUES ($1, $2, $3, $4) RETURNING id",
+			"VALUES ($1, $2, $3) RETURNING id",
 		m.AccountID,
 		m.Location,
 		m.CompanyID,
@@ -62,17 +62,4 @@ func (r *ManagerRepository) Edit(m * model.HireManager) error {
 		m.CompanyID,
 		m.ID,
 	).Scan(&m.ID)
-}
-
-func (r *ManagerRepository) GetCompanyIDByUserID(accountId int64) (int64, error) {
-	var companyID int64
-	if err := r.db.QueryRow(
-		"SELECT companyId FROM managers WHERE accountId = $1",
-		accountId,
-	).Scan(
-		&companyID,
-	); err != nil {
-		return -1, err
-	}
-	return companyID, nil
 }

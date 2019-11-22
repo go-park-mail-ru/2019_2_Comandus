@@ -18,7 +18,7 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
+	//flag.Parse()
 	if err := apiserver.Start(); err != nil {
 		log.Fatal(err)
 	}

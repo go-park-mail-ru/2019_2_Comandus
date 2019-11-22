@@ -1,9 +1,7 @@
 package responseUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
-	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -11,18 +9,11 @@ import (
 )
 
 type ResponseUsecase struct {
-	managerRep    manager.Repository
-	freelancerRep freelancer.Repository
-	jobRep        user_job.Repository
 	responseRep   user_response.Repository
 }
 
-func NewResponseUsecase(m manager.Repository, f freelancer.Repository,
-	j user_job.Repository, r user_response.Repository) user_response.Usecase {
+func NewResponseUsecase(r user_response.Repository) user_response.Usecase {
 	return &ResponseUsecase{
-		managerRep:    m,
-		freelancerRep: f,
-		jobRep:        j,
 		responseRep:   r,
 	}
 }
@@ -32,9 +23,9 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 		return errors.New("to response user need to be freelancer")
 	}
 
-	currFreelancer, err := u.freelancerRep.FindByUser(user.ID)
+	currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
 	if err != nil {
-		return errors.Wrap(err, "freelancerRep.FindByUser: ")
+		return errors.Wrap(err, "getFreelancerByUserFromServer()")
 	}
 
 	// TODO: get files from request
@@ -49,11 +40,11 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 	}
 
 	if err := response.Validate(0); err != nil {
-		return errors.Wrapf(err, "Validate: ")
+		return errors.Wrapf(err, "Validate()")
 	}
 
 	if err := u.responseRep.Create(response); err != nil {
-		return errors.Wrapf(err, "responseRep.Create(): ")
+		return errors.Wrapf(err, "responseRep.Create()")
 	}
 	return nil
 }
@@ -62,27 +53,27 @@ func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, err
 	var responses []model.Response
 
 	if user.IsManager() {
-		currManager, err := u.managerRep.FindByUser(user.ID)
+		currManager, err := clients.GetManagerByUserFromServer(user.ID)
 		if err != nil {
-			err = errors.Wrapf(err, " GetManagerResponses<-Manager().FindByUser: ")
+			err = errors.Wrapf(err, "getManagerByUserFromServer()")
 			return nil, err
 		}
 
 		responses, err = u.responseRep.ListForManager(currManager.ID)
 		if err != nil {
-			err = errors.Wrapf(err, "GetManagerResponses<-Responses().ListForManager: ")
+			err = errors.Wrapf(err, "responseRep.ListForManager()")
 			return nil, err
 		}
 	} else {
-		currFreelancer, err := u.freelancerRep.FindByUser(user.ID)
+		currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
-			err = errors.Wrapf(err, " GetManagerResponses<-Manager().FindByUser: ")
+			err = errors.Wrapf(err, "getFreelancerByUserFromServer()")
 			return nil, err
 		}
 
 		responses, err = u.responseRep.ListForFreelancer(currFreelancer.ID)
 		if err != nil {
-			err = errors.Wrapf(err, "GetManagerResponses<-Responses().ListForManager: ")
+			err = errors.Wrapf(err, "responseRep.ListForFreelancer()")
 			return nil, err
 		}
 	}
@@ -93,18 +84,18 @@ func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, err
 func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
 	response, err := u.responseRep.Find(responseId)
 	if err != nil {
-		return errors.Wrapf(err, "responseRep.Find(): ")
+		return errors.Wrapf(err, "responseRep.Find()")
 	}
 
-	job, err := u.jobRep.Find(response.JobId)
+	job, err := clients.GetJobFromServer(response.JobId)
 	if err != nil {
-		return errors.Wrapf(err, "jobRep<-Find(): ")
+		return errors.Wrapf(err, "clients.getJobFromServer()")
 	}
 
 	if user.IsManager() {
-		currManager, err := u.managerRep.FindByUser(user.ID)
+		currManager, err := clients.GetManagerByUserFromServer(user.ID)
 		if err != nil {
-			return errors.Wrapf(err, "managerRep.FindByUser: ")
+			return errors.Wrapf(err, "clients.getManagerByUserFromServer()")
 		}
 
 		if job.HireManagerId != currManager.ID {
@@ -113,9 +104,9 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 		response.StatusManager = model.ResponseStatusAccepted
 		response.StatusFreelancer = model.ResponseStatusReview
 	} else {
-		currFreelancer, err := u.freelancerRep.FindByUser(user.ID)
+		currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
-			return errors.Wrapf(err, "freelancerRep.FindByUser(): ")
+			return errors.Wrapf(err, "clients.getFreelancerByUserFromServer()")
 		}
 
 		if currFreelancer.ID != response.FreelancerId {
@@ -129,7 +120,7 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 	response.StatusManager = model.ResponseStatusAccepted
 	err = u.responseRep.Edit(response)
 	if err != nil {
-		err = errors.Wrapf(err, "response_usecase <- responseRep.Edit:")
+		err = errors.Wrapf(err, "responseRep.Edit()")
 		return err
 	}
 	return nil
@@ -138,18 +129,18 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error {
 	response, err := u.responseRep.Find(responseId)
 	if err != nil {
-		return errors.Wrapf(err, "responseRep.Find(): ")
+		return errors.Wrapf(err, "responseRep.Find()")
 	}
 
-	job, err := u.jobRep.Find(response.JobId)
+	job, err := clients.GetJobFromServer(response.JobId)
 	if err != nil {
-		return errors.Wrapf(err, "jobRep<-Find(): ")
+		return errors.Wrapf(err, "getJobFromServer()")
 	}
 
 	if user.IsManager() {
-		currManager, err := u.managerRep.FindByUser(user.ID)
+		currManager, err := clients.GetManagerByUserFromServer(user.ID)
 		if err != nil {
-			return errors.Wrapf(err, "managerRep.FindByUser: ")
+			return errors.Wrapf(err, "getManagerByUserFromServer()")
 		}
 
 		if job.HireManagerId != currManager.ID {
@@ -159,9 +150,9 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 		response.StatusManager = model.ResponseStatusDenied
 		response.StatusFreelancer = model.ResponseStatusBlock
 	} else {
-		currFreelancer, err := u.freelancerRep.FindByUser(user.ID)
+		currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
-			return errors.Wrapf(err, "freelancerRep.FindByUser(): ")
+			return errors.Wrapf(err, "getFreelancerByUserFromServer()")
 		}
 
 		if currFreelancer.ID != response.FreelancerId {
@@ -175,8 +166,16 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 	response.StatusManager = model.ResponseStatusDenied
 	err = u.responseRep.Edit(response)
 	if err != nil {
-		err = errors.Wrapf(err, "response_usecase <- responseRep.Edit:")
+		err = errors.Wrapf(err, "responseRep.Edit()")
 		return err
 	}
 	return nil
+}
+
+func (u *ResponseUsecase) Find(id int64) (*model.Response, error) {
+	response, err := u.responseRep.Find(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "responseRep.Find()")
+	}
+	return response, nil
 }

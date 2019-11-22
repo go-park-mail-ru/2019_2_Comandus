@@ -1,0 +1,14 @@
+syntax="proto3";
+package general_grpc;
+
+service GeneralHandler {
+    rpc GetToken(UserID) returns (Token);
+}
+
+message Token {
+    int64 ID=1;
+}
+
+message UserID {
+    int64 ID=1;
+}

@@ -23,7 +23,7 @@ type Contract struct {
 	EndTime			time.Time	`json:"endTime"`
 	Status			string		`json:"status"`
 	Grade			int			`json:"grade"`
-	PaymentAmount	float64		`json:"paymentAmount"`
+	PaymentAmount	float32		`json:"paymentAmount"`
 }
 
 

@@ -2,7 +2,7 @@ package jobHttp
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
@@ -41,7 +41,7 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleCreateJob<-Close: ")
-			general.Error(w, r, http.StatusInternalServerError, err)
+			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
@@ -51,23 +51,24 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateJob<-Decode: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.jobUsecase.CreateJob(u, job); err != nil {
 		err := errors.Wrap(err, "HandleCreateJob <- JobUseCase.CreateJob(): ")
-		general.Error(w, r, http.StatusInternalServerError, err)
+		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
-	general.Respond(w, r, http.StatusOK, job)
+
+	respond.Respond(w, r, http.StatusOK, job)
 }
 
 func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
@@ -79,17 +80,17 @@ func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong id): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	job, err := h.jobUsecase.FindJob(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.FindJob(): ")
-		general.Error(w, r, http.StatusNotFound, err)
+		respond.Error(w, r, http.StatusNotFound, err)
 	}
 
 	job.Sanitize(h.sanitizer)
-	general.Respond(w, r, http.StatusOK, job)
+	respond.Respond(w, r, http.StatusOK, job)
 }
 
 func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
@@ -98,23 +99,23 @@ func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	jobs, err := h.jobUsecase.GetAllJobs()
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetAllJobs<-jobUsecase.GetAllJobs: ")
-		general.Error(w, r, http.StatusNotFound, err)
+		respond.Error(w, r, http.StatusNotFound, err)
 	}
 
 	for i, _ := range jobs{
 		jobs[i].Sanitize(h.sanitizer)
 	}
 
-	general.Respond(w, r, http.StatusOK, &jobs)
+	respond.Respond(w, r, http.StatusOK, &jobs)
 }
 
 func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -128,14 +129,14 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	if err := h.jobUsecase.EditJob(u, inputJob, int64(id)); err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.EditJob: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
-	general.Respond(w, r, http.StatusOK, struct {}{})
+	respond.Respond(w, r, http.StatusOK, struct {}{})
 }
 
 /*func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
