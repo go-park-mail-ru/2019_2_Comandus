@@ -75,18 +75,21 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+
 	vars := mux.Vars(r)
 	ids := vars["companyId"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetCompany<-Atoi(wrong id): ")
 		respond.Error(w, r, http.StatusBadRequest, err)
+		return
 	}
 
 	currCompany, err := h.CompanyUsecase.Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetCompany<-Find: ")
 		respond.Error(w, r, http.StatusNotFound, err)
+		return
 	}
 
 	currCompany.Sanitize(h.sanitizer)
