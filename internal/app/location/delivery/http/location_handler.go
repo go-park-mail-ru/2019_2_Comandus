@@ -45,6 +45,8 @@ func (h *LocationHandler) HandleGetCountries(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *LocationHandler) HandleGetCities(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
