@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -96,7 +95,6 @@ func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Println("edited profile: ", userInput)
 	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
@@ -202,8 +200,6 @@ func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Reques
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
-
-	log.Println("IMAGE SIZE:", len(avatar))
 
 	w.Header().Set("Content-Disposition", "attachment; filename=avatar")
 	w.Header().Set("Content-Type", "multipart/form-data")

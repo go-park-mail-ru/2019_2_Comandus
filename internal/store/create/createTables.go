@@ -9,8 +9,8 @@ func CreateTables(db *sql.DB) error {
 		site varchar,
 		tagLine varchar,
 		description varchar,
-		country varchar,
-		city varchar,
+		country integer,
+		city integer,
 		address varchar,
 		phone varchar
 	);`

@@ -12,8 +12,8 @@ message Company {
     string Site=3;
     string TagLine=4;
     string Description=5;
-    string Country=6;
-    string City=7;
+    int64 Country=6;
+    int64 City=7;
     string Address=8;
     string Phone=9;
 }
