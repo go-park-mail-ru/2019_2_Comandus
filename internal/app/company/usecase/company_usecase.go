@@ -26,12 +26,43 @@ func (u * CompanyUsecase) Create() (*model.Company, error) {
 	return c, nil
 }
 
-func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
+func (u *CompanyUsecase) InsertLocation(company *model.Company) (*model.CompanyOutput, error) {
+	country, err := clients.GetCountry(company.Country)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.GetCountry()")
+	}
+
+	city, err := clients.GetCity(company.City)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.GetCity()")
+	}
+
+	res := &model.CompanyOutput{
+		ID:          company.ID,
+		CompanyName: company.CompanyName,
+		Site:        company.Site,
+		TagLine:     company.TagLine,
+		Description: company.Description,
+		Country:     country.Name,
+		City:        city.Name,
+		Address:     company.Address,
+		Phone:       company.Phone,
+	}
+	return res, nil
+}
+
+func (u *CompanyUsecase) Find(id int64) (*model.CompanyOutput, error) {
 	c, err := u.companyRep.Find(id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "companyRep.Find()")
 	}
-	return c, nil
+
+	res, err := u.InsertLocation(c)
+	if err != nil {
+		return nil, errors.Wrap(err, "InsertLocation()")
+	}
+
+	return res, nil
 }
 
 func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {

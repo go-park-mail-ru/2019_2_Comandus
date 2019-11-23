@@ -14,11 +14,34 @@ type Company struct {
 	Phone 		string `json:"phone" valid:"- , optional"`
 }
 
+type CompanyOutput struct {
+	ID			int64
+	CompanyName string
+	Site 		string
+	TagLine 	string
+	Description string
+	Country 	string
+	City 		string
+	Address 	string
+	Phone 		string
+}
+
 func (comp *Company) Sanitize (sanitizer *bluemonday.Policy)  {
 	comp.CompanyName = sanitizer.Sanitize(comp.CompanyName)
 	comp.Site = sanitizer.Sanitize(comp.Site)
 	comp.TagLine = sanitizer.Sanitize(comp.TagLine)
 	comp.Description = sanitizer.Sanitize(comp.Description)
+	comp.Address = sanitizer.Sanitize(comp.Address)
+	comp.Phone = sanitizer.Sanitize(comp.Phone)
+}
+
+func (comp *CompanyOutput) Sanitize (sanitizer *bluemonday.Policy)  {
+	comp.CompanyName = sanitizer.Sanitize(comp.CompanyName)
+	comp.Site = sanitizer.Sanitize(comp.Site)
+	comp.TagLine = sanitizer.Sanitize(comp.TagLine)
+	comp.Description = sanitizer.Sanitize(comp.Description)
+	comp.Country = sanitizer.Sanitize(comp.Country)
+	comp.City = sanitizer.Sanitize(comp.City)
 	comp.Address = sanitizer.Sanitize(comp.Address)
 	comp.Phone = sanitizer.Sanitize(comp.Phone)
 }

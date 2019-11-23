@@ -32,7 +32,7 @@ func CreateCompanyOnServer(userId int64) (*company_grpc.Company, error){
 	return company, nil
 }
 
-func GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
+func GetCompanyFromServer(id int64) (*company_grpc.CompanyOutput, error) {
 	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

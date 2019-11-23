@@ -7,4 +7,6 @@ type Usecase interface {
 	FindByUser(int64) (*model.Freelancer, error)
 	Find(int64) (*model.Freelancer, error)
 	Edit(*model.Freelancer, *model.Freelancer) error
+	FindWithLocation(int64) (*model.FreelancerOutput, error)
+	FindByUserWithLocation(int64) (*model.FreelancerOutput, error)
 }
