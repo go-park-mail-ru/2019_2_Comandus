@@ -20,6 +20,8 @@ func (w *responseWriter) WriteHeader(statusCode int) {
 }
 
 func Start() error {
+	//prometheus.MustRegister(monitoring.FooCount, monitoring.Hits)
+
 	config := NewConfig()
 
 	port := os.Getenv("PORT")
