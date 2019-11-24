@@ -16,7 +16,7 @@ func NewConfig() *Config {
 		SessionKey:		"jdfhdfdj",
 		DatabaseURL:	"host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d",
 		TokenSecret:	"golangsecpark",
-		ClientUrl:		"http://127.0.0.1:9000",
-		//ClientUrl:		"https://comandus.now.sh",
+		//ClientUrl:		"http://127.0.0.1:9000",
+		ClientUrl:		"https://comandus.now.sh",
 	}
 }
