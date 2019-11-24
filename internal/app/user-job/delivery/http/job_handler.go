@@ -10,6 +10,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -33,6 +34,7 @@ func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Pol
 	m.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +125,6 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	inputJob := new(model.Job)
 	err := decoder.Decode(inputJob)
 
-
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -139,64 +140,22 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	respond.Respond(w, r, http.StatusOK, struct {}{})
 }
 
-/*func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
+
+func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	user, err, codeStatus := s.GetUserFromRequest(r)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-GetUserFromRequest: ")
-		s.error(w, r, codeStatus, err)
-		return
+	pattern, ok := r.URL.Query()["q"]
+	if !ok || len(pattern[0]) < 1 {
+		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchJob: ")
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
-	freelancer, err := s.store.Freelancer().FindByUser(user.ID)
+	log.Println(pattern[0])
+	jobs, err := h.jobUsecase.PatternSearch(pattern[0])
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
-		s.error(w, r, http.StatusNotFound, err)
-		return
+		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.PatternSearch: ")
+		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditFreelancer<-rBodyClose: ")
-			s.error(w, r, http.StatusInternalServerError, err)
-		}
-	}()
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(freelancer)
-
-	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-Decode: ")
-		s.error(w, r, http.StatusBadRequest, errors.New("invalid format of data"))
-		return
-	}
-	// TODO: validate freelancer
-
-	err = s.store.Freelancer().Edit(freelancer)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
-		s.error(w, r, http.StatusInternalServerError, err)
-		return
-	}
-	s.respond(w, r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, jobs)
 }
-
-func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	vars := mux.Vars(r)
-	ids := vars["id"]
-	id, err := strconv.Atoi(ids)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-Atoi(wrong id): ")
-		s.error(w, r, http.StatusBadRequest, err)
-	}
-
-	freelancer, err := s.store.Freelancer().Find(int64(id))
-	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
-		s.error(w, r, http.StatusNotFound, err)
-	}
-	freelancer.Sanitize(s.sanitizer)
-	s.respond(w, r, http.StatusOK, &freelancer)
-}*/

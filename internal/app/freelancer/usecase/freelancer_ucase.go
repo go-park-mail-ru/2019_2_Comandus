@@ -4,7 +4,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	)
+)
 
 type FreelancerUsecase struct {
 	freelancerRep freelancer.Repository
@@ -18,7 +18,7 @@ func NewFreelancerUsecase(f freelancer.Repository) freelancer.Usecase {
 
 func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
 	f := &model.Freelancer{
-		AccountId:         userId,
+		AccountId: userId,
 	}
 
 	if err := u.freelancerRep.Create(f); err != nil {
@@ -57,4 +57,11 @@ func (u *FreelancerUsecase) Edit(new *model.Freelancer, old *model.Freelancer) e
 		return errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
 	}
 	return nil
+}
+func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.Freelancer, error) {
+	freelancers, err := u.freelancerRep.ListOnPattern(pattern)
+	if err != nil {
+		return nil, errors.Wrap(err, "PatternSearch()")
+	}
+	return freelancers, nil
 }
