@@ -1,5 +1,10 @@
 package model
 
+type ReviewInput struct {
+	Grade int `json:"grade"`
+	Comment string `json:"comment"`
+}
+
 type BodyPassword struct {
 	Password string `valid:"required"`
 	NewPassword string `valid:"required, length(6|100)"`
