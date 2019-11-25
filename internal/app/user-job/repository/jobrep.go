@@ -38,8 +38,9 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 	j := &model.Job{}
 	if err := r.db.QueryRow(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status FROM jobs WHERE id = $1",
+			"country, city, jobTypeId, date, status FROM jobs WHERE id = $1 AND status != $2",
 		id,
+		model.JobStateDeleted,
 	).Scan(
 		&j.ID,
 		&j.HireManagerId,
@@ -82,7 +83,8 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status FROM jobs ORDER BY id DESC LIMIT 10")
+			"country, city, jobTypeId, date, status FROM jobs WHERE status != $1 ORDER BY id DESC",
+			model.JobStateDeleted)
 
 	if err != nil {
 		return nil, err

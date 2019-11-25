@@ -80,3 +80,30 @@ func (u *JobUsecase) EditJob(user *model.User, inputJob *model.Job, id int64) er
 	}
 	return nil
 }
+
+func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
+	job, err := u.jobRep.Find(id)
+	if err != nil {
+		return errors.Wrap(err, "jobRep.Find()")
+	}
+
+	if !user.IsManager() {
+		return errors.New("only manager can delete job")
+	}
+
+	manager, err := clients.GetManagerByUserFromServer(user.ID)
+	if err != nil {
+		return errors.Wrap(err, "clients.GetManagerByUserFromServer()")
+	}
+
+	if job.HireManagerId != manager.ID {
+		return errors.Wrap(err, "no access for current manager")
+	}
+
+	job.Status = model.JobStateDeleted
+	if err := u.jobRep.Edit(job); err != nil {
+		return errors.Wrap(err, "jobRep.Edit()")
+	}
+
+	return nil
+}
