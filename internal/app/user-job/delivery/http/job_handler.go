@@ -33,7 +33,7 @@ func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Pol
 	m.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/jobs/delete/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
 }
 
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
