@@ -58,10 +58,10 @@ func (u *FreelancerUsecase) Edit(new *model.Freelancer, old *model.Freelancer) e
 	}
 	return nil
 }
-func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.Freelancer, error) {
-	freelancers, err := u.freelancerRep.ListOnPattern(pattern)
+func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.ExtendFreelancer, error) {
+	exFreelancers, err := u.freelancerRep.ListOnPattern(pattern)
 	if err != nil {
 		return nil, errors.Wrap(err, "PatternSearch()")
 	}
-	return freelancers, nil
+	return exFreelancers, nil
 }

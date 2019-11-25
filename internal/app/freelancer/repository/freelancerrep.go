@@ -91,11 +91,11 @@ func (r *FreelancerRepository) Edit(f *model.Freelancer) error {
 	).Scan(&f.ID)
 }
 
-func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.Freelancer, error) {
-	var freelancers []model.Freelancer
+func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFreelancer, error) {
+	var exFreelancers []model.ExtendFreelancer
 	rows, err := r.db.Query(
 		"SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, "+
-			" F.overview, F.experienceLevelId, F.specialityId "+
+			" F.overview, F.experienceLevelId, F.specialityId, U.firstname , U.secondname "+
 			"FROM freelancers AS F "+
 			"INNER JOIN users AS U ON (F.accountid = U.accountid) "+
 			"WHERE to_tsvector('russian' , U.firstname) || to_tsvector('russian' , U.secondname) "+
@@ -107,15 +107,18 @@ func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.Freelancer
 	}
 	for rows.Next() {
 		f := model.Freelancer{}
+		exFreelancer := model.ExtendFreelancer{}
 		err := rows.Scan(&f.ID, &f.AccountId, &f.Country, &f.City, &f.Address, &f.Phone,
-			&f.TagLine, &f.Overview, &f.ExperienceLevelId, &f.SpecialityId)
+			&f.TagLine, &f.Overview, &f.ExperienceLevelId, &f.SpecialityId, &exFreelancer.FirstName, &exFreelancer.SecondName)
+
 		if err != nil {
 			return nil, err
 		}
-		freelancers = append(freelancers, f)
+		exFreelancer.F = &f
+		exFreelancers = append(exFreelancers, exFreelancer)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
 	}
-	return freelancers, nil
+	return exFreelancers, nil
 }

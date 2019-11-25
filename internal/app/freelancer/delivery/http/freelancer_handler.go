@@ -135,11 +135,11 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 	}
 
 	log.Println(pattern[0])
-	freelancers, err := h.FreelancerUsecase.PatternSearch(pattern[0])
+	extendedFreelancers, err := h.FreelancerUsecase.PatternSearch(pattern[0])
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetJob<-FreelancerUsecase.PatternSearch: ")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 
-	respond.Respond(w, r, http.StatusOK, freelancers)
+	respond.Respond(w, r, http.StatusOK, extendedFreelancers)
 }

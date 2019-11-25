@@ -7,5 +7,5 @@ type Usecase interface {
 	FindByUser(int64) (*model.Freelancer, error)
 	Find(int64) (*model.Freelancer, error)
 	Edit(*model.Freelancer, *model.Freelancer) error
-	PatternSearch(string) ([]model.Freelancer, error)
+	PatternSearch(string) ([]model.ExtendFreelancer, error)
 }
