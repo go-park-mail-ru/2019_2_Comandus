@@ -178,3 +178,12 @@ func (u *ResponseUsecase) Find(id int64) (*model.Response, error) {
 	}
 	return response, nil
 }
+
+
+func (u *ResponseUsecase) GetResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
+	responses, err := u.responseRep.ListResponsesOnJobID(jobID)
+	if err != nil {
+		return nil, errors.Wrap(err, "responseRep.GetResponsesOnJobID()")
+	}
+	return responses, nil
+}

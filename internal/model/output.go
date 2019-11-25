@@ -16,3 +16,9 @@ type Review struct{
 type OutputResponse struct {
 	Id int64 `json:"id"`
 }
+
+type ExtendResponse struct {
+	R *Response `json:"Response"`
+	FirstName string `json:"firstName"`
+	SecondName string `json:"lastName"`
+}
