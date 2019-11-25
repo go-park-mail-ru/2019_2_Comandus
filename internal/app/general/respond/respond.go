@@ -2,9 +2,11 @@ package respond
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/pkg/errors"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type ctxKey int8
@@ -24,7 +26,7 @@ func Error(w http.ResponseWriter, r *http.Request, code int, err error) {
 }
 
 func Respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {
-	//monitoring.Hits.WithLabelValues(strconv.Itoa(code), r.URL.String()).Inc()
+	monitoring.Hits.WithLabelValues(strconv.Itoa(code), r.URL.String()).Inc()
 	w.WriteHeader(code)
 	if data != nil {
 		_ = json.NewEncoder(w).Encode(data)

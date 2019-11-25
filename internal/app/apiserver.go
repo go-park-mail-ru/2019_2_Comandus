@@ -3,6 +3,8 @@ package apiserver
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/store/create"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -20,7 +22,7 @@ func (w *responseWriter) WriteHeader(statusCode int) {
 }
 
 func Start() error {
-	//prometheus.MustRegister(monitoring.FooCount, monitoring.Hits)
+	prometheus.MustRegister(monitoring.FooCount, monitoring.Hits)
 
 	config := NewConfig()
 

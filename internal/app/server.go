@@ -35,6 +35,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
@@ -91,6 +92,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	responseU := responseUcase.NewResponseUsecase(responseRep)
 	contractU := contractUcase.NewContractUsecase(contractRep)
 
+	s.Mux.Handle("/metrics", promhttp.Handler())
 	private := s.Mux.PathPrefix("").Subrouter()
 
 	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token)
