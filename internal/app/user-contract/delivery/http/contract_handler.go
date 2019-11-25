@@ -133,12 +133,8 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 		}
 	}()
 
-	type Input struct {
-		Grade int `json:"grade"`
-	}
-
 	decoder := json.NewDecoder(r.Body)
-	input := new(Input)
+	input := new(model.ReviewInput)
 	if err := decoder.Decode(input); err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract: ")
 		respond.Error(w, r, http.StatusBadRequest, err)
@@ -156,7 +152,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	contractId := int64(id)
 
-	if err := h.ContractUsecase.ReviewContract(u, contractId, input.Grade); err != nil {
+	if err := h.ContractUsecase.ReviewContract(u, contractId, input); err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract(): ")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return

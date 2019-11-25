@@ -43,7 +43,6 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		StartTime:     time.Time{},
 		EndTime:       time.Time{},
 		Status:        model.ContractStatusUnderDevelopment,
-		Grade:         0,
 		PaymentAmount: response.PaymentAmount,
 	}
 
@@ -92,12 +91,8 @@ func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 	return nil
 }
 
-func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, grade int) error {
-	if !user.IsManager() {
-		return errors.New("user must be manager")
-	}
-
-	if grade < model.ContractMinGrade || grade > model.ContractMaxGrade {
+func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error {
+	if review.Grade < model.ContractMinGrade || review.Grade > model.ContractMaxGrade {
 		return errors.New("grade must be between 0 and 5")
 	}
 
@@ -106,7 +101,14 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, gr
 		return errors.Wrapf(err, "contractRep.Find(): ")
 	}
 
-	contract.Grade = grade
+	if user.IsManager() {
+		contract.ClientGrade = review.Grade
+		contract.ClientComment = review.Comment
+	} else {
+		contract.FreelancerGrade = review.Grade
+		contract.FreelancerComment = review.Comment
+	}
+
 	contract.Status = model.ContractStatusReviewed
 
 	currManager, err := clients.GetManagerByUserFromServer(user.ID)
