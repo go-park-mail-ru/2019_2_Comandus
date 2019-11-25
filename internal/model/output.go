@@ -12,3 +12,7 @@ type Review struct{
 	ClientGrade		int		`json:"clientGrade"`
 	ClientComment	string	`json:"clientComment"`
 }
+
+type OutputResponse struct {
+	Id int64 `json:"id"`
+}
