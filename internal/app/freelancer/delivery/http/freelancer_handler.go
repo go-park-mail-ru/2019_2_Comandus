@@ -11,6 +11,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -39,6 +40,7 @@ func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, uc user.Usecase,
 
 	m.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/freelancers/{freelancerId}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/search/freelancers", handler.HandleSearchFreelancers).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
@@ -121,4 +123,23 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 		User:       currUser,
 	}
 	respond.Respond(w, r, http.StatusOK, combined)
+}
+
+func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	pattern, ok := r.URL.Query()["q"]
+	if !ok || len(pattern[0]) < 1 {
+		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchFreelancers: ")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
+	log.Println(pattern[0])
+	extendedFreelancers, err := h.FreelancerUsecase.PatternSearch(pattern[0])
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-FreelancerUsecase.PatternSearch: ")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	respond.Respond(w, r, http.StatusOK, extendedFreelancers)
 }

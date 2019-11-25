@@ -111,7 +111,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	go func() {
 		lis, err := net.Listen("tcp", ":8081")
 		if err != nil {
-			log.Fatalln("cant listet port", err)
+			log.Fatalln("cant listen port", err)
 		}
 		server := grpc.NewServer()
 		ugrpc.NewUserServerGrpc(server, userU)

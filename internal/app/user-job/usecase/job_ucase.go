@@ -9,16 +9,16 @@ import (
 )
 
 type JobUsecase struct {
-	jobRep			user_job.Repository
+	jobRep user_job.Repository
 }
 
 func NewJobUsecase(j user_job.Repository) user_job.Usecase {
 	return &JobUsecase{
-		jobRep:			j,
+		jobRep: j,
 	}
 }
 
-func (u *JobUsecase) CreateJob(currUser * model.User, job *model.Job) error {
+func (u *JobUsecase) CreateJob(currUser *model.User, job *model.Job) error {
 	if !currUser.IsManager() {
 		return errors.New("current user is not a manager")
 	}
@@ -106,4 +106,12 @@ func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
 	}
 
 	return nil
+}
+
+func (u *JobUsecase) PatternSearch(pattern string) ([]model.Job, error) {
+	jobs, err := u.jobRep.ListOnPattern(pattern)
+	if err != nil {
+		return nil, errors.Wrap(err, "PatternSearch()")
+	}
+	return jobs, nil
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -34,6 +35,7 @@ func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Pol
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
+	m.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
@@ -165,3 +167,21 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	respond.Respond(w, r, http.StatusOK, struct {}{})
 }
 
+func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	pattern, ok := r.URL.Query()["q"]
+	if !ok || len(pattern[0]) < 1 {
+		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchJob()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
+	log.Println(pattern[0])
+	jobs, err := h.jobUsecase.PatternSearch(pattern[0])
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.PatternSearch()")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	respond.Respond(w, r, http.StatusOK, jobs)
+}
