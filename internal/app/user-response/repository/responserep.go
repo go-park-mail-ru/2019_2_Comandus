@@ -113,3 +113,38 @@ func (r *ResponseRepository) Find(id int64) (*model.Response, error) {
 	}
 	return response, nil
 }
+
+
+func (r *ResponseRepository) ListResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
+	var responses []model.ExtendResponse
+	rows, err := r.db.Query(
+		"SELECT R.id, R.freelancerId, R.jobId, R.files, R.date, R.statusManager, R.statusFreelancer, " +
+			"R.paymentAmount, U.firstname , U.secondname "+
+			"FROM responses AS R " +
+			"INNER JOIN freelancers AS F " +
+			"ON R.freelancerid = F.id " +
+			"INNER JOIN users AS U " +
+			"ON U.accountid = F.accountid " +
+			" WHERE jobid = $1", jobID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		r := model.Response{}
+		exR := model.ExtendResponse{}
+		err := rows.Scan(&r.ID, &r.FreelancerId, &r.JobId, &r.Files, &r.Date, &r.StatusManager,
+			&r.StatusFreelancer, &r.PaymentAmount, &exR.FirstName, &exR.SecondName)
+		if err != nil {
+			return nil, err
+		}
+		exR.R = &r
+
+		responses = append(responses, exR)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return responses, nil
+}
