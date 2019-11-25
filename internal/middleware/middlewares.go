@@ -103,7 +103,8 @@ func (m *Middleware) CORSMiddleware (next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,csrf-token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Origin", m.clientUrl)
+		//w.Header().Set("Access-Control-Allow-Origin", m.clientUrl)
+		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 		if r.Method == http.MethodOptions{
 			// TODO: http.StatusOK?
 			respond.Respond(w , r , http.StatusOK, nil)
