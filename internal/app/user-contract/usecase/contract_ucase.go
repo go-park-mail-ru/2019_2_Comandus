@@ -126,3 +126,48 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	return nil
 }
+
+
+func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
+	if user.IsManager() {
+		return nil, errors.New("user must be freelancer")
+	}
+
+	list, err := u.contractRep.List(user.ID, "freelancer")
+	if err != nil {
+		return nil, errors.Wrap(err, "contractRep.List()")
+	}
+
+	var reviews []model.Review
+	for _, contract := range list {
+
+		if contract.ClientGrade == 0 && contract.ClientComment == "" {
+			continue
+		}
+
+		company, err := clients.GetCompanyFromServer(contract.CompanyID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
+		}
+
+		response, err := clients.GetResponseFromServer(contract.ResponseID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
+		}
+
+		job, err := clients.GetJobFromServer(response.JobId)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
+		}
+
+		review := model.Review{
+			CompanyName:   company.CompanyName,
+			JobTitle:      job.Title,
+			ClientGrade:   contract.ClientGrade,
+			ClientComment: contract.ClientComment,
+		}
+
+		reviews = append(reviews, review)
+	}
+	return reviews, nil
+}
