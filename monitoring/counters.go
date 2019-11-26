@@ -30,4 +30,4 @@ var FooCount = prometheus.NewCounter(prometheus.CounterOpts{
 
 var Hits = prometheus.NewCounterVec(prometheus.CounterOpts{
 	Name: "hits",
-}, []string{"status", "path"})
+}, []string{"status" , "path"})
