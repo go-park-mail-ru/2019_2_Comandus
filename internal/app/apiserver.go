@@ -63,7 +63,17 @@ func Start() error {
 		}
 	}()
 
+
+
 	srv.ConfigureServer(db)
+
+	/*if err := httpscerts.Check("cert.pem", "key.pem"); err != nil {
+		err = httpscerts.Generate("cert.pem", "key.pem", "127.0.0.1:8081")
+		if err != nil {
+			log.Fatal("Ошибка: Не можем сгенерировать https сертификат.")
+		}
+	}
+	return http.ListenAndServeTLS(":8081", "cert.pem", "key.pem", nil)*/
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 

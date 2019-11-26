@@ -1,6 +1,7 @@
 package responseHttp
 
 import (
+	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -9,6 +10,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -32,6 +34,7 @@ func NewResponseHandler(m *mux.Router, rs user_response.Usecase, sanitizer *blue
 	m.HandleFunc("/proposals", handler.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/proposals/{id:[0-9]+}/accept", handler.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/proposals/{id:[0-9]+}/deny", handler.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/job/{jobid:[0-9]+}/proposals", handler.HandleGetResponsesOnJobID).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +49,24 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 	}
 	jobId := int64(id)
 
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			err = errors.Wrapf(err, "HandleResponseJob<-rBodyClose: ")
+			respond.Error(w, r, http.StatusInternalServerError, err)
+		}
+	}()
+
+	response := new(model.Response)
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(response)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseJob<-Decode: ")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	log.Println(response)
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseJob: ")
@@ -53,7 +74,7 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.ResponseUsecase.CreateResponse(u, jobId); err != nil {
+	if err := h.ResponseUsecase.CreateResponse(u, response, jobId); err != nil {
 		err := errors.Wrapf(err,"HandleResponseJob<-ResponseUsecase.CreateResponse: ")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
@@ -80,8 +101,8 @@ func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	for i, _ := range *responses{
-		(*responses)[i].Sanitize(h.sanitizer)
+	for i, _ := range responses{
+		(responses)[i].Sanitize(h.sanitizer)
 	}
 	respond.Respond(w, r, http.StatusOK, responses)
 }
@@ -144,3 +165,22 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
+
+func (h * ResponseHandler) HandleGetResponsesOnJobID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	ids := vars["jobid"]
+	jobid, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi: ")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+	exResp, err := h.ResponseUsecase.GetResponsesOnJobID(int64(jobid))
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetResponsesOnJobID<-GetResponsesOnJobID: ")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+	respond.Respond(w, r, http.StatusOK, exResp)
+}

@@ -9,16 +9,16 @@ import (
 )
 
 type JobUsecase struct {
-	jobRep			user_job.Repository
+	jobRep user_job.Repository
 }
 
 func NewJobUsecase(j user_job.Repository) user_job.Usecase {
 	return &JobUsecase{
-		jobRep:			j,
+		jobRep: j,
 	}
 }
 
-func (u *JobUsecase) CreateJob(currUser * model.User, job *model.Job) error {
+func (u *JobUsecase) CreateJob(currUser *model.User, job *model.Job) error {
 	if !currUser.IsManager() {
 		return errors.New("current user is not a manager")
 	}
@@ -79,4 +79,39 @@ func (u *JobUsecase) EditJob(user *model.User, inputJob *model.Job, id int64) er
 		return errors.Wrapf(err, "jobRep.Edit()")
 	}
 	return nil
+}
+
+func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
+	job, err := u.jobRep.Find(id)
+	if err != nil {
+		return errors.Wrap(err, "jobRep.Find()")
+	}
+
+	if !user.IsManager() {
+		return errors.New("only manager can delete job")
+	}
+
+	manager, err := clients.GetManagerByUserFromServer(user.ID)
+	if err != nil {
+		return errors.Wrap(err, "clients.GetManagerByUserFromServer()")
+	}
+
+	if job.HireManagerId != manager.ID {
+		return errors.Wrap(err, "no access for current manager")
+	}
+
+	job.Status = model.JobStateDeleted
+	if err := u.jobRep.Edit(job); err != nil {
+		return errors.Wrap(err, "jobRep.Edit()")
+	}
+
+	return nil
+}
+
+func (u *JobUsecase) PatternSearch(pattern string) ([]model.Job, error) {
+	jobs, err := u.jobRep.ListOnPattern(pattern)
+	if err != nil {
+		return nil, errors.Wrap(err, "PatternSearch()")
+	}
+	return jobs, nil
 }

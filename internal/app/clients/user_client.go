@@ -10,7 +10,7 @@ import (
 )
 
 func CreateUserOnServer(data *model.User) (*user_grpc.User, error) {
-	conn, err := grpc.Dial(":8081", grpc.WithInsecure())
+	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
 	}
@@ -40,7 +40,7 @@ func CreateUserOnServer(data *model.User) (*user_grpc.User, error) {
 }
 
 func VerifyUserOnServer(user *model.User) (int64, error){
-	conn, err := grpc.Dial(":8081", grpc.WithInsecure())
+	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
 	if err != nil {
 		return 0, errors.Wrap(err, "grpc.Dial()")
 	}
@@ -67,7 +67,7 @@ func VerifyUserOnServer(user *model.User) (int64, error){
 }
 
 func GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error){
-	conn, err := grpc.Dial(":8081", grpc.WithInsecure())
+	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
 	}

@@ -36,6 +36,7 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 	m.HandleFunc("/responses/{id:[0-9]+}/contract", handler.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/contract/{id:[0-9]+/done}", handler.HandleTickContractAsDone).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/contract/{id:[0-9]+}", handler.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/grades", handler.HandleGetContractsGrades).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
@@ -133,12 +134,8 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 		}
 	}()
 
-	type Input struct {
-		Grade int `json:"grade"`
-	}
-
 	decoder := json.NewDecoder(r.Body)
-	input := new(Input)
+	input := new(model.ReviewInput)
 	if err := decoder.Decode(input); err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract: ")
 		respond.Error(w, r, http.StatusBadRequest, err)
@@ -156,7 +153,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	contractId := int64(id)
 
-	if err := h.ContractUsecase.ReviewContract(u, contractId, input.Grade); err != nil {
+	if err := h.ContractUsecase.ReviewContract(u, contractId, input); err != nil {
 		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract(): ")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
@@ -165,3 +162,21 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	respond.Respond(w,r, http.StatusOK, struct{}{})
 }
 
+func (h *ContractHandler) HandleGetContractsGrades(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("no user in context"),"HandleGetContractsGrades()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	list, err := h.ContractUsecase.ReviewList(u)
+	if err != nil {
+		err = errors.Wrap(err, "HandleGetContractsGrades<-ContractUsecase.ReviewList()")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	respond.Respond(w, r, http.StatusOK, list)
+}

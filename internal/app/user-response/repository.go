@@ -8,4 +8,5 @@ type Repository interface {
 	ListForFreelancer(int64) ([]model.Response, error)
 	ListForManager(int64) ([]model.Response, error)
 	Find(int64) (*model.Response, error)
+	ListResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error)
 }

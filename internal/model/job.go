@@ -9,6 +9,7 @@ const (
 	JobStateCreate = "created"
 	JobStateFound = "found"
 	JobStateClosed = "closed"
+	JobStateDeleted = "deleted"
 	)
 
 type Job struct {

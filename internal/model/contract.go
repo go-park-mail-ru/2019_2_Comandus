@@ -10,20 +10,23 @@ const (
 	ContractStatusUnderDevelopment = "develop"
 	ContractStatusCanceled = "cancel"
 	ContractStatusReviewed = "reviewed"
-	ContractMinGrade = 0
+	ContractMinGrade = 1
 	ContractMaxGrade = 5
 )
 
 type Contract struct {
-	ID				int64		`json:"id"`
-	ResponseID		int64 		`json:"responseId"`
-	CompanyID		int64		`json:"companyId"`
-	FreelancerID	int64		`json:"freelancerId"`
-	StartTime		time.Time	`json:"startTime"`
-	EndTime			time.Time	`json:"endTime"`
-	Status			string		`json:"status"`
-	Grade			int			`json:"grade"`
-	PaymentAmount	float32		`json:"paymentAmount"`
+	ID					int64		`json:"id"`
+	ResponseID			int64 		`json:"responseId"`
+	CompanyID			int64		`json:"companyId"`
+	FreelancerID		int64		`json:"freelancerId"`
+	StartTime			time.Time	`json:"startTime"`
+	EndTime				time.Time	`json:"endTime"`
+	Status				string		`json:"status,string"`
+	FreelancerGrade		int			`json:"freelancerGrade"`
+	FreelancerComment	string		`json:"freelancerComment,string"`
+	ClientGrade			int			`json:"clientGrade"`
+	ClientComment		string		`json:"clientComment,string"`
+	PaymentAmount		float32		`json:"paymentAmount"`
 }
 
 

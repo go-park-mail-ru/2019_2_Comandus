@@ -5,6 +5,7 @@ import (
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"log"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func NewResponseUsecase(r user_response.Repository) user_response.Usecase {
 	}
 }
 
-func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
+func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Response, jobId int64) error {
 	if user.IsManager() {
 		return errors.New("to response user need to be freelancer")
 	}
@@ -29,15 +30,13 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 	}
 
 	// TODO: get files from request
-	response := &model.Response{
-		ID:               0,
-		FreelancerId:     currFreelancer.ID,
-		JobId:            jobId,
-		Files:            "",
-		Date:             time.Now(),
-		StatusManager:    model.ResponseStatusReview,
-		StatusFreelancer: model.ResponseStatusBlock,
-	}
+	response.FreelancerId = currFreelancer.ID
+	response.JobId = jobId
+	response.Date = time.Now()
+	response.StatusManager = model.ResponseStatusReview
+	response.StatusFreelancer = model.ResponseStatusBlock
+
+	log.Println(response)
 
 	if err := response.Validate(0); err != nil {
 		return errors.Wrapf(err, "Validate()")
@@ -49,7 +48,7 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
 	return nil
 }
 
-func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, error) {
+func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, error) {
 	var responses []model.Response
 
 	if user.IsManager() {
@@ -78,7 +77,7 @@ func (u *ResponseUsecase) GetResponses(user *model.User) (*[]model.Response, err
 		}
 	}
 
-	return &responses, nil
+	return responses, nil
 }
 
 func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
@@ -178,4 +177,13 @@ func (u *ResponseUsecase) Find(id int64) (*model.Response, error) {
 		return nil, errors.Wrap(err, "responseRep.Find()")
 	}
 	return response, nil
+}
+
+
+func (u *ResponseUsecase) GetResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
+	responses, err := u.responseRep.ListResponsesOnJobID(jobID)
+	if err != nil {
+		return nil, errors.Wrap(err, "responseRep.GetResponsesOnJobID()")
+	}
+	return responses, nil
 }
