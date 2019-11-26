@@ -5,10 +5,12 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -39,6 +41,10 @@ func NewResponseHandler(m *mux.Router, rs user_response.Usecase, sanitizer *blue
 
 func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/jobs/proposal/id", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
 	ids := vars["id"]
@@ -87,6 +93,10 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/proposals", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleGetResponses: ")
@@ -109,6 +119,10 @@ func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Requ
 
 func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/proposals/id/accept", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
 	ids := vars["id"]
@@ -139,6 +153,10 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/proposals/id/deny", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -168,6 +186,11 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 
 func (h * ResponseHandler) HandleGetResponsesOnJobID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/job/id/proposals", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	vars := mux.Vars(r)
 	ids := vars["jobid"]
 	jobid, err := strconv.Atoi(ids)

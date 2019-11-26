@@ -6,10 +6,12 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io"
 	"log"
@@ -53,6 +55,10 @@ func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy
 func (h *UserHandler) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/account", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleShowProfile: ")
@@ -66,6 +72,10 @@ func (h *UserHandler) HandleShowProfile(w http.ResponseWriter, r *http.Request) 
 
 func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/account", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
@@ -103,6 +113,10 @@ func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) 
 func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/account/settings/password", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile: ")
@@ -136,6 +150,10 @@ func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request)
 
 func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/account/upload-avatar", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
@@ -183,6 +201,10 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/account/download-avatar", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleDownloadAvatar()")
@@ -213,6 +235,10 @@ func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *UserHandler) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/account/avatar/id", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -252,6 +278,10 @@ func (h *UserHandler) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/setusertype", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	type Input struct {
 		UserType string `json:"type"`
 	}
@@ -289,25 +319,13 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 	respond.Respond(w, r, http.StatusOK, currUser.UserType)
 }
 
-func (h * UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	session, err := h.sessionStore.Get(r, sessionName)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionGet:")
-		respond.Error(w, r, http.StatusUnauthorized, err)
-		return
-	}
-
-	session.Options.MaxAge = -1
-	if err := session.Save(r, w); err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionSave:")
-		respond.Error(w, r, http.StatusExpectationFailed, err)
-		return
-	}
-	respond.Respond(w, r, http.StatusOK, struct{}{})
-}
-
 func (h *UserHandler) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/roles", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleRoles: ")

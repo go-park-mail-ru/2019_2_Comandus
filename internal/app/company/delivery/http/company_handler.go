@@ -5,10 +5,12 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
@@ -39,6 +41,10 @@ func NewCompanyHandler(m *mux.Router, uc company.Usecase, sanitizer *bluemonday.
 
 func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/company", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
@@ -75,6 +81,9 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/company/id", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
 	ids := vars["companyId"]

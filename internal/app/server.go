@@ -3,6 +3,7 @@ package apiserver
 import (
 	"database/sql"
 	"fmt"
+	authgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/auth/delivery/grpc"
 	cogrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc"
 	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
@@ -109,6 +110,18 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8081")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		authgrpc.NewAuthServerGrpc(server, userU)
+
+		fmt.Println("starting server at :8081")
+		server.Serve(lis)
+	}()
 
 	go func() {
 		lis, err := net.Listen("tcp", ":8087")

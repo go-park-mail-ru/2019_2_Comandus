@@ -44,7 +44,7 @@ func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Pol
 }
 
 func (h *MainHandler) HandleMain(w http.ResponseWriter, r *http.Request) {
-	timer := prometheus.NewTimer(monitoring.RequestDuration)
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.Labels{"path":"/"}))
 	defer timer.ObserveDuration()
 
 	respond.Respond(w, r, http.StatusOK, "hello from server")
@@ -52,6 +52,10 @@ func (h *MainHandler) HandleMain(w http.ResponseWriter, r *http.Request) {
 
 func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/signup", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
@@ -97,6 +101,10 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/login", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleSessionCreate<-rBodyClose")
@@ -138,6 +146,11 @@ func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Reques
 
 func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"token", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	sess, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get")
@@ -150,6 +163,10 @@ func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h * MainHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/logout", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleLogout<-sessionGet")

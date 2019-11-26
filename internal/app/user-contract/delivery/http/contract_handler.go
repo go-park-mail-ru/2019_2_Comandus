@@ -5,10 +5,12 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
@@ -41,6 +43,10 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 
 func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/responses/id/contract", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
@@ -90,6 +96,10 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/contract/id/done", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
@@ -118,6 +128,10 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 
 func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/contract/id", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
@@ -164,6 +178,10 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 func (h *ContractHandler) HandleGetContractsGrades(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/grades", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {

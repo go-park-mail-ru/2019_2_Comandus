@@ -1,33 +1,33 @@
-package ugrpc
+package authgrpc
 
 import (
 	"context"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/auth/delivery/grpc/auth_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc/user_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-type UserServer struct {
+type AuthServer struct {
 	UserUcase user.Usecase
 }
 
-func NewUserServerGrpc(gserver *grpc.Server, userUcase user.Usecase) {
-	userServer := &UserServer{
+func NewAuthServerGrpc(gserver *grpc.Server, userUcase user.Usecase) {
+	authServer := &AuthServer{
 		UserUcase: userUcase,
 	}
-	user_grpc.RegisterUserHandlerServer(gserver, userServer)
+	auth_grpc.RegisterAuthHandlerServer(gserver, authServer)
 	reflection.Register(gserver)
 }
 
-func (s *UserServer) TransformUserRPC(user *model.User) *user_grpc.User {
+func (s *AuthServer) TransformUserRPC(user *model.User) *auth_grpc.User {
 	if user == nil {
 		return nil
 	}
 
-	res := &user_grpc.User{
+	res := &auth_grpc.User{
 		ID:              	user.ID,
 		FirstName:       	user.FirstName,
 		SecondName:      	user.SecondName,
@@ -45,7 +45,7 @@ func (s *UserServer) TransformUserRPC(user *model.User) *user_grpc.User {
 }
 
 
-func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
+func (s *AuthServer) TransformUserData(user *auth_grpc.User) *model.User {
 	res := &model.User{
 		ID:              	user.ID,
 		FirstName:       	user.FirstName,
@@ -63,12 +63,36 @@ func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
 	return res
 }
 
-
-func (s *UserServer) Find(context context.Context,userId *user_grpc.UserID) (*user_grpc.User, error) {
-	currUser, err := s.UserUcase.Find(userId.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "UserUcase.Find()")
+func (s *AuthServer) CreateUser(context context.Context,userReq *auth_grpc.User) (*auth_grpc.User, error) {
+	newUser := &model.User{
+		Email:		userReq.Email,
+		Password:	userReq.Password,
+		FirstName: 	userReq.FirstName,
+		SecondName:	userReq.SecondName,
+		UserType:	userReq.UserType,
 	}
-	res := s.TransformUserRPC(currUser)
+
+	if err := s.UserUcase.CreateUser(newUser); err != nil {
+		return nil, errors.Wrap(err, "UserUcase.CreateUser")
+	}
+
+	res := s.TransformUserRPC(newUser)
+	return res, nil
+}
+
+func (s *AuthServer) VerifyUser(context context.Context,userReq *auth_grpc.UserRequest) (*auth_grpc.UserID, error) {
+	newUser := &model.User{
+		Email:           userReq.Email,
+		Password:        userReq.Password,
+	}
+
+	id, err := s.UserUcase.VerifyUser(newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &auth_grpc.UserID{
+		ID:		id,
+	}
 	return res, nil
 }

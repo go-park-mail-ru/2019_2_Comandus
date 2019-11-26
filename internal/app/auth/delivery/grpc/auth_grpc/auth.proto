@@ -1,12 +1,18 @@
 syntax="proto3";
-package user_grpc;
+package auth_grpc;
 
-service UserHandler {
-    rpc Find(UserID) returns (User);
+service AuthHandler {
+    rpc CreateUser(User) returns (User);
+    rpc VerifyUser(UserRequest) returns (UserID);
 }
 
 message UserID {
     int64 ID=1;
+}
+
+message UserRequest {
+    string email=1;
+    string password=2;
 }
 
 message User {

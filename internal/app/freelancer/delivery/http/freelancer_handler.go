@@ -6,10 +6,12 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -45,6 +47,10 @@ func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, uc user.Usecase,
 
 func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/freelancer", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
@@ -92,6 +98,10 @@ type combined struct {
 func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path":"/freelancer/id", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	vars := mux.Vars(r)
 	ids := vars["freelancerId"]
 	id, err := strconv.Atoi(ids)
@@ -127,6 +137,10 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 
 func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path":"search/freelancer", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	pattern, ok := r.URL.Query()["q"]
 	if !ok || len(pattern[0]) < 1 {
