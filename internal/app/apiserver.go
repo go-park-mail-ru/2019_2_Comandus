@@ -22,7 +22,7 @@ func (w *responseWriter) WriteHeader(statusCode int) {
 }
 
 func Start() error {
-	prometheus.MustRegister(monitoring.FooCount, monitoring.Hits)
+	prometheus.MustRegister(monitoring.Hits)
 
 	config := NewConfig()
 

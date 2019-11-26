@@ -7,10 +7,12 @@ import (
 	general_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -42,6 +44,9 @@ func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Pol
 }
 
 func (h *MainHandler) HandleMain(w http.ResponseWriter, r *http.Request) {
+	timer := prometheus.NewTimer(monitoring.RequestDuration)
+	defer timer.ObserveDuration()
+
 	respond.Respond(w, r, http.StatusOK, "hello from server")
 }
 

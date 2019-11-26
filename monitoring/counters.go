@@ -1,6 +1,8 @@
 package monitoring
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 /*type Counters struct {
 	FooCount	prometheus.Counter
@@ -23,11 +25,13 @@ func (c * Counters) Register() {
 	prometheus.MustRegister(c.FooCount, c.Hits)
 }*/
 
-var FooCount = prometheus.NewCounter(prometheus.CounterOpts{
-	Name: "foo_total",
-	Help: "Number of foo successfully processed.",
-})
+var (
+	RequestDuration = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "request_duration_seconds",
+		Buckets: prometheus.LinearBuckets(0.01, 0.01, 10),
+	})
 
-var Hits = prometheus.NewCounterVec(prometheus.CounterOpts{
-	Name: "hits",
-}, []string{"status" , "path"})
+	Hits = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "hits",
+	}, []string{"status" , "path"})
+)
