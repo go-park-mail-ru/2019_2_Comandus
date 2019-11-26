@@ -15,3 +15,7 @@ mockgen -source=internal/app/user-contract/usecase.go -package=ucase_mocks -mock
 mockgen -source=internal/app/user-job/usecase.go -package=ucase_mocks -mock_names=Usecase=MockJobUsecase > internal/app/mocks/ucase_mocks/job_ucase_mock.go
 mockgen -source=internal/app/user-response/usecase.go -package=ucase_mocks -mock_names=Usecase=MockResponseUsecase > internal/app/mocks/ucase_mocks/response_ucase_mock.go
 mockgen -source=internal/app/company/usecase.go -package=ucase_mocks -mock_names=Usecase=MockCompanyUsecase > internal/app/mocks/ucase_mocks/company_ucase_mock.go
+
+echo "generating clients mocks..."
+#mockgen -source=internal/app/clients/interfaces/ClientManager.go -package=client_mocks -mock_names=Clients=MockManagerClient > internal/app/mocks/client_mocks/manager_client_mock.go
+mockgen -source=internal/app/clients/interfaces/ClienCompany.go -package=client_mocks -mock_names=Clients=MockCompanyClient > internal/app/mocks/client_mocks/company_client_mock.go

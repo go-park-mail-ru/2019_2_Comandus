@@ -8,13 +8,13 @@ import (
 	"log"
 )
 
-func CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error){
+func CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error) {
 	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
 	}
 
-	defer func(){
+	defer func() {
 		if err := conn.Close(); err != nil {
 			// TODO: use zap logger
 			log.Println("conn.Close()", err)
@@ -23,7 +23,7 @@ func CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error)
 
 	client := freelancer_grpc.NewFreelancerHandlerClient(conn)
 	fReq := &freelancer_grpc.UserID{
-		ID:		userId,
+		ID: userId,
 	}
 	freelancer, err := client.CreateFreelancer(context.Background(), fReq)
 	return freelancer, nil
@@ -35,7 +35,7 @@ func GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error
 		return nil, errors.Wrap(err, "grpc.Dial()")
 	}
 
-	defer func(){
+	defer func() {
 		if err := conn.Close(); err != nil {
 			// TODO: use zap logger
 			log.Println("conn.Close()", err)
@@ -44,7 +44,7 @@ func GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error
 
 	client := freelancer_grpc.NewFreelancerHandlerClient(conn)
 	userReq := &freelancer_grpc.UserID{
-		ID:		id,
+		ID: id,
 	}
 
 	currFreelancer, err := client.FindByUser(context.Background(), userReq)

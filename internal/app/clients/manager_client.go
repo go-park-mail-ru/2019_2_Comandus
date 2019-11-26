@@ -8,7 +8,11 @@ import (
 	"log"
 )
 
-func CreateManagerOnServer(userId int64, companyId int64) (*manager_grpc.Manager, error) {
+type ClientManager struct {
+
+}
+
+func (*ClientManager) CreateManagerOnServer(userId int64, companyId int64) (*manager_grpc.Manager, error) {
 	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
@@ -33,7 +37,7 @@ func CreateManagerOnServer(userId int64, companyId int64) (*manager_grpc.Manager
 	return manager, nil
 }
 
-func GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
+func (*ClientManager) GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
 	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
@@ -59,7 +63,7 @@ func GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
 	return currManager, nil
 }
 
-func GetManagerFromServer(id int64) (*manager_grpc.Manager, error){
+func (*ClientManager) GetManagerFromServer(id int64) (*manager_grpc.Manager, error){
 	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

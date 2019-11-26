@@ -8,13 +8,16 @@ import (
 	"log"
 )
 
-func CreateCompanyOnServer(userId int64) (*company_grpc.Company, error){
+//type CompanyClient struct {
+//}
+
+func CreateCompanyOnServer(userId int64) (*company_grpc.Company, error) {
 	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
 	}
 
-	defer func(){
+	defer func() {
 		if err := conn.Close(); err != nil {
 			// TODO: use zap logger
 			log.Println("conn.Close()", err)
@@ -23,9 +26,9 @@ func CreateCompanyOnServer(userId int64) (*company_grpc.Company, error){
 
 	client := company_grpc.NewCompanyHandlerClient(conn)
 	comReq := &company_grpc.UserID{
-		ID:                   userId,
+		ID: userId,
 	}
-	company, err := client.CreateCompany(context.Background(),comReq)
+	company, err := client.CreateCompany(context.Background(), comReq)
 	if err != nil {
 		return nil, errors.Wrap(err, "client.CreateCompany")
 	}
@@ -37,7 +40,7 @@ func GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
 	}
-	defer func(){
+	defer func() {
 		if err := conn.Close(); err != nil {
 			// TODO: use zap logger
 			log.Println("conn.Close()", err)
@@ -46,7 +49,7 @@ func GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
 
 	client := company_grpc.NewCompanyHandlerClient(conn)
 	companyReq := &company_grpc.CompanyID{
-		ID:		id,
+		ID: id,
 	}
 
 	currCompany, err := client.Find(context.Background(), companyReq)
