@@ -48,10 +48,10 @@ func TestJobRepository_Create(t *testing.T) {
 		rows = rows.AddRow(item.ID)
 	}
 
-	m := &model.HireManager{
-		ID:               managerId,
-		AccountID:        1,
-	}
+	//m := &model.HireManager{
+	//	ID:               managerId,
+	//	AccountID:        1,
+	//}
 
 	j := testJob(t)
 	j.BeforeCreate()
@@ -68,7 +68,7 @@ func TestJobRepository_Create(t *testing.T) {
 			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnRows(rows)
 
-	err = repo.Create(j, m)
+	err = repo.Create(j)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -90,7 +90,7 @@ func TestJobRepository_Create(t *testing.T) {
 			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnError(fmt.Errorf("bad query"))
 
-	err = repo.Create(j, m)
+	err = repo.Create(j)
 	if err == nil {
 		t.Errorf("expected error, got nil")
 		return
@@ -133,7 +133,7 @@ func TestJobRepository_Find(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 		"country, city, jobTypeId, date, status FROM jobs WHERE").
-		WithArgs(elemID).
+		WithArgs(elemID, model.JobStateDeleted).
 		WillReturnRows(rows)
 
 	repo := NewJobRepository(db)
@@ -157,7 +157,7 @@ func TestJobRepository_Find(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 			"country, city, jobTypeId, date, status FROM jobs WHERE").
-		WithArgs(elemID).
+		WithArgs(elemID, model.JobStateDeleted).
 		WillReturnError(fmt.Errorf("db_error"))
 
 	_, err = repo.Find(elemID)
@@ -179,7 +179,7 @@ func TestJobRepository_Find(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
 			"country, city, jobTypeId, date, status FROM jobs WHERE").
-		WithArgs(elemID).
+		WithArgs(elemID, model.JobStateDeleted).
 		WillReturnRows(rows)
 
 	_, err = repo.Find(elemID)
@@ -297,7 +297,8 @@ func TestJobRepository_List(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status FROM jobs LIMIT 10").
+		"country, city, jobTypeId, date, status FROM jobs WHERE").
+		WithArgs(model.JobStateDeleted).
 		WillReturnRows(rows)
 
 	repo := NewJobRepository(db)
@@ -322,10 +323,100 @@ func TestJobRepository_List(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status FROM jobs LIMIT 10").
+		"country, city, jobTypeId, date, status FROM jobs WHERE").
+		WithArgs(model.JobStateDeleted).
 		WillReturnError(fmt.Errorf("db_error"))
 
 	_, err = repo.List()
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+}
+
+
+func TestJobRepository_ListOnPattern(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
+			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
+
+	pattern := "job"
+
+	j1 := testJob(t)
+	j1.Title = "job true"
+	j1.BeforeCreate()
+
+	j2 := testJob(t)
+	j2.Title = "job false"
+	j2.BeforeCreate()
+
+	j3 := testJob(t)
+	j3.Title = "job luf"
+	j3.BeforeCreate()
+
+	expect := []*model.Job{
+		j1,
+		j2,
+		j3,
+	}
+
+	for _, item := range expect {
+		rows = rows.AddRow(item.ID, item.HireManagerId, item.Title, item.Description, item.Files, item.SpecialityId,
+			item.ExperienceLevelId, item.PaymentAmount, item.Country, item.City, item.JobTypeId, item.Date, item.Status)
+	}
+
+	mock.
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
+		"country, city, jobTypeId, date, status "+
+		"FROM jobs WHERE ").
+		WithArgs(pattern).
+		WillReturnRows(rows)
+
+	repo := NewJobRepository(db)
+
+	jobs, err := repo.ListOnPattern(pattern)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	for i := 0; i < 3; i++ {
+		if !jobs[i].IsEqual(*expect[i]) {
+			t.Errorf("results not match, want %v, have %v", expect[i], jobs[i])
+			return
+		}
+	}
+
+	// query error
+	mock.
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
+		"country, city, jobTypeId, date, status "+
+		"FROM jobs WHERE ").
+		WithArgs(pattern).
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = repo.ListOnPattern(pattern)
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
