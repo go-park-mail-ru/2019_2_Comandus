@@ -17,10 +17,6 @@ import (
 	"strconv"
 )
 
-const (
-	sessionName                    = "user-session"
-)
-
 type ResponseError struct {
 	Message string `json:"message"`
 }
@@ -263,7 +259,6 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 		}
 	}()
 
-
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)
 	err := decoder.Decode(newInput)
@@ -287,23 +282,6 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respond.Respond(w, r, http.StatusOK, currUser.UserType)
-}
-
-func (h * UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	session, err := h.sessionStore.Get(r, sessionName)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionGet:")
-		respond.Error(w, r, http.StatusUnauthorized, err)
-		return
-	}
-
-	session.Options.MaxAge = -1
-	if err := session.Save(r, w); err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionSave:")
-		respond.Error(w, r, http.StatusExpectationFailed, err)
-		return
-	}
-	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h *UserHandler) HandleRoles(w http.ResponseWriter, r *http.Request) {

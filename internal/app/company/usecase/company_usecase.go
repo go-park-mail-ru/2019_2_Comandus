@@ -23,6 +23,7 @@ func (u * CompanyUsecase) Create() (*model.Company, error) {
 	if err := u.companyRep.Create(c); err != nil {
 		return nil, errors.Wrap(err, "companyRep.Create()")
 	}
+
 	return c, nil
 }
 

@@ -80,6 +80,7 @@ func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 
 	var openFile *os.File
 	// TODO: create default user in database, get default image from it
+
 	_, err := os.Getwd()
 	if err != nil {
 		return nil, errors.Wrap(err, "os.Getwd()")
