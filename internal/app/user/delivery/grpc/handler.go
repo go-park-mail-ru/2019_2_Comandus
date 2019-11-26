@@ -28,48 +28,47 @@ func (s *UserServer) TransformUserRPC(user *model.User) *user_grpc.User {
 	}
 
 	res := &user_grpc.User{
-		ID:              	user.ID,
-		FirstName:       	user.FirstName,
-		SecondName:      	user.SecondName,
-		UserName:        	user.UserName,
-		Email:           	user.Email,
-		Password:        	user.Password,
-		EncryptPassword: 	user.EncryptPassword,
-		UserType:        	user.UserType,
-		FreelancerId:    	user.FreelancerId,
-		HireManagerId:   	user.HireManagerId,
-		CompanyId:       	user.CompanyId,
-		Avatar:				user.Avatar,
+		ID:              user.ID,
+		FirstName:       user.FirstName,
+		SecondName:      user.SecondName,
+		UserName:        user.UserName,
+		Email:           user.Email,
+		Password:        user.Password,
+		EncryptPassword: user.EncryptPassword,
+		UserType:        user.UserType,
+		FreelancerId:    user.FreelancerId,
+		HireManagerId:   user.HireManagerId,
+		CompanyId:       user.CompanyId,
+		Avatar:          user.Avatar,
 	}
 	return res
 }
-
 
 func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
 	res := &model.User{
-		ID:              	user.ID,
-		FirstName:       	user.FirstName,
-		SecondName:      	user.SecondName,
-		UserName:        	user.UserName,
-		Email:           	user.Email,
-		Password:        	user.Password,
-		EncryptPassword: 	user.EncryptPassword,
-		UserType:        	user.UserType,
-		FreelancerId:    	user.FreelancerId,
-		HireManagerId:   	user.HireManagerId,
-		CompanyId:       	user.CompanyId,
-		Avatar:				user.Avatar,
+		ID:              user.ID,
+		FirstName:       user.FirstName,
+		SecondName:      user.SecondName,
+		UserName:        user.UserName,
+		Email:           user.Email,
+		Password:        user.Password,
+		EncryptPassword: user.EncryptPassword,
+		UserType:        user.UserType,
+		FreelancerId:    user.FreelancerId,
+		HireManagerId:   user.HireManagerId,
+		CompanyId:       user.CompanyId,
+		Avatar:          user.Avatar,
 	}
 	return res
 }
 
-func (s *UserServer) CreateUser(context context.Context,userReq *user_grpc.User) (*user_grpc.User, error) {
+func (s *UserServer) CreateUser(context context.Context, userReq *user_grpc.User) (*user_grpc.User, error) {
 	newUser := &model.User{
-		Email:		userReq.Email,
-		Password:	userReq.Password,
-		FirstName: 	userReq.FirstName,
-		SecondName:	userReq.SecondName,
-		UserType:	userReq.UserType,
+		Email:      userReq.Email,
+		Password:   userReq.Password,
+		FirstName:  userReq.FirstName,
+		SecondName: userReq.SecondName,
+		UserType:   userReq.UserType,
 	}
 
 	if err := s.UserUcase.CreateUser(newUser); err != nil {
@@ -80,10 +79,10 @@ func (s *UserServer) CreateUser(context context.Context,userReq *user_grpc.User)
 	return res, nil
 }
 
-func (s *UserServer) VerifyUser(context context.Context,userReq *user_grpc.UserRequest) (*user_grpc.UserID, error) {
+func (s *UserServer) VerifyUser(context context.Context, userReq *user_grpc.UserRequest) (*user_grpc.UserID, error) {
 	newUser := &model.User{
-		Email:           userReq.Email,
-		Password:        userReq.Password,
+		Email:    userReq.Email,
+		Password: userReq.Password,
 	}
 
 	id, err := s.UserUcase.VerifyUser(newUser)
@@ -92,13 +91,12 @@ func (s *UserServer) VerifyUser(context context.Context,userReq *user_grpc.UserR
 	}
 
 	res := &user_grpc.UserID{
-		ID:		id,
+		ID: id,
 	}
 	return res, nil
 }
 
-
-func (s *UserServer) Find(context context.Context,userId *user_grpc.UserID) (*user_grpc.User, error) {
+func (s *UserServer) Find(context context.Context, userId *user_grpc.UserID) (*user_grpc.User, error) {
 	currUser, err := s.UserUcase.Find(userId.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "UserUcase.Find()")

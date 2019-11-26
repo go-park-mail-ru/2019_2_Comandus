@@ -25,7 +25,10 @@ func testContract(t * testing.T) *model.Contract {
 		StartTime:     time.Now(),
 		EndTime:       time.Time{},
 		Status:        "review",
-		Grade:         0,
+		ClientGrade:     5,
+		FreelancerGrade: 4,
+		ClientComment: "Coool",
+		FreelancerComment: "Good",
 		PaymentAmount: 100,
 	}
 }
@@ -39,7 +42,10 @@ func IsEqual(t *testing.T, c1 *model.Contract, c2 * model.Contract) bool {
 		c1.StartTime == c2.StartTime &&
 		c1.EndTime == c2.EndTime &&
 		c1.Status == c2.Status &&
-		c1.Grade == c2.Grade &&
+		c1.ClientGrade == c2.ClientGrade &&
+		c1.FreelancerGrade == c2.FreelancerGrade &&
+		c1.ClientComment == c2.ClientComment &&
+		c1.FreelancerComment == c2.FreelancerComment &&
 		c1.PaymentAmount == c2.PaymentAmount
 }
 
@@ -79,7 +85,7 @@ func TestContractRep_Create(t *testing.T) {
 	mock.
 		ExpectQuery(`INSERT INTO contracts`).
 		WithArgs(contract.ResponseID, contract.CompanyID, contract.FreelancerID, contract.StartTime,
-			contract.EndTime, contract.Status, contract.Grade, contract.PaymentAmount).
+			contract.EndTime, contract.Status,contract.PaymentAmount).
 		WillReturnRows(rows)
 
 	err = repo.Create(contract)
@@ -101,7 +107,7 @@ func TestContractRep_Create(t *testing.T) {
 	mock.
 		ExpectQuery(`INSERT INTO contracts`).
 		WithArgs(contract.ResponseID, contract.CompanyID, contract.FreelancerID, contract.StartTime,
-			contract.EndTime, contract.Status, contract.Grade, contract.PaymentAmount).
+			contract.EndTime, contract.Status, contract.PaymentAmount).
 		WillReturnError(fmt.Errorf("bad query"))
 
 	err = repo.Create(contract)
@@ -131,7 +137,7 @@ func TestContractRep_Find(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
-			"grade", "paymentAmount" })
+			"clientgrade","freelancergrade", "clientcomment", "freelancercomment", "paymentAmount" })
 
 	contract := testContract(t)
 	expect := []*model.Contract{
@@ -140,12 +146,13 @@ func TestContractRep_Find(t *testing.T) {
 
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime, item.EndTime,
-			item.Status, item.Grade, item.PaymentAmount)
+			item.Status, item.ClientGrade, item.ClientComment,
+			item.FreelancerGrade, item.FreelancerComment ,item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, grade, " +
-			"paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -168,8 +175,8 @@ func TestContractRep_Find(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, grade, " +
-			"paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -190,8 +197,8 @@ func TestContractRep_Find(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, grade, " +
-			"paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -241,12 +248,13 @@ func TestContractRep_Edit(t *testing.T) {
 	}*/
 
 	//ok query
-	contract.Grade = 5
+	contract.ClientGrade = 5
+	contract.ClientComment = "Great"
 	contract.Status = "done"
 	mock.
 		ExpectQuery(`UPDATE contracts SET`).
-		WithArgs(contract.FreelancerID, contract.StartTime, contract.EndTime, contract.Status, contract.Grade,
-			contract.PaymentAmount, contract.ID).
+		WithArgs(contract.FreelancerID, contract.StartTime, contract.EndTime, contract.Status, contract.ClientGrade,
+			contract.ClientComment, contract.FreelancerGrade, contract.FreelancerComment,contract.PaymentAmount, contract.ID).
 		WillReturnRows(rows)
 
 	err = repo.Edit(contract)
@@ -279,7 +287,7 @@ func TestContractRepository_ListCompany(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
-			"grade", "paymentAmount" })
+		"clientgrade","freelancergrade", "clientcomment", "freelancercomment", "paymentAmount" })
 
 	c1 := testContract(t)
 	c2 := testContract(t)
@@ -293,13 +301,13 @@ func TestContractRepository_ListCompany(t *testing.T) {
 
 	// company mode
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime,
-			item.EndTime, item.Status, item.Grade, item.PaymentAmount)
+		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime, item.EndTime,
+			item.Status, item.ClientGrade, item.ClientComment, item.FreelancerGrade, item.FreelancerComment ,item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
-			"grade, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(companyId).
 		WillReturnRows(rows)
 
@@ -324,8 +332,8 @@ func TestContractRepository_ListCompany(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
-			"grade, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(companyId).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -355,8 +363,8 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
-			"grade", "paymentAmount" })
+		NewRows([]string{ "id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
+		"clientgrade","freelancergrade", "clientcomment", "freelancercomment", "paymentAmount" })
 
 	c1 := testContract(t)
 	c2 := testContract(t)
@@ -372,13 +380,13 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 
 	// freelancer mode
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime,
-			item.EndTime, item.Status, item.Grade, item.PaymentAmount)
+		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime, item.EndTime,
+			item.Status, item.ClientGrade, item.ClientComment, item.FreelancerGrade, item.FreelancerComment ,item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
-			"grade, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(freelancerId).
 		WillReturnRows(rows)
 
@@ -401,8 +409,8 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
-			"grade, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(freelancerId).
 		WillReturnError(fmt.Errorf("db_error"))
 

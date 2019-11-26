@@ -11,7 +11,7 @@ import (
 func testCompany(t *testing.T) *model.Company {
 	t.Helper()
 	return &model.Company{
-		ID:          1,
+		ID:          2,
 		CompanyName: "mocks company",
 		Site:        "www.testcompany.com",
 		TagLine:     "no tags",

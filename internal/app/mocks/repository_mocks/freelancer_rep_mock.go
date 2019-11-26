@@ -90,3 +90,18 @@ func (mr *MockFreelancerRepositoryMockRecorder) Edit(freelancer interface{}) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockFreelancerRepository)(nil).Edit), freelancer)
 }
+
+// ListOnPattern mocks base method
+func (m *MockFreelancerRepository) ListOnPattern(arg0 string) ([]model.ExtendFreelancer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListOnPattern", arg0)
+	ret0, _ := ret[0].([]model.ExtendFreelancer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListOnPattern indicates an expected call of ListOnPattern
+func (mr *MockFreelancerRepositoryMockRecorder) ListOnPattern(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOnPattern", reflect.TypeOf((*MockFreelancerRepository)(nil).ListOnPattern), arg0)
+}

@@ -105,3 +105,18 @@ func (mr *MockResponseRepositoryMockRecorder) Find(arg0 interface{}) *gomock.Cal
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockResponseRepository)(nil).Find), arg0)
 }
+
+// ListResponsesOnJobID mocks base method
+func (m *MockResponseRepository) ListResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListResponsesOnJobID", jobID)
+	ret0, _ := ret[0].([]model.ExtendResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListResponsesOnJobID indicates an expected call of ListResponsesOnJobID
+func (mr *MockResponseRepositoryMockRecorder) ListResponsesOnJobID(jobID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListResponsesOnJobID", reflect.TypeOf((*MockResponseRepository)(nil).ListResponsesOnJobID), jobID)
+}

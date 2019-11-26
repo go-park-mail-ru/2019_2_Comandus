@@ -80,8 +80,8 @@ func (r *ContractRepository) List(id int64, mode string) ([]model.Contract, erro
 
 	var query string
 	if mode == ContractListByCompany {
-		query = "SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, grade, " +
-			"paymentAmount FROM contracts WHERE companyId = $1"
+		query = "SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE companyId = $1"
 	} else if mode == ContractListByFreelancer {
 		query = "SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
 			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE freelancerId = $1"

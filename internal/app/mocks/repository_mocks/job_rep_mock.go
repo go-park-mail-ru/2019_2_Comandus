@@ -34,17 +34,17 @@ func (m *MockJobRepository) EXPECT() *MockJobRepositoryMockRecorder {
 }
 
 // Create mocks base method
-func (m_2 *MockJobRepository) Create(j *model.Job, m *model.HireManager) error {
-	m_2.ctrl.T.Helper()
-	ret := m_2.ctrl.Call(m_2, "Create", j, m)
+func (m *MockJobRepository) Create(j *model.Job) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", j)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create
-func (mr *MockJobRepositoryMockRecorder) Create(j, m interface{}) *gomock.Call {
+func (mr *MockJobRepositoryMockRecorder) Create(j interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobRepository)(nil).Create), j, m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobRepository)(nil).Create), j)
 }
 
 // Find mocks base method
@@ -89,4 +89,19 @@ func (m *MockJobRepository) List() ([]model.Job, error) {
 func (mr *MockJobRepositoryMockRecorder) List() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockJobRepository)(nil).List))
+}
+
+// ListOnPattern mocks base method
+func (m *MockJobRepository) ListOnPattern(arg0 string) ([]model.Job, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListOnPattern", arg0)
+	ret0, _ := ret[0].([]model.Job)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListOnPattern indicates an expected call of ListOnPattern
+func (mr *MockJobRepositoryMockRecorder) ListOnPattern(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOnPattern", reflect.TypeOf((*MockJobRepository)(nil).ListOnPattern), arg0)
 }

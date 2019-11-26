@@ -20,6 +20,17 @@ func testFreelancer(t *testing.T) *model.Freelancer {
 	}
 }
 
+func testExFreelancer(t *testing.T) *model.ExtendFreelancer {
+	t.Helper()
+	return &model.ExtendFreelancer{
+		F: testFreelancer(t),
+		FirstName:			"masha",
+		SecondName:			"Ivanova",
+	}
+}
+
+
+
 func TestFreelancerRep_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -326,4 +337,89 @@ func TestFreelancerRep_Edit(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
+}
+
+func TestFreelancerRepository_ListOnPattern(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer func() {
+		mock.ExpectClose()
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	var pattern = "masha"
+
+	// good query
+	rows := sqlmock.
+		NewRows([]string{"id", "accountId", "country", "city", "address", "phone", "tagLine",
+			"overview", "experienceLevelId", "specialityId", "firstname", "secondname"})
+
+	expectFr := []*model.ExtendFreelancer{
+		testExFreelancer(t),
+	}
+
+	for _, item := range expectFr {
+		rows = rows.AddRow(item.F.ID, item.F.AccountId, item.F.Country, item.F.City, item.F.Address,
+			item.F.Phone, item.F.TagLine, item.F.Overview, item.F.ExperienceLevelId, item.F.SpecialityId,
+			item.FirstName, item.SecondName)
+	}
+
+	mock.
+		ExpectQuery("SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, " +
+			" F.overview, F.experienceLevelId, F.specialityId, U.firstname , U.secondname " +
+			"FROM freelancers AS F ").
+		WithArgs(pattern).
+		WillReturnRows(rows)
+
+	repo := NewFreelancerRepository(db)
+
+	item, err := repo.ListOnPattern(pattern)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if !CompareExFr(item[0], expectFr[0]) {
+		t.Errorf("results not match, want %v, have %v", expectFr[0], item[0])
+		return
+	}
+
+	// query error
+
+	mock.
+		ExpectQuery("SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, " +
+			" F.overview, F.experienceLevelId, F.specialityId, U.firstname , U.secondname " +
+			"FROM freelancers AS F ").
+		WithArgs(pattern).
+		WillReturnError(fmt.Errorf("db_error"))
+
+	_, err = repo.ListOnPattern(pattern)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err == nil {
+		t.Errorf("expected error, got nil")
+		return
+	}
+}
+
+
+func CompareExFr(f1 model.ExtendFreelancer, f2 *model.ExtendFreelancer) bool {
+	if !reflect.DeepEqual(f1.F, f2.F) {
+		return false
+	}
+	if f1.FirstName != f2.FirstName || f1.SecondName != f2.SecondName {
+		return false
+	}
+	return true
 }

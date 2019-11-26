@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 )
 
-// MockCompanyUsecase is a mock of UserUcase interface
+// MockCompanyUsecase is a mock of Usecase interface
 type MockCompanyUsecase struct {
 	ctrl     *gomock.Controller
 	recorder *MockCompanyUsecaseMockRecorder
@@ -34,17 +34,18 @@ func (m *MockCompanyUsecase) EXPECT() *MockCompanyUsecaseMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockCompanyUsecase) Create(c *model.Company) error {
+func (m *MockCompanyUsecase) Create() (*model.Company, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", c)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "Create")
+	ret0, _ := ret[0].(*model.Company)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Create indicates an expected call of Create
-func (mr *MockCompanyUsecaseMockRecorder) Create(c interface{}) *gomock.Call {
+func (mr *MockCompanyUsecaseMockRecorder) Create() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCompanyUsecase)(nil).Create), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCompanyUsecase)(nil).Create))
 }
 
 // Find mocks base method

@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 )
 
-// MockContractUsecase is a mock of UserUcase interface
+// MockContractUsecase is a mock of Usecase interface
 type MockContractUsecase struct {
 	ctrl     *gomock.Controller
 	recorder *MockContractUsecaseMockRecorder
@@ -62,15 +62,30 @@ func (mr *MockContractUsecaseMockRecorder) SetAsDone(user, contractId interface{
 }
 
 // ReviewContract mocks base method
-func (m *MockContractUsecase) ReviewContract(user *model.User, contractId int64, grade int) error {
+func (m *MockContractUsecase) ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReviewContract", user, contractId, grade)
+	ret := m.ctrl.Call(m, "ReviewContract", user, contractId, review)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReviewContract indicates an expected call of ReviewContract
-func (mr *MockContractUsecaseMockRecorder) ReviewContract(user, contractId, grade interface{}) *gomock.Call {
+func (mr *MockContractUsecaseMockRecorder) ReviewContract(user, contractId, review interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReviewContract", reflect.TypeOf((*MockContractUsecase)(nil).ReviewContract), user, contractId, grade)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReviewContract", reflect.TypeOf((*MockContractUsecase)(nil).ReviewContract), user, contractId, review)
+}
+
+// ReviewList mocks base method
+func (m *MockContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReviewList", user)
+	ret0, _ := ret[0].([]model.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReviewList indicates an expected call of ReviewList
+func (mr *MockContractUsecaseMockRecorder) ReviewList(user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReviewList", reflect.TypeOf((*MockContractUsecase)(nil).ReviewList), user)
 }

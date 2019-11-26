@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 )
 
-// MockJobUsecase is a mock of UserUcase interface
+// MockJobUsecase is a mock of Usecase interface
 type MockJobUsecase struct {
 	ctrl     *gomock.Controller
 	recorder *MockJobUsecaseMockRecorder
@@ -89,4 +89,33 @@ func (m *MockJobUsecase) EditJob(user *model.User, job *model.Job, id int64) err
 func (mr *MockJobUsecaseMockRecorder) EditJob(user, job, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditJob", reflect.TypeOf((*MockJobUsecase)(nil).EditJob), user, job, id)
+}
+
+// MarkAsDeleted mocks base method
+func (m *MockJobUsecase) MarkAsDeleted(id int64, user *model.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkAsDeleted", id, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkAsDeleted indicates an expected call of MarkAsDeleted
+func (mr *MockJobUsecaseMockRecorder) MarkAsDeleted(id, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsDeleted", reflect.TypeOf((*MockJobUsecase)(nil).MarkAsDeleted), id, user)
+}
+
+// PatternSearch mocks base method
+func (m *MockJobUsecase) PatternSearch(arg0 string) ([]model.Job, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatternSearch", arg0)
+	ret0, _ := ret[0].([]model.Job)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatternSearch indicates an expected call of PatternSearch
+func (mr *MockJobUsecaseMockRecorder) PatternSearch(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatternSearch", reflect.TypeOf((*MockJobUsecase)(nil).PatternSearch), arg0)
 }

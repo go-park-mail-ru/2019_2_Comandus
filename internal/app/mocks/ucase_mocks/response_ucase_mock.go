@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 )
 
-// MockResponseUsecase is a mock of UserUcase interface
+// MockResponseUsecase is a mock of Usecase interface
 type MockResponseUsecase struct {
 	ctrl     *gomock.Controller
 	recorder *MockResponseUsecaseMockRecorder
@@ -34,24 +34,24 @@ func (m *MockResponseUsecase) EXPECT() *MockResponseUsecaseMockRecorder {
 }
 
 // CreateResponse mocks base method
-func (m *MockResponseUsecase) CreateResponse(user *model.User, jobId int64) error {
+func (m *MockResponseUsecase) CreateResponse(user *model.User, response *model.Response, jobId int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateResponse", user, jobId)
+	ret := m.ctrl.Call(m, "CreateResponse", user, response, jobId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateResponse indicates an expected call of CreateResponse
-func (mr *MockResponseUsecaseMockRecorder) CreateResponse(user, jobId interface{}) *gomock.Call {
+func (mr *MockResponseUsecaseMockRecorder) CreateResponse(user, response, jobId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResponse", reflect.TypeOf((*MockResponseUsecase)(nil).CreateResponse), user, jobId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResponse", reflect.TypeOf((*MockResponseUsecase)(nil).CreateResponse), user, response, jobId)
 }
 
 // GetResponses mocks base method
-func (m *MockResponseUsecase) GetResponses(user *model.User) (*[]model.Response, error) {
+func (m *MockResponseUsecase) GetResponses(user *model.User) ([]model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetResponses", user)
-	ret0, _ := ret[0].(*[]model.Response)
+	ret0, _ := ret[0].([]model.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,4 +88,34 @@ func (m *MockResponseUsecase) DenyResponse(user *model.User, responseId int64) e
 func (mr *MockResponseUsecaseMockRecorder) DenyResponse(user, responseId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DenyResponse", reflect.TypeOf((*MockResponseUsecase)(nil).DenyResponse), user, responseId)
+}
+
+// Find mocks base method
+func (m *MockResponseUsecase) Find(id int64) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", id)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Find indicates an expected call of Find
+func (mr *MockResponseUsecaseMockRecorder) Find(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockResponseUsecase)(nil).Find), id)
+}
+
+// GetResponsesOnJobID mocks base method
+func (m *MockResponseUsecase) GetResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetResponsesOnJobID", jobID)
+	ret0, _ := ret[0].([]model.ExtendResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetResponsesOnJobID indicates an expected call of GetResponsesOnJobID
+func (mr *MockResponseUsecaseMockRecorder) GetResponsesOnJobID(jobID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponsesOnJobID", reflect.TypeOf((*MockResponseUsecase)(nil).GetResponsesOnJobID), jobID)
 }
