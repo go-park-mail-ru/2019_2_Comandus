@@ -9,6 +9,7 @@ const (
 	JobStateCreate = "created"
 	JobStateFound = "found"
 	JobStateClosed = "closed"
+	JobStateDeleted = "deleted"
 	)
 
 type Job struct {
@@ -17,14 +18,14 @@ type Job struct {
 	Title             string  `json:"title" valid:"utfletternum, required"`
 	Description       string  `json:"description"valid:"- , optional"`
 	Files             string  `json:"files" valid:"-"`
-	SpecialityId      int     `json:"specialityId,string" valid:"int, optional"`
-	ExperienceLevelId int     `json:"experienceLevelId,string" valid:"in(1|2|3)"`
-	PaymentAmount     float64 `json:"paymentAmount,string" valid:"float"`
+	SpecialityId      int64     `json:"specialityId,string" valid:"int, optional"`
+	ExperienceLevelId int64     `json:"experienceLevelId,string" valid:"in(1|2|3)"`
+	PaymentAmount     float32 `json:"paymentAmount,string" valid:"float"`
 	Country           string  `json:"country" valid:"utfletternum, optional"`
 	City              string  `json:"city" valid:"utfletternum, optional"`
-	JobTypeId         int     `json:"jobTypeId,string" valid:"int, optional"`
-	Date			  time.Time `json:"date" valid:"-"`
-	Status			  string `json:"status,string" valid:"-"`
+	JobTypeId         int64     `json:"jobTypeId,string" valid:"int, optional"`
+	Date			  time.Time `json:"date"`
+	Status			  string `json:"status,string"`
 }
 
 func (j *Job) IsEqual(job Job) bool {

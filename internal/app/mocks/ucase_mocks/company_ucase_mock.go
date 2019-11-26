@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 )
 
-// MockCompanyUsecase is a mock of Usecase interface
+// MockCompanyUsecase is a mock of UserUcase interface
 type MockCompanyUsecase struct {
 	ctrl     *gomock.Controller
 	recorder *MockCompanyUsecaseMockRecorder

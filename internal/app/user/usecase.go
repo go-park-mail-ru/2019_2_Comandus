@@ -1,6 +1,8 @@
 package user
 
-import "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+import (
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+)
 
 type Usecase interface {
 	CreateUser(*model.User) error

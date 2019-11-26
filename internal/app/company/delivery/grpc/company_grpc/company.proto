@@ -1,0 +1,27 @@
+syntax="proto3";
+package company_grpc;
+
+service CompanyHandler {
+    rpc CreateCompany(UserID) returns (Company);
+    rpc Find(CompanyID) returns (Company);
+}
+
+message Company {
+    int64 ID=1;
+    string CompanyName=2;
+    string Site=3;
+    string TagLine=4;
+    string Description=5;
+    string Country=6;
+    string City=7;
+    string Address=8;
+    string Phone=9;
+}
+
+message CompanyID {
+    int64 ID=1;
+}
+
+message UserID {
+    int64 ID=1;
+}

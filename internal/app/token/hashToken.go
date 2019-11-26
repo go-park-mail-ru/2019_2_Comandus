@@ -1,4 +1,4 @@
-package token
+ package token
 
 import (
 	"crypto/hmac"

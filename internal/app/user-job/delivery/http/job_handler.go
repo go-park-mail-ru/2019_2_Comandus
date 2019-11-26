@@ -2,7 +2,7 @@ package jobHttp
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
@@ -10,6 +10,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -33,6 +34,8 @@ func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Pol
 	m.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
+	m.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
@@ -40,8 +43,8 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateJob<-Close: ")
-			general.Error(w, r, http.StatusInternalServerError, err)
+			err = errors.Wrapf(err, "HandleCreateJob<-Close()")
+			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
@@ -50,24 +53,25 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(job)
 
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateJob<-Decode: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		err = errors.Wrapf(err, "HandleCreateJob<-Decode()")
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.jobUsecase.CreateJob(u, job); err != nil {
-		err := errors.Wrap(err, "HandleCreateJob <- JobUseCase.CreateJob(): ")
-		general.Error(w, r, http.StatusInternalServerError, err)
+		err := errors.Wrap(err, "HandleCreateJob<-JobUseCase.CreateJob()")
+		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
-	general.Respond(w, r, http.StatusOK, job)
+
+	respond.Respond(w, r, http.StatusOK, job)
 }
 
 func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
@@ -78,18 +82,18 @@ func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(ids)
 
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong id): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong id)")
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	job, err := h.jobUsecase.FindJob(int64(id))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.FindJob(): ")
-		general.Error(w, r, http.StatusNotFound, err)
+		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.FindJob()")
+		respond.Error(w, r, http.StatusNotFound, err)
 	}
 
 	job.Sanitize(h.sanitizer)
-	general.Respond(w, r, http.StatusOK, job)
+	respond.Respond(w, r, http.StatusOK, job)
 }
 
 func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
@@ -97,24 +101,49 @@ func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 
 	jobs, err := h.jobUsecase.GetAllJobs()
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetAllJobs<-jobUsecase.GetAllJobs: ")
-		general.Error(w, r, http.StatusNotFound, err)
+		err = errors.Wrapf(err, "HandleGetAllJobs<-jobUsecase.GetAllJobs()")
+		respond.Error(w, r, http.StatusNotFound, err)
 	}
 
 	for i, _ := range jobs{
 		jobs[i].Sanitize(h.sanitizer)
 	}
 
-	general.Respond(w, r, http.StatusOK, &jobs)
+	respond.Respond(w, r, http.StatusOK, &jobs)
+}
+
+func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id)")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
+	if err := h.jobUsecase.MarkAsDeleted(int64(id), u); err != nil {
+		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.MarkAsDeleted()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+	respond.Respond(w, r, http.StatusOK, struct {}{})
 }
 
 func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	u, ok := r.Context().Value(general.CtxKeyUser).(*model.User)
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob: ")
-		general.Error(w, r, http.StatusUnauthorized, err)
+		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -127,75 +156,32 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id): ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id)()")
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	if err := h.jobUsecase.EditJob(u, inputJob, int64(id)); err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.EditJob: ")
-		general.Error(w, r, http.StatusBadRequest, err)
+		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.EditJob()")
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
-	general.Respond(w, r, http.StatusOK, struct {}{})
+	respond.Respond(w, r, http.StatusOK, struct {}{})
 }
 
-/*func (s *server) HandleEditFreelancer(w http.ResponseWriter, r *http.Request) {
+func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	user, err, codeStatus := s.GetUserFromRequest(r)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-GetUserFromRequest: ")
-		s.error(w, r, codeStatus, err)
-		return
+	pattern, ok := r.URL.Query()["q"]
+	if !ok || len(pattern[0]) < 1 {
+		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchJob()")
+		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
-	freelancer, err := s.store.Freelancer().FindByUser(user.ID)
+	log.Println(pattern[0])
+	jobs, err := h.jobUsecase.PatternSearch(pattern[0])
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
-		s.error(w, r, http.StatusNotFound, err)
-		return
+		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.PatternSearch()")
+		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditFreelancer<-rBodyClose: ")
-			s.error(w, r, http.StatusInternalServerError, err)
-		}
-	}()
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(freelancer)
-
-	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-Decode: ")
-		s.error(w, r, http.StatusBadRequest, errors.New("invalid format of data"))
-		return
-	}
-	// TODO: validate freelancer
-
-	err = s.store.Freelancer().Edit(freelancer)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
-		s.error(w, r, http.StatusInternalServerError, err)
-		return
-	}
-	s.respond(w, r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, jobs)
 }
-
-func (s *server) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	vars := mux.Vars(r)
-	ids := vars["id"]
-	id, err := strconv.Atoi(ids)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-Atoi(wrong id): ")
-		s.error(w, r, http.StatusBadRequest, err)
-	}
-
-	freelancer, err := s.store.Freelancer().Find(int64(id))
-	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-Find: ")
-		s.error(w, r, http.StatusNotFound, err)
-	}
-	freelancer.Sanitize(s.sanitizer)
-	s.respond(w, r, http.StatusOK, &freelancer)
-}*/

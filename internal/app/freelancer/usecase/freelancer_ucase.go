@@ -16,8 +16,20 @@ func NewFreelancerUsecase(f freelancer.Repository) freelancer.Usecase {
 	}
 }
 
-func (u *FreelancerUsecase) FindByUser(user *model.User) (*model.Freelancer, error) {
-	f, err := u.freelancerRep.FindByUser(user.ID)
+func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
+	f := &model.Freelancer{
+		AccountId: userId,
+	}
+
+	if err := u.freelancerRep.Create(f); err != nil {
+		return nil, errors.Wrap(err, "Create<-freelancerRep.Create()")
+	}
+
+	return f, nil
+}
+
+func (u *FreelancerUsecase) FindByUser(userId int64) (*model.Freelancer, error) {
+	f, err := u.freelancerRep.FindByUser(userId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
 	}
@@ -45,4 +57,11 @@ func (u *FreelancerUsecase) Edit(new *model.Freelancer, old *model.Freelancer) e
 		return errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
 	}
 	return nil
+}
+func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.ExtendFreelancer, error) {
+	exFreelancers, err := u.freelancerRep.ListOnPattern(pattern)
+	if err != nil {
+		return nil, errors.Wrap(err, "PatternSearch()")
+	}
+	return exFreelancers, nil
 }

@@ -1,69 +1,53 @@
 package contractUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
-	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
-	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"time"
 )
 
 type ContractUsecase struct {
-	managerRep		manager.Repository
-	freelancerRep	freelancer.Repository
-	jobRep			user_job.Repository
-	responseRep		user_response.Repository
 	contractRep		user_contract.Repository
 }
 
-func NewContractUsecase(m manager.Repository,
-	f freelancer.Repository,
-	j user_job.Repository,
-	r user_response.Repository,
-	c user_contract.Repository) user_contract.Usecase {
+func NewContractUsecase(c user_contract.Repository) user_contract.Usecase {
 	return &ContractUsecase{
-		managerRep:		m,
-		freelancerRep:	f,
-		jobRep:			j,
-		responseRep:	r,
 		contractRep:	c,
 	}
 }
 
 func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) error {
-	response, err := u.responseRep.Find(responseId)
+	response, err := clients.GetResponseFromServer(responseId)
 	if err != nil {
-		return errors.Wrapf(err, "responseRep.Find(): ")
+		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	job, err := u.jobRep.Find(response.JobId)
+	job, err := clients.GetJobFromServer(response.JobId)
 	if err != nil {
-		return errors.Wrapf(err, "jobRep.Find(): ")
+		return errors.Wrapf(err, "clients.GetJobFromServer()")
 	}
 
-	currManager, err := u.managerRep.Find(job.HireManagerId)
+	currManager, err := clients.GetManagerFromServer(job.HireManagerId)
 	if err != nil {
-		return errors.Wrapf(err, "managerRep.Find(): ")
+		return errors.Wrapf(err, "clients.GetManagerFromServer()")
 	}
 
 	// TODO: write struct for start time and end time
 	contract := &model.Contract{
 		ID:            0,
 		ResponseID:    response.ID,
-		CompanyID:     currManager.CompanyID,
+		CompanyID:     currManager.CompanyId,
 		FreelancerID:  response.FreelancerId,
 		StartTime:     time.Time{},
 		EndTime:       time.Time{},
 		Status:        model.ContractStatusUnderDevelopment,
-		Grade:         0,
 		PaymentAmount: response.PaymentAmount,
 	}
 
 	if err := u.contractRep.Create(contract); err != nil {
-		return errors.Wrapf(err, "contractRep.Create(): ")
+		return errors.Wrapf(err, "contractRep.Create()")
 	}
 
 	return nil
@@ -76,7 +60,7 @@ func (u * ContractUsecase) SetStatusContract(user * model.User, contract *model.
 	}
 	contract.Status = status
 	if err := u.contractRep.Edit(contract); err != nil {
-		return errors.Wrapf(err, "contractRep.Edit(): ")
+		return errors.Wrapf(err, "contractRep.Edit()")
 	}
 	return nil
 }
@@ -86,14 +70,14 @@ func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 		return errors.New("user must be freelancer")
 	}
 
-	currFreelancer, err := u.freelancerRep.FindByUser(user.ID)
+	currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
 	if err != nil {
-		return errors.Wrapf(err, "freelancerRep.FindByUser(): ")
+		return errors.Wrapf(err, "clients.GetFreelancerByUserFromServer()")
 	}
 
 	contract, err := u.contractRep.Find(contractId)
 	if err != nil {
-		return errors.Wrapf(err, "contractRep.Find(): ")
+		return errors.Wrapf(err, "contractRep.Find()")
 	}
 
 	if contract.FreelancerID != currFreelancer.ID {
@@ -101,18 +85,14 @@ func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 	}
 
 	if err := u.SetStatusContract(user, contract, model.ContractStatusDone); err != nil {
-		return errors.Wrapf(err, "SetStatusContract(): ")
+		return errors.Wrapf(err, "SetStatusContract()")
 	}
 
 	return nil
 }
 
-func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, grade int) error {
-	if !user.IsManager() {
-		return errors.New("user must be manager")
-	}
-
-	if grade < model.ContractMinGrade || grade > model.ContractMaxGrade {
+func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error {
+	if review.Grade < model.ContractMinGrade || review.Grade > model.ContractMaxGrade {
 		return errors.New("grade must be between 0 and 5")
 	}
 
@@ -121,21 +101,73 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, gr
 		return errors.Wrapf(err, "contractRep.Find(): ")
 	}
 
-	contract.Grade = grade
-	contract.Status = model.ContractStatusReviewed
-
-	currManager, err := u.managerRep.FindByUser(user.ID)
-	if err != nil {
-		return errors.Wrapf(err, "managerRep.FindByUser(): ")
+	if user.IsManager() {
+		contract.ClientGrade = review.Grade
+		contract.ClientComment = review.Comment
+	} else {
+		contract.FreelancerGrade = review.Grade
+		contract.FreelancerComment = review.Comment
 	}
 
-	if contract.CompanyID != currManager.CompanyID {
+	contract.Status = model.ContractStatusReviewed
+
+	currManager, err := clients.GetManagerByUserFromServer(user.ID)
+	if err != nil {
+		return errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
+	}
+
+	if contract.CompanyID != currManager.CompanyId {
 		return errors.New("current manager cant manage this contract")
 	}
 
 	if err := u.contractRep.Edit(contract); err != nil {
-		return errors.Wrap(err, "contractRep.Edit(): ")
+		return errors.Wrap(err, "contractRep.Edit()")
 	}
 
 	return nil
+}
+
+
+func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
+	if user.IsManager() {
+		return nil, errors.New("user must be freelancer")
+	}
+
+	list, err := u.contractRep.List(user.ID, "freelancer")
+	if err != nil {
+		return nil, errors.Wrap(err, "contractRep.List()")
+	}
+
+	var reviews []model.Review
+	for _, contract := range list {
+
+		if contract.ClientGrade == 0 && contract.ClientComment == "" {
+			continue
+		}
+
+		company, err := clients.GetCompanyFromServer(contract.CompanyID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
+		}
+
+		response, err := clients.GetResponseFromServer(contract.ResponseID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
+		}
+
+		job, err := clients.GetJobFromServer(response.JobId)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
+		}
+
+		review := model.Review{
+			CompanyName:   company.CompanyName,
+			JobTitle:      job.Title,
+			ClientGrade:   contract.ClientGrade,
+			ClientComment: contract.ClientComment,
+		}
+
+		reviews = append(reviews, review)
+	}
+	return reviews, nil
 }

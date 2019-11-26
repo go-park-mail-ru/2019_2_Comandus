@@ -1,0 +1,27 @@
+syntax="proto3";
+package job_grpc;
+import "google/protobuf/timestamp.proto";
+
+service JobHandler {
+    rpc Find(JobID) returns (Job);
+}
+
+message Job {
+    int64 ID=1;
+    int64 HireManagerId=2;
+    string Title=3;
+    string Description=4;
+    string Files=5;
+    int64 SpecialityId=6;
+    int64 ExperienceLevelId=7;
+    float PaymentAmount=8;
+    string Country=9;
+    string City=10;
+    int64 JobTypeId=11;
+    google.protobuf.Timestamp Date=12;
+    string Status=13;
+}
+
+message JobID {
+    int64 ID=1;
+}

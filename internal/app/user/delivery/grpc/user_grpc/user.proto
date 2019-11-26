@@ -1,0 +1,32 @@
+syntax="proto3";
+package user_grpc;
+
+service UserHandler {
+    rpc CreateUser(User) returns (User);
+    rpc VerifyUser(UserRequest) returns (UserID);
+    rpc Find(UserID) returns (User);
+}
+
+message UserID {
+    int64 ID=1;
+}
+
+message UserRequest {
+    string email=1;
+    string password=2;
+}
+
+message User {
+    int64 ID=1;
+    string FirstName=2;
+    string SecondName=3;
+    string UserName=4;
+    string Email=5;
+    string Password=6;
+    string EncryptPassword=7;
+    string UserType=8;
+    int64 FreelancerId=9;
+    int64 HireManagerId=10;
+    int64 CompanyId=11;
+    bytes Avatar=12;
+}

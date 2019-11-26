@@ -17,7 +17,7 @@ func NewManagerRepository(db *sql.DB) manager.Repository {
 func (r *ManagerRepository) Create(m *model.HireManager) error {
 	return r.db.QueryRow(
 		"INSERT INTO managers (accountId, location, companyId) " +
-			"VALUES ($1, $2, $3, $4) RETURNING id",
+			"VALUES ($1, $2, $3) RETURNING id",
 		m.AccountID,
 		m.Location,
 		m.CompanyID,

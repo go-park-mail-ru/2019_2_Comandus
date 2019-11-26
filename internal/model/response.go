@@ -14,14 +14,14 @@ const (
 )
 
 type Response struct {
-	ID               int64     `json:"id"`
-	FreelancerId     int64     `json:"freelancerId"`
-	JobId            int64     `json:"jobId"`
-	Files            string    `json:"files,string"`
-	Date             time.Time `json:"date"`
-	StatusManager    string    `json:"statusManager,string"`
-	StatusFreelancer string    `json:"statusFreelancer,string"`
-	PaymentAmount    float64   `json:"paymentAmount,string"`
+	ID					int64     `json:"id"`
+	FreelancerId		int64     `json:"freelancerId"`
+	JobId				int64     `json:"jobId"`
+	Files				string    `json:"files,string"`
+	Date				time.Time `json:"date"`
+	StatusManager		string    `json:"statusManager,string"`
+	StatusFreelancer	string    `json:"statusFreelancer,string"`
+	PaymentAmount 		float32	  `json:"paymentAmount,string"`
 }
 
 func (r *Response) BeforeCreate() {
