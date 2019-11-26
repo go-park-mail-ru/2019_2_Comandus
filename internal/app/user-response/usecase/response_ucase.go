@@ -11,11 +11,13 @@ import (
 
 type ResponseUsecase struct {
 	responseRep   user_response.Repository
+	managerClietn *clients.ClientManager
 }
 
 func NewResponseUsecase(r user_response.Repository) user_response.Usecase {
 	return &ResponseUsecase{
 		responseRep:   r,
+		managerClietn: new(clients.ClientManager),
 	}
 }
 
@@ -52,7 +54,7 @@ func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, erro
 	var responses []model.Response
 
 	if user.IsManager() {
-		currManager, err := clients.GetManagerByUserFromServer(user.ID)
+		currManager, err := u.managerClietn.GetManagerByUserFromServer(user.ID)
 		if err != nil {
 			err = errors.Wrapf(err, "getManagerByUserFromServer()")
 			return nil, err
@@ -92,7 +94,7 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 	}
 
 	if user.IsManager() {
-		currManager, err := clients.GetManagerByUserFromServer(user.ID)
+		currManager, err := u.managerClietn.GetManagerByUserFromServer(user.ID)
 		if err != nil {
 			return errors.Wrapf(err, "clients.getManagerByUserFromServer()")
 		}
@@ -137,7 +139,7 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 	}
 
 	if user.IsManager() {
-		currManager, err := clients.GetManagerByUserFromServer(user.ID)
+		currManager, err := u.managerClietn.GetManagerByUserFromServer(user.ID)
 		if err != nil {
 			return errors.Wrapf(err, "getManagerByUserFromServer()")
 		}

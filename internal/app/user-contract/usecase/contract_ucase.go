@@ -10,11 +10,13 @@ import (
 
 type ContractUsecase struct {
 	contractRep		user_contract.Repository
+	managerClient   *clients.ClientManager
 }
 
 func NewContractUsecase(c user_contract.Repository) user_contract.Usecase {
 	return &ContractUsecase{
 		contractRep:	c,
+		managerClient: new(clients.ClientManager),
 	}
 }
 
@@ -29,7 +31,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "clients.GetJobFromServer()")
 	}
 
-	currManager, err := clients.GetManagerFromServer(job.HireManagerId)
+	currManager, err := u.managerClient.GetManagerFromServer(job.HireManagerId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerFromServer()")
 	}
@@ -111,7 +113,7 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	contract.Status = model.ContractStatusReviewed
 
-	currManager, err := clients.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
 	}

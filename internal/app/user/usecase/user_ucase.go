@@ -11,11 +11,13 @@ import (
 
 type UserUsecase struct {
 	userRep			user.Repository
+	managerClient   *clients.ClientManager
 }
 
 func NewUserUsecase(u user.Repository) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
+		managerClient: new(clients.ClientManager),
 	}
 }
 
@@ -118,7 +120,7 @@ func (u *UserUsecase) Find(id int64) (*model.User, error) {
 		return nil, errors.Wrap(err, "clients.GetFreelancerByUserFromServer()")
 	}
 
-	currManager, err := clients.GetManagerByUserFromServer(id)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "clients.GetManagerByUserFromServer()")
 	}
@@ -155,7 +157,7 @@ func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 }
 
 func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
-	currManager, err := clients.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
 	}

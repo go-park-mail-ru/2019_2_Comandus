@@ -9,11 +9,15 @@ import (
 
 type CompanyUsecase struct {
 	companyRep company.Repository
+	companyClient *clients.CompanyClient
+	managerClient *clients.ClientManager
 }
 
 func NewCompanyUsecase(c company.Repository) company.Usecase {
 	return &CompanyUsecase{
 		companyRep: c,
+		companyClient: new(clients.CompanyClient),
+		managerClient: new(clients.ClientManager),
 	}
 }
 
@@ -36,7 +40,7 @@ func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
 }
 
 func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
-	m, err := clients.GetManagerByUserFromServer(user.ID)
+	m, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrapf(err, "client.FindByUser()")
 	}

@@ -8,10 +8,12 @@ import (
 )
 
 type GeneralUsecase struct {
+	ManagerClient *clients.ClientManager
 }
 
 func NewGeneralUsecase() general.Usecase {
 	return &GeneralUsecase{
+		ManagerClient: new(clients.ClientManager),
 	}
 }
 
@@ -31,7 +33,7 @@ func (u *GeneralUsecase) SignUp(data *model.User) (int64, error) {
 		return 0, errors.Wrap(err, "clients.CreateFreelancerOnServer")
 	}
 
-	_, err = clients.CreateManagerOnServer(user.ID, company.ID)
+	_, err = u.ManagerClient.CreateManagerOnServer(user.ID, company.ID)
 	if err != nil {
 		return 0, errors.Wrap(err, "clients.CreateManagerOnServer()")
 	}

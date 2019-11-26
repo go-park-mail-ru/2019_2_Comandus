@@ -10,11 +10,14 @@ import (
 
 type JobUsecase struct {
 	jobRep user_job.Repository
+	managerClient *clients.ClientManager
+
 }
 
 func NewJobUsecase(j user_job.Repository) user_job.Usecase {
 	return &JobUsecase{
 		jobRep: j,
+		managerClient: new(clients.ClientManager),
 	}
 }
 
@@ -23,7 +26,7 @@ func (u *JobUsecase) CreateJob(currUser *model.User, job *model.Job) error {
 		return errors.New("current user is not a manager")
 	}
 
-	currManager, err := clients.GetManagerByUserFromServer(currUser.ID)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(currUser.ID)
 	if err != nil {
 		return errors.Wrapf(err, "getManagerByUserFromServer()")
 	}
@@ -63,7 +66,7 @@ func (u *JobUsecase) EditJob(user *model.User, inputJob *model.Job, id int64) er
 		return errors.Wrapf(err, "jobRep.Find(): ")
 	}
 
-	currManager, err := clients.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "getManagerByUserFromServer()")
 	}
@@ -91,7 +94,7 @@ func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
 		return errors.New("only manager can delete job")
 	}
 
-	manager, err := clients.GetManagerByUserFromServer(user.ID)
+	manager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "clients.GetManagerByUserFromServer()")
 	}
