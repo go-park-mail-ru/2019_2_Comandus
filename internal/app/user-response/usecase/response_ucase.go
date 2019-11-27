@@ -1,7 +1,7 @@
 package responseUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"

@@ -60,7 +60,7 @@ func (s *CompanyServer) TransformCompanyData(company *company_grpc.Company) *mod
 func (s *CompanyServer) CreateCompany(context context.Context, userID *company_grpc.UserID) (*company_grpc.Company, error) {
 	newCompany, err := s.Ucase.Create()
 	if err != nil {
-		return nil, errors.Wrap(err, "UserUcase.CreateUser")
+		return nil, errors.Wrap(err, "Ucase.CreateUser")
 	}
 
 	res := s.TransformCompanyRPC(newCompany)
@@ -74,5 +74,16 @@ func (s *CompanyServer) Find(context context.Context,company *company_grpc.Compa
 	}
 
 	res := s.TransformCompanyRPC(newCompany)
+
 	return res, nil
 }
+
+func (s *CompanyServer) Edit(context context.Context, inputCompany *company_grpc.CompanyWithUser) (*company_grpc.Nothing, error) {
+	myCompany := s.TransformCompanyData(inputCompany.MyCompany)
+	if err := s.Ucase.Edit(inputCompany.UserID, myCompany); err != nil {
+		return nil, errors.Wrap(err, "Ucase.Edit()")
+	}
+
+	return nil, nil
+}
+

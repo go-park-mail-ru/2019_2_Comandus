@@ -1,7 +1,7 @@
 package jobUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -11,7 +11,6 @@ import (
 type JobUsecase struct {
 	jobRep user_job.Repository
 	managerClient clients.ManagerClient
-
 }
 
 func NewJobUsecase(j user_job.Repository, mClient clients.ManagerClient) user_job.Usecase {

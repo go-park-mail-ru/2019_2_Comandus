@@ -1,15 +1,17 @@
 package jobHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -41,6 +43,10 @@ func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Pol
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/jobs", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	defer func() {
 		if err := r.Body.Close(); err != nil {
 			err = errors.Wrapf(err, "HandleCreateJob<-Close()")
@@ -48,12 +54,16 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
-	job := new(model.Job)
-	err := decoder.Decode(job)
-
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateJob<-Decode()")
+		err = errors.Wrapf(err, "HandleCreateJob<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	job := new(model.Job)
+	if err := job.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -77,6 +87,10 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/jobs", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -99,6 +113,10 @@ func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/jobs/id", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	jobs, err := h.jobUsecase.GetAllJobs()
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetAllJobs<-jobUsecase.GetAllJobs()")
@@ -115,9 +133,13 @@ func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/jobs/id", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleDeleteJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -126,12 +148,12 @@ func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id)")
+		err = errors.Wrapf(err, "HandleDeleteJob<-Atoi(wrong type id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	if err := h.jobUsecase.MarkAsDeleted(int64(id), u); err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.MarkAsDeleted()")
+		err = errors.Wrapf(err, "HandleDeleteJob<-jobUsecase.MarkAsDeleted()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 	respond.Respond(w, r, http.StatusOK, struct {}{})
@@ -140,28 +162,48 @@ func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/jobs/id", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleUpdateJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	inputJob := new(model.Job)
-	err := decoder.Decode(inputJob)
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			err = errors.Wrapf(err, "HandleUpdateJob<-Close()")
+			respond.Error(w, r, http.StatusInternalServerError, err)
+		}
+	}()
 
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleUpdateJob<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	inputJob := new(model.Job)
+	if err := inputJob.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
 
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id)()")
+		err = errors.Wrapf(err, "HandleUpdateJob<-Atoi(wrong type id)()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	if err := h.jobUsecase.EditJob(u, inputJob, int64(id)); err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.EditJob()")
+		err = errors.Wrapf(err, "HandleUpdateJob<-jobUsecase.EditJob()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 	respond.Respond(w, r, http.StatusOK, struct {}{})
@@ -169,6 +211,10 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 
 func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/search/jobs", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	pattern, ok := r.URL.Query()["q"]
 	if !ok || len(pattern[0]) < 1 {
@@ -179,7 +225,7 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	log.Println(pattern[0])
 	jobs, err := h.jobUsecase.PatternSearch(pattern[0])
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.PatternSearch()")
+		err = errors.Wrapf(err, "HandleSearchJob<-jobUsecase.PatternSearch()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 

@@ -9,23 +9,27 @@ import (
 )
 
 type ManagerClient struct {
-
+	conn *grpc.ClientConn
 }
 
-func (*ManagerClient) CreateManagerOnServer(userId int64, companyId int64) (*manager_grpc.Manager, error) {
+func (c *ManagerClient) Connect() error {
 	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
+		return errors.Wrap(err, "grpc.Dial()")
 	}
+	c.conn = conn
+	return nil
+}
 
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
+func (c *ManagerClient) Disconnect() error {
+	if err := c.conn.Close(); err != nil {
+		log.Println("conn.Close()", err)
+	}
+	return nil
+}
 
-	client := manager_grpc.NewManagerHandlerClient(conn)
+func (c *ManagerClient) CreateManagerOnServer(userId int64, companyId int64) (*manager_grpc.Manager, error) {
+	client := manager_grpc.NewManagerHandlerClient(c.conn)
 	manReq := &manager_grpc.Info{
 		UserID:		userId,
 		CompanyID:	companyId,
@@ -37,20 +41,8 @@ func (*ManagerClient) CreateManagerOnServer(userId int64, companyId int64) (*man
 	return manager, nil
 }
 
-func (*ManagerClient) GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
-	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
-	}
-
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
-
-	client := manager_grpc.NewManagerHandlerClient(conn)
+func (c *ManagerClient) GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
+	client := manager_grpc.NewManagerHandlerClient(c.conn)
 
 	userReq := &manager_grpc.UserID{
 		ID:		id,
@@ -63,20 +55,8 @@ func (*ManagerClient) GetManagerByUserFromServer(id int64) (*manager_grpc.Manage
 	return currManager, nil
 }
 
-func (*ManagerClient) GetManagerFromServer(id int64) (*manager_grpc.Manager, error){
-	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
-	}
-
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
-
-	client := manager_grpc.NewManagerHandlerClient(conn)
+func (c *ManagerClient) GetManagerFromServer(id int64) (*manager_grpc.Manager, error){
+	client := manager_grpc.NewManagerHandlerClient(c.conn)
 
 	userReq := &manager_grpc.ManagerID {
 		ID:		id,

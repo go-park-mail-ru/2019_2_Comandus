@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type FreelancerRepository struct {
@@ -15,6 +17,10 @@ func NewFreelancerRepository(db *sql.DB) freelancer.Repository {
 }
 
 func (r *FreelancerRepository) Create(f *model.Freelancer) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"freelancer", "method":"create"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"INSERT INTO freelancers (accountId, country, city, address, phone, tagLine, "+
 			"overview, experienceLevelId, specialityId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
@@ -31,6 +37,10 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 }
 
 func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"freelancer", "method":"find"}))
+	defer timer.ObserveDuration()
+
 	f := &model.Freelancer{}
 	if err := r.db.QueryRow(
 		"SELECT id, accountId, country, city, address, phone, tagLine, "+
@@ -54,6 +64,10 @@ func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 }
 
 func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"freelancer", "method":"findByUser"}))
+	defer timer.ObserveDuration()
+
 	f := &model.Freelancer{}
 	if err := r.db.QueryRow(
 		"SELECT id, accountId, country, city, address, phone, tagLine, "+
@@ -77,6 +91,10 @@ func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, e
 }
 
 func (r *FreelancerRepository) Edit(f *model.Freelancer) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"freelancer", "method":"edit"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow("UPDATE freelancers SET country = $1, city = $2, address = $3, "+
 		"phone = $4, tagLine = $5, overview = $6, experienceLevelId = $7, specialityId = $8 WHERE id = $9 RETURNING id",
 		f.Country,
@@ -92,6 +110,10 @@ func (r *FreelancerRepository) Edit(f *model.Freelancer) error {
 }
 
 func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFreelancer, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"freelancer", "method":"listInPattern"}))
+	defer timer.ObserveDuration()
+
 	var exFreelancers []model.ExtendFreelancer
 	rows, err := r.db.Query(
 		"SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, "+

@@ -12,8 +12,9 @@ import (
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
+	authgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/grpc"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
-	general_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
+	generalUsecase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
 	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
 	managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
@@ -37,6 +38,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
@@ -86,22 +88,51 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	contractRep := contractRepository.NewContractRepository(db)
 
 	userClient := new(clients.UserClient)
-	freelacerClient := new(clients.FreelancerClient)
+	freelancerClient := new(clients.FreelancerClient)
 	managerClient := new(clients.ManagerClient)
 	companyClient := new(clients.CompanyClient)
 	jobClient := new(clients.JobClient)
 	responseClient := new(clients.ResponseClient)
+	authClient := new(clients.AuthClient)
 
-	userU := userUcase.NewUserUsecase(userRep, freelacerClient, managerClient, companyClient)
+	if err := authClient.Connect(); err != nil {
+		log.Println(err)
+	}
+	if err := freelancerClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := companyClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := jobClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := managerClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := responseClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := userClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+
+	userU := userUcase.NewUserUsecase(userRep, freelancerClient, managerClient, companyClient)
 	companyU := companyUcase.NewCompanyUsecase(companyRep, managerClient)
 	managerU := managerUcase.NewManagerUsecase(managerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
 	jobU := jobUcase.NewJobUsecase(jobRep, managerClient)
-	responseU := responseUcase.NewResponseUsecase(responseRep, freelacerClient, managerClient, jobClient)
-	contractU := contractUcase.NewContractUsecase(contractRep, freelacerClient, managerClient, companyClient,
-		jobClient, responseClient)
-	generalU := general_ucase.NewGeneralUsecase(userClient, managerClient, companyClient, freelacerClient)
+	responseU := responseUcase.NewResponseUsecase(responseRep, freelancerClient, managerClient, jobClient)
+	contractU := contractUcase.NewContractUsecase(contractRep, freelancerClient, managerClient, companyClient, jobClient, responseClient)
+	generalU := generalUsecase.NewGeneralUsecase(authClient, freelancerClient, managerClient, companyClient)
 
+	s.Mux.Handle("/metrics", promhttp.Handler())
 	private := s.Mux.PathPrefix("").Subrouter()
 
 	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token, generalU)
@@ -113,11 +144,23 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
-	freelancerHttp.NewFreelancerHandler(private, freelancerU, userU, s.Sanitizer, s.Logger, s.SessionStore)
+	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
 	jobHttp.NewJobHandler(private, jobU, s.Sanitizer, s.Logger, s.SessionStore)
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
+
+	go func() {
+		lis, err := net.Listen("tcp", ":8081")
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		authgrpc.NewAuthServerGrpc(server, userU)
+
+		fmt.Println("starting server at :8081")
+		server.Serve(lis)
+	}()
 
 	go func() {
 		lis, err := net.Listen("tcp", ":8087")

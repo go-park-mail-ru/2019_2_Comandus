@@ -6,9 +6,9 @@ type ReviewInput struct {
 }
 
 type BodyPassword struct {
-	Password string `valid:"required"`
-	NewPassword string `valid:"required, length(6|100)"`
-	NewPasswordConfirmation string `valid:"required"`
+	Password string `json:"password" valid:"required"`
+	NewPassword string `json:"newPassword" valid:"required, length(6|100)"`
+	NewPasswordConfirmation string `json:"newPasswordConfirmation" valid:"required"`
 }
 
 // TODO: delete

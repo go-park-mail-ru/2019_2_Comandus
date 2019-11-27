@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -20,6 +22,10 @@ func NewContractRepository(db *sql.DB) user_contract.Repository {
 }
 
 func (r *ContractRepository) Create(contract *model.Contract) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"contract", "method":"create"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"INSERT INTO contracts (responseId, companyId, freelancerId, startTime, endTime, status, "+
 			"paymentAmount) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
@@ -34,6 +40,10 @@ func (r *ContractRepository) Create(contract *model.Contract) error {
 }
 
 func (r *ContractRepository) Find(id int64) (*model.Contract, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"contract", "method":"find"}))
+	defer timer.ObserveDuration()
+
 	c := &model.Contract{}
 	if err := r.db.QueryRow(
 		"SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
@@ -59,6 +69,10 @@ func (r *ContractRepository) Find(id int64) (*model.Contract, error) {
 }
 
 func (r *ContractRepository) Edit(c *model.Contract) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"contract", "method":"edit"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow("UPDATE contracts SET freelancerId = $1, startTime = $2, "+
 		"endTime = $3, status = $4, clientGrade = $5, clientComment = $6, freelancerGrade = $7, " +
 		"freelancerComment = $8, paymentAmount = $9 WHERE id = $10 RETURNING id",
@@ -76,6 +90,10 @@ func (r *ContractRepository) Edit(c *model.Contract) error {
 }
 
 func (r *ContractRepository) List(id int64, mode string) ([]model.Contract, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"contract", "method":"list"}))
+	defer timer.ObserveDuration()
+
 	var contracts []model.Contract
 
 	var query string

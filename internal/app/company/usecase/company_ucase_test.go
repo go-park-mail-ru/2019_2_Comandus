@@ -12,6 +12,7 @@ import (
 	"testing"
 )
 
+
 func testUcase(t *testing.T) (*repository_mocks.MockCompanyRepository, *client_mocks.MockManagerClient ,company.Usecase){
 	t.Helper()
 	ctrl := gomock.NewController(t)

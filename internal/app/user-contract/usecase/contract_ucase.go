@@ -1,7 +1,7 @@
 package contractUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -109,7 +109,7 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	contract, err := u.contractRep.Find(contractId)
 	if err != nil {
-		return errors.Wrapf(err, "contractRep.Find(): ")
+		return errors.Wrapf(err, "contractRep.Find()")
 	}
 
 	if user.IsManager() {

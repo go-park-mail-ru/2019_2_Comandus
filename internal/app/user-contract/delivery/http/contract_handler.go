@@ -1,15 +1,17 @@
 package contractHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -42,26 +44,22 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/responses/id/contract", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateContract<-Body.Close:")
+			err = errors.Wrapf(err, "HandleCreateContract<-Body.Close()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	//TODO: parse start end time here
-	/*contract := new(model.Contract)
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(contract)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateContract:")
-		general.Error(w, r, http.StatusBadRequest, err)
-		return
-	}*/
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -70,7 +68,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateContract<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleCreateContract<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -78,7 +76,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 
 
 	if err := h.ContractUsecase.CreateContract(u, responseId); err != nil {
-		err = errors.Wrapf(err, "HandleCreateContract<-ContractUsecase.CreateContract(): ")
+		err = errors.Wrapf(err, "HandleCreateContract<-UСase.CreateContract()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -90,9 +88,13 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/contract/id/done", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -101,14 +103,14 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleTickContractAsDone<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	contractId := int64(id)
 	if err := h.ContractUsecase.SetAsDone(u, contractId); err != nil {
-		err = errors.Wrapf(err, "HandleTickContractAsDone<-ContractUsecase.SetAsDone(): ")
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-ContractUsecase.SetAsDone()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -119,9 +121,13 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/contract/id", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleReviewContract()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -129,15 +135,21 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleReviewContract: ")
+			err = errors.Wrapf(err, "HandleReviewContract()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleReviewContract<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
 	input := new(model.ReviewInput)
-	if err := decoder.Decode(input); err != nil {
-		err = errors.Wrapf(err, "HandleReviewContract: ")
+	if err := input.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -146,7 +158,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleReviewContract<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleReviewContract<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -154,7 +166,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	contractId := int64(id)
 
 	if err := h.ContractUsecase.ReviewContract(u, contractId, input); err != nil {
-		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract(): ")
+		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -164,6 +176,10 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 func (h *ContractHandler) HandleGetContractsGrades(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/grades", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {

@@ -9,49 +9,58 @@ import (
 )
 
 type FreelancerClient struct{
-
+	conn *grpc.ClientConn
 }
 
-func (*FreelancerClient) CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error) {
+func (c *FreelancerClient) Connect() error {
 	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
+		return errors.Wrap(err, "grpc.Dial()")
 	}
+	c.conn = conn
+	return nil
+}
 
-	defer func() {
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
+func (c *FreelancerClient) Disconnect() error {
+	if err := c.conn.Close(); err != nil {
+		log.Println("conn.Close()", err)
+	}
+	return nil
+}
 
-	client := freelancer_grpc.NewFreelancerHandlerClient(conn)
+func (c *FreelancerClient) CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error) {
+	client := freelancer_grpc.NewFreelancerHandlerClient(c.conn)
 	fReq := &freelancer_grpc.UserID{
 		ID: userId,
 	}
 	freelancer, err := client.CreateFreelancer(context.Background(), fReq)
+	if err != nil {
+		return nil, errors.Wrap(err, "client.CreateFreelancer()")
+	}
 	return freelancer, nil
 }
 
-func (*FreelancerClient) GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
-	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
-	}
-
-	defer func() {
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
-
-	client := freelancer_grpc.NewFreelancerHandlerClient(conn)
+func (c *FreelancerClient) GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
+	client := freelancer_grpc.NewFreelancerHandlerClient(c.conn)
 	userReq := &freelancer_grpc.UserID{
 		ID: id,
 	}
 
 	currFreelancer, err := client.FindByUser(context.Background(), userReq)
+	if err != nil {
+		return nil, errors.Wrap(err, "userRep.Find()")
+	}
+
+	return currFreelancer, nil
+}
+
+func (c *FreelancerClient) GetFreelancerFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
+	client := freelancer_grpc.NewFreelancerHandlerClient(c.conn)
+	req := &freelancer_grpc.FreelancerID{
+		ID:		id,
+	}
+
+	currFreelancer, err := client.Find(context.Background(), req)
 	if err != nil {
 		return nil, errors.Wrap(err, "userRep.Find()")
 	}
