@@ -92,11 +92,16 @@ func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) 
 		}
 	}()
 
-	userInput := currUser
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(userInput)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditProfile<-Decode: ")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	userInput := currUser
+	if err := userInput.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -140,10 +145,6 @@ func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request)
 	}
 
 	bodyPassword := new(model.BodyPassword)
-	//decoder := json.NewDecoder(r.Body)
-	//err := decoder.Decode(bodyPassword)
-
-	//err := easyjson.Unmarshal(body, easyjson.Unmarshaler(c))
 	if err := bodyPassword.UnmarshalJSON(body); err != nil {
 		err = errors.Wrapf(err, "bodyPassword.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
@@ -302,7 +303,6 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
-
 
 	decoder := json.NewDecoder(r.Body)
 	newInput := new(Input)

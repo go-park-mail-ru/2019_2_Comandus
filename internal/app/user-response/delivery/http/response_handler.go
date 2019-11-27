@@ -1,7 +1,6 @@
 package responseHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -57,16 +57,21 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleResponseJob<-rBodyClose: ")
+			err = errors.Wrapf(err, "HandleCreateJob<-Close()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
-	response := new(model.Response)
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(response)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleResponseJob<-Decode: ")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	response := new(model.Response)
+	if err := response.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}

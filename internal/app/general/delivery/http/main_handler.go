@@ -1,7 +1,6 @@
 package mainHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
@@ -13,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -62,11 +62,16 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
-	newUser := new(model.User)
-	err := decoder.Decode(newUser)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-Decode")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	newUser := new(model.User)
+	if err := newUser.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -111,11 +116,16 @@ func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Reques
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
-	currUser := new(model.User)
-	err := decoder.Decode(currUser)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-DecodeUser")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	currUser := new(model.User)
+	if err := currUser.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}

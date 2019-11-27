@@ -1,7 +1,6 @@
 package contractHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -56,14 +56,6 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	}()
 
 	//TODO: parse start end time here
-	/*contract := new(model.Contract)
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(contract)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateContract:")
-		general.Error(w, r, http.StatusBadRequest, err)
-		return
-	}*/
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
@@ -148,10 +140,16 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
 	input := new(model.ReviewInput)
-	if err := decoder.Decode(input); err != nil {
-		err = errors.Wrapf(err, "HandleReviewContract: ")
+	if err := input.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}

@@ -1,7 +1,6 @@
 package jobHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -54,12 +54,16 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
-	job := new(model.Job)
-	err := decoder.Decode(job)
-
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateJob<-Decode()")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	job := new(model.Job)
+	if err := job.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -169,10 +173,26 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	inputJob := new(model.Job)
-	err := decoder.Decode(inputJob)
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			err = errors.Wrapf(err, "HandleCreateJob<-Close()")
+			respond.Error(w, r, http.StatusInternalServerError, err)
+		}
+	}()
 
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	inputJob := new(model.Job)
+	if err := inputJob.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
 
 	vars := mux.Vars(r)
 	ids := vars["id"]

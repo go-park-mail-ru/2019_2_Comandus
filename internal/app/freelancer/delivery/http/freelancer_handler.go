@@ -1,7 +1,6 @@
 package freelancerHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc/freelancer_grpc"
@@ -15,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -72,11 +72,16 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 
-	currFreelancer := freelancer
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(currFreelancer)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-Decode(): ")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	currFreelancer := freelancer
+	if err := currFreelancer.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}

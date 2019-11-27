@@ -1,7 +1,6 @@
 package companyhttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
@@ -13,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -61,11 +61,17 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 		}
 	}()
 
-	currCompany := new(model.Company)
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(currCompany)
+
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-Decode(): ")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	currCompany := new(model.Company)
+	if err := currCompany.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
