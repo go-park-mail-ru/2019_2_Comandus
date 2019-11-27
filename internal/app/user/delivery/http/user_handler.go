@@ -145,7 +145,7 @@ func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request)
 
 	//err := easyjson.Unmarshal(body, easyjson.Unmarshaler(c))
 	if err := bodyPassword.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-Decode: ")
+		err = errors.Wrapf(err, "bodyPassword.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}

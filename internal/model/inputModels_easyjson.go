@@ -274,11 +274,11 @@ func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel3(in *
 			continue
 		}
 		switch key {
-		case "Password":
+		case "password":
 			out.Password = string(in.String())
-		case "NewPassword":
+		case "newPassword":
 			out.NewPassword = string(in.String())
-		case "NewPasswordConfirmation":
+		case "newPasswordConfirmation":
 			out.NewPasswordConfirmation = string(in.String())
 		default:
 			in.SkipRecursive()
@@ -295,17 +295,17 @@ func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel3(out 
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Password\":"
+		const prefix string = ",\"password\":"
 		out.RawString(prefix[1:])
 		out.String(string(in.Password))
 	}
 	{
-		const prefix string = ",\"NewPassword\":"
+		const prefix string = ",\"newPassword\":"
 		out.RawString(prefix)
 		out.String(string(in.NewPassword))
 	}
 	{
-		const prefix string = ",\"NewPasswordConfirmation\":"
+		const prefix string = ",\"newPasswordConfirmation\":"
 		out.RawString(prefix)
 		out.String(string(in.NewPasswordConfirmation))
 	}
