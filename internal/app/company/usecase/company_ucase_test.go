@@ -1,7 +1,6 @@
 package companyUsecase
 
 import (
-	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc/manager_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/mocks/client_mocks"
@@ -13,19 +12,6 @@ import (
 	"testing"
 )
 
-func testClients(t *testing.T) {
-	t.Helper()
-	ctrl := gomock.NewController(t)
-	serverclients := server_clients.ServerClients{
-		AuthClient:       client_mocks.NewMockAuthUser(ctrl),
-		CompanyClient:    nil,
-		FreelancerClient: nil,
-		JobClient:        nil,
-		ManagerClient:    nil,
-		ResponseClient:   nil,
-		UserClient:       nil,
-	}
-}
 
 func testUcase(t *testing.T) (*repository_mocks.MockCompanyRepository, *client_mocks.MockManagerClient ,company.Usecase){
 	t.Helper()
