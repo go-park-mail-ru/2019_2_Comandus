@@ -55,6 +55,8 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		EndTime:       time.Time{},
 		Status:        model.ContractStatusUnderDevelopment,
 		PaymentAmount: response.PaymentAmount,
+		ClientGrade: 0,
+		FreelancerGrade: 0,
 	}
 
 	if err := u.contractRep.Create(contract); err != nil {
@@ -122,14 +124,14 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	contract.Status = model.ContractStatusReviewed
 
-	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
-	if err != nil {
-		return errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
-	}
+	//currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	//if err != nil {
+	//	return errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
+	//}
 
-	if contract.CompanyID != currManager.CompanyId {
+	/*if contract.CompanyID != currManager.CompanyId {
 		return errors.New("current manager cant manage this contract")
-	}
+	}*/
 
 	if err := u.contractRep.Edit(contract); err != nil {
 		return errors.Wrap(err, "contractRep.Edit()")

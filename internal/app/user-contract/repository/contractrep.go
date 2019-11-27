@@ -28,7 +28,8 @@ func (r *ContractRepository) Create(contract *model.Contract) error {
 
 	return r.db.QueryRow(
 		"INSERT INTO contracts (responseId, companyId, freelancerId, startTime, endTime, status, "+
-			"paymentAmount) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+			"paymentAmount, clientgrade, freelancergrade, clientcomment, freelancercomment)" +
+			" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
 		contract.ResponseID,
 		contract.CompanyID,
 		contract.FreelancerID,
@@ -36,6 +37,10 @@ func (r *ContractRepository) Create(contract *model.Contract) error {
 		contract.EndTime,
 		contract.Status,
 		contract.PaymentAmount,
+		contract.ClientGrade,
+		contract.FreelancerGrade,
+		contract.ClientComment,
+		contract.FreelancerComment,
 	).Scan(&contract.ID)
 }
 

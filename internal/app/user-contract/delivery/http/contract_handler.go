@@ -149,7 +149,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	input := new(model.ReviewInput)
 	if err := input.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		err = errors.Wrapf(err, "Review.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
