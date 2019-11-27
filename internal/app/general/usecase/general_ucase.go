@@ -1,7 +1,7 @@
 package generalUsecase
 
 import (
-	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/grpc/auth_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -9,27 +9,53 @@ import (
 )
 
 type GeneralUsecase struct {
-	grpcClients		*server_clients.ServerClients
+	authClient			clients.AuthClient
+	freelancerClient	clients.ClientFreelancer
+	managerClient   	clients.ManagerClient
+	companyClient 		clients.CompanyClient
 }
 
 func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, error) {
-	id, err := u.grpcClients.AuthClient.VerifyUserOnServer(user)
+	id, err := u.authClient.VerifyUserOnServer(user)
 	if err != nil {
 		return 0, errors.Wrap(err, "AuthClient.VerifyUserOnServer()")
 	}
 	return id, nil
 }
 
-func NewGeneralUsecase(clients *server_clients.ServerClients) general.Usecase {
+func NewGeneralUsecase(a clients.AuthClient, f clients.ClientFreelancer, m clients.ManagerClient,
+	c clients.CompanyClient) general.Usecase {
 	return &GeneralUsecase{
-		grpcClients: clients,
+		authClient:       a,
+		freelancerClient: f,
+		managerClient:    m,
+		companyClient:    c,
 	}
 }
 
 func (u *GeneralUsecase) CreateUser(newUser *model.User) (*auth_grpc.User, error) {
-	user, err := u.grpcClients.AuthClient.CreateUserOnServer(newUser)
+	user, err := u.authClient.CreateUserOnServer(newUser)
 	if err != nil {
 		return nil, errors.Wrap(err, "AuthClient.CreateUserOnServer()")
 	}
+
+	company, err := u.companyClient.CreateCompanyOnServer(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.CreateCompanyOnServer()")
+	}
+
+	freelancer, err := u.freelancerClient.CreateFreelancerOnServer(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.CreateFreelancerOnServer")
+	}
+
+	manager, err := u.managerClient.CreateManagerOnServer(user.ID, company.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.CreateManagerOnServer()")
+	}
+
+	user.CompanyId = company.ID
+	user.FreelancerId = freelancer.ID
+	user.HireManagerId = manager.ID
 	return user, nil
 }

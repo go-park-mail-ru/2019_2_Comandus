@@ -1,7 +1,7 @@
 package companyUsecase
 
 import (
-	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -9,13 +9,13 @@ import (
 
 type CompanyUsecase struct {
 	companyRep 		company.Repository
-	grpcClients		*server_clients.ServerClients
+	managerClient 	clients.ManagerClient
 }
 
-func NewCompanyUsecase(c company.Repository, clients *server_clients.ServerClients) company.Usecase {
-		return &CompanyUsecase{
-			companyRep: c,
-			grpcClients: clients,
+func NewCompanyUsecase(c company.Repository, mClient clients.ManagerClient ) company.Usecase {
+	return &CompanyUsecase{
+		companyRep: c,
+		managerClient: mClient,
 	}
 }
 
@@ -38,7 +38,7 @@ func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
 }
 
 func (u *CompanyUsecase) Edit(userId int64, company *model.Company) error {
-	m, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(userId)
+	m, err := u.managerClient.GetManagerByUserFromServer(userId)
 	if err != nil {
 		return errors.Wrapf(err, "client.FindByUser()")
 	}

@@ -44,25 +44,6 @@ func (c *AuthClient)  CreateUserOnServer(data *model.User) (*auth_grpc.User, err
 		return nil, errors.Wrap(err, "client.CreateUser")
 	}
 
-	/*company, err := clients.CompanyClient.CreateCompanyOnServer(user.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.CreateCompanyOnServer()")
-	}
-
-	freelancer, err := clients.ClientFreelancer.CreateFreelancerOnServer(user.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.CreateFreelancerOnServer")
-	}
-
-	manager, err := clients.ManagerClient.CreateManagerOnServer(user.ID, company.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.CreateManagerOnServer()")
-	}
-
-	user.CompanyId = company.ID
-	user.FreelancerId = freelancer.ID
-	user.HireManagerId = manager.ID*/
-
 	return user, nil
 }
 

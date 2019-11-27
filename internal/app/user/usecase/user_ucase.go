@@ -2,7 +2,7 @@ package userUcase
 
 import (
 	"bytes"
-	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -14,13 +14,18 @@ import (
 
 type UserUsecase struct {
 	userRep			user.Repository
-	grpcClients		*server_clients.ServerClients
+	freelancerClient clients.ClientFreelancer
+	managerClient   clients.ManagerClient
+	companyClient   clients.CompanyClient
 }
 
-func NewUserUsecase(u user.Repository, clients *server_clients.ServerClients) user.Usecase {
+func NewUserUsecase(u user.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
+	cClient clients.CompanyClient) user.Usecase {
 	return &UserUsecase{
-		userRep:		u,
-		grpcClients:	clients,
+		userRep:          u,
+		freelancerClient: fClient,
+		managerClient:    mClient,
+		companyClient:    cClient,
 	}
 }
 
@@ -109,12 +114,12 @@ func (u *UserUsecase) Find(id int64) (*model.User, error) {
 		return nil, errors.Wrap(err, "userRep.Find()")
 	}
 
-	currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(id)
+	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "clients.GetFreelancerByUserFromServer()")
 	}
 
-	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(id)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "clients.GetManagerByUserFromServer()")
 	}
@@ -151,12 +156,12 @@ func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 }
 
 func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
-	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
 	}
 
-	currCompany, err := u.grpcClients.CompanyClient.GetCompanyFromServer(currManager.CompanyId)
+	currCompany, err := u.companyClient.GetCompanyFromServer(currManager.CompanyId)
 	if err != nil {
 		return nil, errors.Wrap(err, "getCompanyFromServer()")
 	}

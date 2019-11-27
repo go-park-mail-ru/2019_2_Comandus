@@ -3,7 +3,7 @@ package apiserver
 import (
 	"database/sql"
 	"fmt"
-	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	cogrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc"
 	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
@@ -87,23 +87,57 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	responseRep := responseRepository.NewResponseRepository(db)
 	contractRep := contractRepository.NewContractRepository(db)
 
-	serverClients := server_clients.NewClients()
+	userClient := new(clients.UserClient)
+	freelancerClient := new(clients.FreelancerClient)
+	managerClient := new(clients.ManagerClient)
+	companyClient := new(clients.CompanyClient)
+	jobClient := new(clients.JobClient)
+	responseClient := new(clients.ResponseClient)
+	authClient := new(clients.AuthClient)
 
-	userU := userUcase.NewUserUsecase(userRep, serverClients)
-	companyU := companyUcase.NewCompanyUsecase(companyRep, serverClients)
+	if err := authClient.Connect(); err != nil {
+		log.Println(err)
+	}
+	if err := freelancerClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := companyClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := jobClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := managerClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := responseClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+	if err := userClient.Connect(); err != nil {
+		log.Println(err)
+	}
+
+
+	userU := userUcase.NewUserUsecase(userRep, freelancerClient, managerClient, companyClient)
+	companyU := companyUcase.NewCompanyUsecase(companyRep, managerClient)
 	managerU := managerUcase.NewManagerUsecase(managerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
-	jobU := jobUcase.NewJobUsecase(jobRep, serverClients)
-	responseU := responseUcase.NewResponseUsecase(responseRep, serverClients)
-	contractU := contractUcase.NewContractUsecase(contractRep, serverClients)
-	generalU := generalUsecase.NewGeneralUsecase(serverClients)
+	jobU := jobUcase.NewJobUsecase(jobRep, managerClient)
+	responseU := responseUcase.NewResponseUsecase(responseRep, freelancerClient, managerClient, jobClient)
+	contractU := contractUcase.NewContractUsecase(contractRep, freelancerClient, managerClient, companyClient, jobClient, responseClient)
+	generalU := generalUsecase.NewGeneralUsecase(authClient, freelancerClient, managerClient, companyClient)
 
 	s.Mux.Handle("/metrics", promhttp.Handler())
 	private := s.Mux.PathPrefix("").Subrouter()
 
 	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token, generalU)
 
-	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl, serverClients.UserClient)
+	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl, userClient)
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
 
 	// only for auth users

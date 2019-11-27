@@ -1,7 +1,7 @@
 package responseUcase
 
 import (
-	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
+	clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -11,13 +11,18 @@ import (
 
 type ResponseUsecase struct {
 	responseRep   user_response.Repository
-	grpcClients		*server_clients.ServerClients
+	freelancerClient clients.ClientFreelancer
+	managerClient clients.ManagerClient
+	jobClient 	  clients.ClientJob
 }
 
-func NewResponseUsecase(r user_response.Repository, clients *server_clients.ServerClients) user_response.Usecase {
+func NewResponseUsecase(r user_response.Repository, fClient clients.ClientFreelancer, mclient clients.ManagerClient,
+	jClient clients.ClientJob) user_response.Usecase {
 	return &ResponseUsecase{
-		responseRep:	r,
-		grpcClients:	clients,
+		responseRep:   r,
+		freelancerClient: fClient,
+		managerClient: mclient,
+		jobClient: jClient,
 	}
 }
 
@@ -26,7 +31,7 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 		return errors.New("to response user need to be freelancer")
 	}
 
-	currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(user.ID)
+	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "getFreelancerByUserFromServer()")
 	}
@@ -54,7 +59,7 @@ func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, erro
 	var responses []model.Response
 
 	if user.IsManager() {
-		currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
+		currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 		if err != nil {
 			err = errors.Wrapf(err, "getManagerByUserFromServer()")
 			return nil, err
@@ -66,7 +71,7 @@ func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, erro
 			return nil, err
 		}
 	} else {
-		currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(user.ID)
+		currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
 			err = errors.Wrapf(err, "getFreelancerByUserFromServer()")
 			return nil, err
@@ -88,13 +93,13 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "responseRep.Find()")
 	}
 
-	job, err := u.grpcClients.JobClient.GetJobFromServer(response.JobId)
+	job, err := u.jobClient.GetJobFromServer(response.JobId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.getJobFromServer()")
 	}
 
 	if user.IsManager() {
-		currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
+		currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 		if err != nil {
 			return errors.Wrapf(err, "clients.getManagerByUserFromServer()")
 		}
@@ -105,7 +110,7 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 		response.StatusManager = model.ResponseStatusAccepted
 		response.StatusFreelancer = model.ResponseStatusReview
 	} else {
-		currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(user.ID)
+		currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
 			return errors.Wrapf(err, "clients.getFreelancerByUserFromServer()")
 		}
@@ -133,13 +138,13 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 		return errors.Wrapf(err, "responseRep.Find()")
 	}
 
-	job, err := u.grpcClients.JobClient.GetJobFromServer(response.JobId)
+	job, err := u.jobClient.GetJobFromServer(response.JobId)
 	if err != nil {
 		return errors.Wrapf(err, "getJobFromServer()")
 	}
 
 	if user.IsManager() {
-		currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
+		currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
 		if err != nil {
 			return errors.Wrapf(err, "getManagerByUserFromServer()")
 		}
@@ -151,7 +156,7 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 		response.StatusManager = model.ResponseStatusDenied
 		response.StatusFreelancer = model.ResponseStatusBlock
 	} else {
-		currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(user.ID)
+		currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
 			return errors.Wrapf(err, "getFreelancerByUserFromServer()")
 		}

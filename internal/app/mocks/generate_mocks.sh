@@ -23,3 +23,4 @@ mockgen -source=internal/app/clients/interfaces/freelancerClient.go -package=cli
 mockgen -source=internal/app/clients/interfaces/jobClient.go -package=client_mocks -mock_names=Clients=MockJobClient > internal/app/mocks/client_mocks/job_client_mock.go
 mockgen -source=internal/app/clients/interfaces/responseClient.go -package=client_mocks -mock_names=Clients=MockResponseClient > internal/app/mocks/client_mocks/response_client_mock.go
 mockgen -source=internal/app/clients/interfaces/userClient.go -package=client_mocks -mock_names=Clients=MockUserClient > internal/app/mocks/client_mocks/user_client_mock.go
+mockgen -source=internal/app/clients/interfaces/authClient.go -package=client_mocks -mock_names=Clients=MockUserClient > internal/app/mocks/client_mocks/user_client_mock.go

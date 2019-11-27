@@ -64,15 +64,15 @@ func (mr *MockCompanyUsecaseMockRecorder) Find(id interface{}) *gomock.Call {
 }
 
 // Edit mocks base method
-func (m *MockCompanyUsecase) Edit(u *model.User, c *model.Company) error {
+func (m *MockCompanyUsecase) Edit(userId int64, company *model.Company) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Edit", u, c)
+	ret := m.ctrl.Call(m, "Edit", userId, company)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Edit indicates an expected call of Edit
-func (mr *MockCompanyUsecaseMockRecorder) Edit(u, c interface{}) *gomock.Call {
+func (mr *MockCompanyUsecaseMockRecorder) Edit(userId, company interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockCompanyUsecase)(nil).Edit), u, c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockCompanyUsecase)(nil).Edit), userId, company)
 }
