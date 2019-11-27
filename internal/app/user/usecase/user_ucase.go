@@ -1,12 +1,14 @@
 package userUcase
 
 import (
+	"bytes"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	"log"
-	"os"
+	"image"
+	"image/jpeg"
+	"net/http"
 )
 
 type UserUsecase struct {
@@ -78,7 +80,22 @@ func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 		return user.Avatar, nil
 	}
 
-	var openFile *os.File
+	response, _ := http.Get("https://sun9-69.userapi.com/c855720/v855720288/da766/u_n0r-sbhwY.jpg")
+	defer response.Body.Close()
+
+	im, _, err := image.Decode(response.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "image.Decode()")
+	}
+
+	buf := new(bytes.Buffer)
+	if err := jpeg.Encode(buf, im, nil); err != nil {
+		return nil, errors.Wrap(err, "image.Encode()")
+	}
+
+	return buf.Bytes(), nil
+
+	/*var openFile *os.File
 	// TODO: create default user in database, get default image from it
 	_, err := os.Getwd()
 	if err != nil {
@@ -103,7 +120,7 @@ func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 		return nil, errors.Wrap(err, "Read()")
 	}
 
-	return avatar, nil
+	return avatar, nil*/
 }
 
 func (u *UserUsecase) Find(id int64) (*model.User, error) {
