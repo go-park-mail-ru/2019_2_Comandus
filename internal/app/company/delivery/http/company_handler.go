@@ -2,6 +2,7 @@ package companyhttp
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
@@ -69,7 +70,7 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := h.CompanyUsecase.Edit(u, currCompany); err != nil {
+	if err := clients.EditCompanyOnServer(u.ID, currCompany); err != nil {
 		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit(): ")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
@@ -94,13 +95,12 @@ func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	currCompany, err := h.CompanyUsecase.Find(int64(id))
+	currCompany, err := clients.GetCompanyFromServer(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetCompany<-Find: ")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
 
-	currCompany.Sanitize(h.sanitizer)
 	respond.Respond(w, r, http.StatusOK, currCompany)
 }

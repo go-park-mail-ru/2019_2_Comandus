@@ -34,8 +34,8 @@ func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
 	return c, nil
 }
 
-func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
-	m, err := clients.GetManagerByUserFromServer(user.ID)
+func (u *CompanyUsecase) Edit(userId int64, company *model.Company) error {
+	m, err := clients.GetManagerByUserFromServer(userId)
 	if err != nil {
 		return errors.Wrapf(err, "client.FindByUser()")
 	}

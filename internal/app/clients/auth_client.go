@@ -2,7 +2,7 @@ package clients
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/auth/delivery/grpc/auth_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/grpc/auth_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -35,6 +35,25 @@ func CreateUserOnServer(data *model.User) (*auth_grpc.User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "client.CreateUser")
 	}
+
+	company, err := CreateCompanyOnServer(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.CreateCompanyOnServer()")
+	}
+
+	freelancer, err := CreateFreelancerOnServer(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.CreateFreelancerOnServer")
+	}
+
+	manager, err := CreateManagerOnServer(user.ID, company.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "clients.CreateManagerOnServer()")
+	}
+
+	user.CompanyId = company.ID
+	user.FreelancerId = freelancer.ID
+	user.HireManagerId = manager.ID
 
 	return user, nil
 }

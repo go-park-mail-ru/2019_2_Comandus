@@ -2,9 +2,8 @@ package mainHttp
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
-	general_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
@@ -14,12 +13,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"time"
 )
 
 type MainHandler struct {
-	GeneralUsecase	general.Usecase
 	sanitizer		*bluemonday.Policy
 	logger			*zap.SugaredLogger
 	sessionStore	sessions.Store
@@ -29,7 +28,6 @@ type MainHandler struct {
 func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger,
 	sessionStore sessions.Store, thisToken *token.HashToken) {
 		handler := &MainHandler{
-		GeneralUsecase:	general_ucase.NewGeneralUsecase(),
 		sanitizer:		sanitizer,
 		logger:			logger,
 		sessionStore:	sessionStore,
@@ -44,7 +42,7 @@ func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Pol
 }
 
 func (h *MainHandler) HandleMain(w http.ResponseWriter, r *http.Request) {
-	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.Labels{"path":"/"}))
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.Labels{"path":"/", "method":"no"}))
 	defer timer.ObserveDuration()
 
 	respond.Respond(w, r, http.StatusOK, "hello from server")
@@ -73,7 +71,7 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.GeneralUsecase.SignUp(newUser)
+	createdUser, err := clients.CreateUserOnServer(newUser)//h.GeneralUsecase.SignUp(newUser)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-CreateUser")
 		respond.Error(w, r, http.StatusInternalServerError, err)
@@ -87,15 +85,16 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session.Values["user_id"] = id
+	session.Values["user_id"] = createdUser.ID
 	if err := h.sessionStore.Save(r, w, session); err != nil {
 		err = errors.Wrapf(err, "HandleCreateUser<-sessionSave")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
+	log.Println(createdUser)
 	newUser.Sanitize(h.sanitizer)
-	respond.Respond(w, r, http.StatusCreated, newUser)
+	respond.Respond(w, r, http.StatusCreated, createdUser)
 }
 
 func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +120,7 @@ func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	id, err := h.GeneralUsecase.VerifyUser(currUser)
+	id, err := clients.VerifyUserOnServer(currUser)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSessionCreate<-UserUseCase.VerifyUser()")
 		respond.Error(w, r, http.StatusUnauthorized, err)

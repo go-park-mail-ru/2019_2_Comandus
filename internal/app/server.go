@@ -3,7 +3,6 @@ package apiserver
 import (
 	"database/sql"
 	"fmt"
-	authgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/auth/delivery/grpc"
 	cogrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc"
 	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
@@ -12,6 +11,7 @@ import (
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
+	authgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/grpc"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
@@ -105,7 +105,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
-	freelancerHttp.NewFreelancerHandler(private, freelancerU, userU, s.Sanitizer, s.Logger, s.SessionStore)
+	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
 	jobHttp.NewJobHandler(private, jobU, s.Sanitizer, s.Logger, s.SessionStore)
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)

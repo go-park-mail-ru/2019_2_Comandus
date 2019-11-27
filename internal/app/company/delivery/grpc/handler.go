@@ -74,5 +74,17 @@ func (s *CompanyServer) Find(context context.Context,company *company_grpc.Compa
 	}
 
 	res := s.TransformCompanyRPC(newCompany)
+
 	return res, nil
 }
+
+func (s *CompanyServer) Edit(context context.Context, inputCompany *company_grpc.CompanyWithUser) (*company_grpc.Nothing, error) {
+	myCompany := s.TransformCompanyData(inputCompany.MyCompany)
+	if err := s.Ucase.Edit(inputCompany.UserID, myCompany); err != nil {
+		return nil, errors.Wrap(err, "Ucase.Edit()")
+	}
+
+
+	return nil, nil
+}
+

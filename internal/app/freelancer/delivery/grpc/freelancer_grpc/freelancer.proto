@@ -4,6 +4,7 @@ package freelancer_grpc;
 service FreelancerHandler {
     rpc CreateFreelancer(UserID) returns (Freelancer);
     rpc FindByUser(UserID) returns (Freelancer);
+    rpc Find(FreelancerID) returns (Freelancer);
 }
 
 message Freelancer {
@@ -17,6 +18,10 @@ message Freelancer {
     string Overview=8;
     int64 ExperienceLevelId=9;
     int64 SpecialityId=10;
+}
+
+message FreelancerID {
+    int64 ID=1;
 }
 
 message UserID {

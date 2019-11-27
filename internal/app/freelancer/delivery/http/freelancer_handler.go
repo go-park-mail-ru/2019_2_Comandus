@@ -2,9 +2,11 @@ package freelancerHttp
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc/freelancer_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc/user_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
@@ -24,17 +26,15 @@ type ResponseError struct {
 
 type FreelancerHandler struct {
 	FreelancerUsecase		freelancer.Usecase
-	UserUsecase				user.Usecase
 	sanitizer				*bluemonday.Policy
 	logger					*zap.SugaredLogger
 	sessionStore			sessions.Store
 }
 
-func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, uc user.Usecase, sanitizer *bluemonday.Policy,
+func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluemonday.Policy,
 	logger *zap.SugaredLogger, sessionStore sessions.Store) {
 		handler := &FreelancerHandler{
 			FreelancerUsecase:	uf,
-			UserUsecase:		uc,
 			sanitizer:			sanitizer,
 			logger:				logger,
 			sessionStore:		sessionStore,
@@ -91,15 +91,15 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 }
 
 type combined struct {
-	*model.Freelancer
-	*model.User
+	*freelancer_grpc.Freelancer
+	*user_grpc.User
 }
 
 func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-	Labels{"path":"/freelancer/id", "method":r.Method}))
+		Labels{"path":"/freelancer/id", "method":r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -111,22 +111,23 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	currFreelancer, err := h.FreelancerUsecase.Find(int64(id))
+	currFreelancer, err := clients.GetFreelancerFromServer(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-FindFreelancer: ")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
 
-	currUser, err := h.UserUsecase.Find(currFreelancer.AccountId)
+	req := &user_grpc.UserID{
+		ID:		currFreelancer.AccountId,
+	}
+
+	currUser, err := clients.GetUserFromServer(req)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-FindUser: ")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
-
-	currFreelancer.Sanitize(h.sanitizer)
-	currUser.Sanitize(h.sanitizer)
 
 	combined  := combined {
 		Freelancer: currFreelancer,
@@ -139,7 +140,7 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-	Labels{"path":"search/freelancer", "method":r.Method}))
+		Labels{"path":"search/freelancer", "method":r.Method}))
 	defer timer.ObserveDuration()
 
 	pattern, ok := r.URL.Query()["q"]
