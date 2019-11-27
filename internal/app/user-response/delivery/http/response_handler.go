@@ -50,21 +50,21 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleResponseJob<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleResponseJob<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 	jobId := int64(id)
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateJob<-Close()")
+			err = errors.Wrapf(err, "HandleResponseJob<-Close()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleResponseJob<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -80,13 +80,13 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseJob: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.CreateResponse(u, response, jobId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseJob<-ResponseUsecase.CreateResponse: ")
+		err := errors.Wrapf(err,"HandleResponseJob<-UCase.CreateResponse()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -104,14 +104,14 @@ func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Requ
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleGetResponses: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleGetResponses()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	responses, err := h.ResponseUsecase.GetResponses(u)
 	if err != nil {
-		err := errors.Wrapf(err,"HandleGetResponses<-ResponseUsecase.GetResponses: ")
+		err := errors.Wrapf(err,"HandleGetResponses<-ResponseUsecase.GetResponses()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -133,7 +133,7 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -141,13 +141,13 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.AcceptResponse(u, responseId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseAccept<-ResponseUsecase.AcceptResponse: ")
+		err := errors.Wrapf(err,"HandleResponseAccept<-ResponseUsecase.AcceptResponse()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -166,7 +166,7 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleResponseDeny<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -174,13 +174,13 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseDeny()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.DenyResponse(u, responseId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseAccept<-ResponseUsecase.AcceptResponse: ")
+		err := errors.Wrapf(err,"HandleResponseDeny<-ResponseUsecase.DenyResponse()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -200,13 +200,13 @@ func (h * ResponseHandler) HandleGetResponsesOnJobID(w http.ResponseWriter, r *h
 	ids := vars["jobid"]
 	jobid, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleGetResponsesOnJobID<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 	exResp, err := h.ResponseUsecase.GetResponsesOnJobID(int64(jobid))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetResponsesOnJobID<-GetResponsesOnJobID: ")
+		err = errors.Wrapf(err, "HandleGetResponsesOnJobID<-GetResponsesOnJobID()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}

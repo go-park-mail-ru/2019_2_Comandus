@@ -54,40 +54,40 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleEditFreelancer: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleEditFreelancer()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditFreelancer<-rBodyClose: ")
+			err = errors.Wrapf(err, "HandleEditFreelancer<-rBodyClose()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	freelancer, err := h.FreelancerUsecase.FindByUser(u.ID)
 	if err != nil {
-		err = errors.Wrap(err, "FreelancerUsecase.FindByUser()")
+		err = errors.Wrap(err, "HandleEditFreelancer<-FreelancerUsecase.FindByUser()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleEditFreelancer<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currFreelancer := freelancer
 	if err := currFreelancer.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		err = errors.Wrapf(err, "HandleEditFreelancer<-currFreelancer.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.FreelancerUsecase.Edit(freelancer, currFreelancer); err != nil {
-		err = errors.Wrapf(err, "HandleEditFreelancer<-FreelancerUsecase.Edit(): ")
+		err = errors.Wrapf(err, "HandleEditFreelancer<-FreelancerUsecase.Edit()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -111,14 +111,14 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 	ids := vars["freelancerId"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-Atoi(wrong id): ")
+		err = errors.Wrapf(err, "HandleGetFreelancer<-Atoi(wrong id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currFreelancer, err := clients.GetFreelancerFromServer(int64(id))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-FindFreelancer: ")
+		err = errors.Wrapf(err, "HandleGetFreelancer<-clients.GetFreelancerFromServer()")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
@@ -129,7 +129,7 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 
 	currUser, err := clients.GetUserFromServer(req)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetFreelancer<-FindUser: ")
+		err = errors.Wrapf(err, "HandleGetFreelancer<-clients.GetUserFromServer()")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
@@ -150,14 +150,14 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 
 	pattern, ok := r.URL.Query()["q"]
 	if !ok || len(pattern[0]) < 1 {
-		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchFreelancers: ")
+		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchFreelancers()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	log.Println(pattern[0])
 	extendedFreelancers, err := h.FreelancerUsecase.PatternSearch(pattern[0])
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-FreelancerUsecase.PatternSearch: ")
+		err = errors.Wrapf(err, "HandleSearchFreelancers<-Ucase.PatternSearch()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 

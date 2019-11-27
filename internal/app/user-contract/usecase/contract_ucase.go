@@ -98,7 +98,7 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	contract, err := u.contractRep.Find(contractId)
 	if err != nil {
-		return errors.Wrapf(err, "contractRep.Find(): ")
+		return errors.Wrapf(err, "contractRep.Find()")
 	}
 
 	if user.IsManager() {

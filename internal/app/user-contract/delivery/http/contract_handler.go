@@ -50,7 +50,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateContract<-Body.Close:")
+			err = errors.Wrapf(err, "HandleCreateContract<-Body.Close()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
@@ -59,7 +59,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -68,7 +68,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateContract<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleCreateContract<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -76,7 +76,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 
 
 	if err := h.ContractUsecase.CreateContract(u, responseId); err != nil {
-		err = errors.Wrapf(err, "HandleCreateContract<-ContractUsecase.CreateContract(): ")
+		err = errors.Wrapf(err, "HandleCreateContract<-UСase.CreateContract()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -94,7 +94,7 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -103,14 +103,14 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleTickContractAsDone<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	contractId := int64(id)
 	if err := h.ContractUsecase.SetAsDone(u, contractId); err != nil {
-		err = errors.Wrapf(err, "HandleTickContractAsDone<-ContractUsecase.SetAsDone(): ")
+		err = errors.Wrapf(err, "HandleTickContractAsDone<-ContractUsecase.SetAsDone()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -127,7 +127,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone: ")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleReviewContract()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -135,14 +135,14 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleReviewContract: ")
+			err = errors.Wrapf(err, "HandleReviewContract()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleReviewContract<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -158,7 +158,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleReviewContract<-strconv.Atoi: ")
+		err = errors.Wrapf(err, "HandleReviewContract<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -166,7 +166,7 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 	contractId := int64(id)
 
 	if err := h.ContractUsecase.ReviewContract(u, contractId, input); err != nil {
-		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract(): ")
+		err = errors.Wrapf(err, "HandleReviewContract<-contractUsecase.ReviewContract()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}

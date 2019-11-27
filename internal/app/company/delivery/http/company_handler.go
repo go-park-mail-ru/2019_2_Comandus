@@ -49,14 +49,14 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"), "HandleEditCompany: ")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleEditCompany()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditCompany<-rBodyClose: ")
+			err = errors.Wrapf(err, "HandleEditCompany<-rBodyClose()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
@@ -77,7 +77,7 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := clients.EditCompanyOnServer(u.ID, currCompany); err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit(): ")
+		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -96,14 +96,14 @@ func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request
 	ids := vars["companyId"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetCompany<-Atoi(wrong id): ")
+		err = errors.Wrapf(err, "HandleGetCompany<-Atoi(wrong id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currCompany, err := clients.GetCompanyFromServer(int64(id))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetCompany<-Find: ")
+		err = errors.Wrapf(err, "HandleGetCompany<-Find()")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}

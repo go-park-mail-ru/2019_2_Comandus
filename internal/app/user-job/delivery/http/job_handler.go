@@ -56,7 +56,7 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleCreateJob<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -139,7 +139,7 @@ func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleDeleteJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -148,12 +148,12 @@ func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id)")
+		err = errors.Wrapf(err, "HandleDeleteJob<-Atoi(wrong type id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	if err := h.jobUsecase.MarkAsDeleted(int64(id), u); err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.MarkAsDeleted()")
+		err = errors.Wrapf(err, "HandleDeleteJob<-jobUsecase.MarkAsDeleted()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 	respond.Respond(w, r, http.StatusOK, struct {}{})
@@ -168,21 +168,21 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		err := errors.Wrapf(errors.New("no user in context"),"HandleUpdateJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateJob<-Close()")
+			err = errors.Wrapf(err, "HandleUpdateJob<-Close()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleUpdateJob<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -198,12 +198,12 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Atoi(wrong type id)()")
+		err = errors.Wrapf(err, "HandleUpdateJob<-Atoi(wrong type id)()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
 	if err := h.jobUsecase.EditJob(u, inputJob, int64(id)); err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.EditJob()")
+		err = errors.Wrapf(err, "HandleUpdateJob<-jobUsecase.EditJob()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 	respond.Respond(w, r, http.StatusOK, struct {}{})
@@ -225,7 +225,7 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	log.Println(pattern[0])
 	jobs, err := h.jobUsecase.PatternSearch(pattern[0])
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-jobUsecase.PatternSearch()")
+		err = errors.Wrapf(err, "HandleSearchJob<-jobUsecase.PatternSearch()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 

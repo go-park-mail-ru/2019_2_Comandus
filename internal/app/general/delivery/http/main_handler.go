@@ -57,42 +57,42 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateUser:<-Body.Close")
+			err = errors.Wrapf(err, "HandleCreateUser<-Body.Close")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleCreateUser<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	newUser := new(model.User)
 	if err := newUser.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		err = errors.Wrapf(err, "HandleCreateUser<-user.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	createdUser, err := clients.CreateUserOnServer(newUser)//h.GeneralUsecase.SignUp(newUser)
+	createdUser, err := clients.CreateUserOnServer(newUser)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-CreateUser")
+		err = errors.Wrapf(err, "HandleCreateUser<-clients.CreateUserOnServer()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-sessionGet")
+		err = errors.Wrapf(err, "HandleCreateUser<-sessionGet()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	session.Values["user_id"] = createdUser.ID
 	if err := h.sessionStore.Save(r, w, session); err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-sessionSave")
+		err = errors.Wrapf(err, "HandleCreateUser<-sessionSave()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -111,42 +111,42 @@ func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Reques
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleSessionCreate<-rBodyClose")
+			err = errors.Wrapf(err, "HandleSessionCreate<-rBodyClose()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		err = errors.Wrapf(err, "HandleSessionCreate<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currUser := new(model.User)
 	if err := currUser.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		err = errors.Wrapf(err, "HandleSessionCreate<-currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	id, err := clients.VerifyUserOnServer(currUser)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-UserUseCase.VerifyUser()")
+		err = errors.Wrapf(err, "HandleSessionCreate<-clients.VerifyUserOnServer()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-sessionGet")
+		err = errors.Wrapf(err, "HandleSessionCreate<-sessionGet()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	session.Values["user_id"] = id
 	if err := h.sessionStore.Save(r, w, session); err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-sessionSave")
+		err = errors.Wrapf(err, "HandleSessionCreate<-sessionSave()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -162,7 +162,7 @@ func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 
 	sess, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get")
+		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -178,14 +178,14 @@ func (h * MainHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionGet")
+		err = errors.Wrapf(err, "HandleLogout<-sessionGet()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	session.Options.MaxAge = -1
 	if err := session.Save(r, w); err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionSave")
+		err = errors.Wrapf(err, "HandleLogout<-sessionSave()")
 		respond.Error(w, r, http.StatusExpectationFailed, err)
 		return
 	}
