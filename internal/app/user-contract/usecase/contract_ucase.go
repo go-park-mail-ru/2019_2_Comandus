@@ -5,6 +5,7 @@ import (
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"log"
 	"time"
 )
 
@@ -35,12 +36,12 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	job, err := u.jobClient.GetJobFromServer(response.JobId)
-	if err != nil {
-		return errors.Wrapf(err, "clients.GetJobFromServer()")
-	}
+	//job, err := u.jobClient.GetJobFromServer(response.JobId)
+	//if err != nil {
+	//	return errors.Wrapf(err, "clients.GetJobFromServer()")
+	//}
 
-	currManager, err := u.managerClient.GetManagerFromServer(job.HireManagerId)
+	currManager, err := u.managerClient.GetManagerFromServer(user.HireManagerId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerFromServer()")
 	}
@@ -146,7 +147,7 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 		return nil, errors.New("user must be freelancer")
 	}
 
-	list, err := u.contractRep.List(user.ID, "freelancer")
+	list, err := u.contractRep.List(user.FreelancerId, "freelancer")
 	if err != nil {
 		return nil, errors.Wrap(err, "contractRep.List()")
 	}
@@ -159,6 +160,8 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 		}
 
 		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+
+		log.Println(company)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
 		}
