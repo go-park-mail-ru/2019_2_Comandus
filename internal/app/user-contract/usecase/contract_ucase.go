@@ -1,7 +1,7 @@
 package contractUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -10,15 +10,15 @@ import (
 
 type ContractUsecase struct {
 	contractRep		user_contract.Repository
-	freelancerClient   *clients.FreelancerClient
-	managerClient   *clients.ManagerClient
-	companyClient 	*clients.CompanyClient
-	jobClient   *clients.JobClient
-	responseClient   *clients.ResponseClient
+	freelancerClient clients.ClientFreelancer
+	managerClient   clients.ManagerClient
+	companyClient 	clients.CompanyClient
+	jobClient   	clients.ClientJob
+	responseClient  clients.ClientResponse
 }
 
-func NewContractUsecase(c user_contract.Repository, fClient *clients.FreelancerClient, mClient *clients.ManagerClient,
-	cClient *clients.CompanyClient ,jClient *clients.JobClient, rClient *clients.ResponseClient) user_contract.Usecase {
+func NewContractUsecase(c user_contract.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
+	cClient clients.CompanyClient ,jClient clients.ClientJob, rClient clients.ClientResponse) user_contract.Usecase {
 	return &ContractUsecase{
 		contractRep:	c,
 		freelancerClient: fClient,

@@ -1,7 +1,7 @@
 package userUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -11,13 +11,13 @@ import (
 
 type UserUsecase struct {
 	userRep			user.Repository
-	freelancerClient *clients.FreelancerClient
-	managerClient   *clients.ManagerClient
-	companyClient   *clients.CompanyClient
+	freelancerClient clients.ClientFreelancer
+	managerClient   clients.ManagerClient
+	companyClient   clients.CompanyClient
 }
 
-func NewUserUsecase(u user.Repository, fClient *clients.FreelancerClient, mClient *clients.ManagerClient,
-	cClient *clients.CompanyClient) user.Usecase {
+func NewUserUsecase(u user.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
+	cClient clients.CompanyClient) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
 		freelancerClient: fClient,

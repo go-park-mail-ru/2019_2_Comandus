@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc/user_grpc"
@@ -25,11 +25,11 @@ type Middleware struct {
 	logger			*zap.SugaredLogger
 	clientUrl		string
 	token			*token.HashToken
-	userClient      *clients.UserClient
+	userClient      clients.ClientUser
 }
 
 func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken,
-	clientUrl string, uClient *clients.UserClient) Middleware{
+	clientUrl string, uClient clients.ClientUser) Middleware{
 	return Middleware{
 		sessionStore: ss,
 		logger:       logger,

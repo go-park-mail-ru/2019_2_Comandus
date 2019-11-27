@@ -1,21 +1,21 @@
 package general_ucase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 )
 
 type GeneralUsecase struct {
-	UserClient *clients.UserClient
-	ManagerClient *clients.ManagerClient
-	CompanyClient *clients.CompanyClient
-	FreelancerClient *clients.FreelancerClient
+	UserClient clients.ClientUser
+	ManagerClient clients.ManagerClient
+	CompanyClient clients.CompanyClient
+	FreelancerClient clients.ClientFreelancer
 }
 
-func NewGeneralUsecase(UClient *clients.UserClient, MClient *clients.ManagerClient,
-	CClient *clients.CompanyClient, FClient *clients.FreelancerClient) general.Usecase {
+func NewGeneralUsecase(UClient clients.ClientUser, MClient clients.ManagerClient,
+	CClient clients.CompanyClient, FClient clients.ClientFreelancer) general.Usecase {
 	return &GeneralUsecase{
 		UserClient: UClient,
 		ManagerClient: MClient,

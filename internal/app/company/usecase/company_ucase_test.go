@@ -15,8 +15,9 @@ func testUcase(t *testing.T) (*repository_mocks.MockCompanyRepository, company.U
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	companyRep := repository_mocks.NewMockCompanyRepository(ctrl)
-	companyClient := client_mocks.NewMockClientManager(ctrl)
-	companyUcase := NewCompanyUsecase(companyRep)
+	companyClient := client_mocks.NewMockCompanyClient(ctrl)
+	managerClient := client_mocks.NewMockManagerClient(ctrl)
+	companyUcase := NewCompanyUsecase(companyRep, companyClient, managerClient)
 	return companyRep, companyUcase
 }
 
