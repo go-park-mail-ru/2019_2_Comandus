@@ -22,7 +22,7 @@ func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
 	}
 
 	if err := u.freelancerRep.Create(f); err != nil {
-		return nil, errors.Wrap(err, "Create<-freelancerRep.Create()")
+		return nil, errors.Wrap(err, "freelancerRep.Create()")
 	}
 
 	return f, nil
@@ -31,7 +31,7 @@ func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
 func (u *FreelancerUsecase) FindByUser(userId int64) (*model.Freelancer, error) {
 	f, err := u.freelancerRep.FindByUser(userId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
+		return nil, errors.Wrapf(err, "freelancerRep.FindByUser()")
 	}
 	return f, nil
 }
@@ -39,7 +39,7 @@ func (u *FreelancerUsecase) FindByUser(userId int64) (*model.Freelancer, error) 
 func (u *FreelancerUsecase) Find(id int64) (*model.Freelancer, error) {
 	f, err := u.freelancerRep.Find(id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "HandleEditFreelancer<-FindByUser: ")
+		return nil, errors.Wrapf(err, "freelancerRep.Find()")
 	}
 	return f, nil
 }
@@ -54,14 +54,15 @@ func (u *FreelancerUsecase) Edit(new *model.Freelancer, old *model.Freelancer) e
 	}
 
 	if err := u.freelancerRep.Edit(new); err != nil {
-		return errors.Wrapf(err, "HandleEditFreelancer<-Edit: ")
+		return errors.Wrapf(err, "freelancerRep.Edit()")
 	}
 	return nil
 }
+
 func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.ExtendFreelancer, error) {
 	exFreelancers, err := u.freelancerRep.ListOnPattern(pattern)
 	if err != nil {
-		return nil, errors.Wrap(err, "PatternSearch()")
+		return nil, errors.Wrap(err, "freelancerRep.PatternSearch()")
 	}
 	return exFreelancers, nil
 }

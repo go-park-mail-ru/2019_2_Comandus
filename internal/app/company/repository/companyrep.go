@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type CompanyRepository struct {
@@ -16,6 +18,10 @@ func NewCompanyRepository(db *sql.DB) company.Repository {
 }
 
 func (r *CompanyRepository) Create(company *model.Company) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"company", "method":"create"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"INSERT INTO companies (companyName, site, tagLine, description, country, city, address, phone) " +
 			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
@@ -31,6 +37,10 @@ func (r *CompanyRepository) Create(company *model.Company) error {
 }
 
 func (r *CompanyRepository) Find(id int64) (*model.Company, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"company", "method":"find"}))
+	defer timer.ObserveDuration()
+
 	c := &model.Company{}
 	if err := r.db.QueryRow(
 		"SELECT id, companyName, site, tagLine, description, country, city, address, " +
@@ -53,6 +63,10 @@ func (r *CompanyRepository) Find(id int64) (*model.Company, error) {
 }
 
 func (r *CompanyRepository) Edit(c * model.Company) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"company", "method":"edit"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow("UPDATE companies SET companyName = $1, site = $2, tagLine = $3, " +
 		"description = $4, country = $5, city = $6, address = $7, phone = $8 WHERE id = $9 RETURNING id",
 		c.CompanyName,

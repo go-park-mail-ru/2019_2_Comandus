@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type JobRepository struct {
@@ -16,6 +18,10 @@ func NewJobRepository(db *sql.DB) user_job.Repository {
 
 // TODO: remove hire manager
 func (r *JobRepository) Create(j *model.Job) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"job", "method":"create"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
@@ -35,6 +41,10 @@ func (r *JobRepository) Create(j *model.Job) error {
 }
 
 func (r *JobRepository) Find(id int64) (*model.Job, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"job", "method":"find"}))
+	defer timer.ObserveDuration()
+
 	j := &model.Job{}
 	if err := r.db.QueryRow(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
@@ -62,6 +72,10 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 }
 
 func (r *JobRepository) Edit(j *model.Job) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"job", "method":"edit"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow("UPDATE jobs SET title = $1, description = $2, files = $3, "+
 		"specialityId = $4, experienceLevelId = $5, paymentAmount = $6, country = $7, city = $8, "+
 		"jobTypeId = $9, status = $10 WHERE id = $11 RETURNING id",
@@ -80,6 +94,10 @@ func (r *JobRepository) Edit(j *model.Job) error {
 }
 
 func (r *JobRepository) List() ([]model.Job, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"job", "method":"list"}))
+	defer timer.ObserveDuration()
+
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
@@ -106,6 +124,10 @@ func (r *JobRepository) List() ([]model.Job, error) {
 }
 
 func (r *JobRepository) ListOnPattern(pattern string) ([]model.Job, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"job", "method":"listOnPattern"}))
+	defer timer.ObserveDuration()
+
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+

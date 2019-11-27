@@ -1,7 +1,7 @@
 package jobUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
 	user_job "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -10,14 +10,14 @@ import (
 
 type JobUsecase struct {
 	jobRep user_job.Repository
-	managerClient clients.ManagerClient
+	grpcClients		*server_clients.ServerClients
 
 }
 
-func NewJobUsecase(j user_job.Repository, mClient clients.ManagerClient) user_job.Usecase {
+func NewJobUsecase(j user_job.Repository, clients *server_clients.ServerClients) user_job.Usecase {
 	return &JobUsecase{
-		jobRep: j,
-		managerClient: mClient,
+		jobRep: 		j,
+		grpcClients:	clients,
 	}
 }
 
@@ -26,7 +26,7 @@ func (u *JobUsecase) CreateJob(currUser *model.User, job *model.Job) error {
 		return errors.New("current user is not a manager")
 	}
 
-	currManager, err := u.managerClient.GetManagerByUserFromServer(currUser.ID)
+	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(currUser.ID)
 	if err != nil {
 		return errors.Wrapf(err, "getManagerByUserFromServer()")
 	}
@@ -66,7 +66,7 @@ func (u *JobUsecase) EditJob(user *model.User, inputJob *model.Job, id int64) er
 		return errors.Wrapf(err, "jobRep.Find(): ")
 	}
 
-	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "getManagerByUserFromServer()")
 	}
@@ -94,7 +94,7 @@ func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
 		return errors.New("only manager can delete job")
 	}
 
-	manager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	manager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "clients.GetManagerByUserFromServer()")
 	}

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type ResponseRepository struct {
@@ -15,6 +17,10 @@ func NewResponseRepository(db *sql.DB) user_response.Repository {
 }
 
 func (r *ResponseRepository) Create(response *model.Response) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"response", "method":"create"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"INSERT INTO responses (freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount) "+
 			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
@@ -29,6 +35,10 @@ func (r *ResponseRepository) Create(response *model.Response) error {
 }
 
 func (r *ResponseRepository) Edit(response *model.Response) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"response", "method":"edit"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"UPDATE responses SET files = $1, statusmanager = $2, statusFreelancer = $3, paymentAmount = $4 WHERE id = $5 "+
 			"RETURNING id",
@@ -41,6 +51,10 @@ func (r *ResponseRepository) Edit(response *model.Response) error {
 }
 
 func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"response", "method":"listForFreelancer"}))
+	defer timer.ObserveDuration()
+
 	var responses []model.Response
 	rows, err := r.db.Query(
 		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount "+
@@ -66,6 +80,10 @@ func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, erro
 }
 
 func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"response", "method":"listForManager"}))
+	defer timer.ObserveDuration()
+
 	var responses []model.Response
 	rows, err := r.db.Query(
 		"SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, "+
@@ -95,6 +113,10 @@ func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) 
 }
 
 func (r *ResponseRepository) Find(id int64) (*model.Response, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"response", "method":"find"}))
+	defer timer.ObserveDuration()
+
 	response := &model.Response{}
 	if err := r.db.QueryRow(
 		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount FROM responses WHERE id = $1",
@@ -116,6 +138,10 @@ func (r *ResponseRepository) Find(id int64) (*model.Response, error) {
 
 
 func (r *ResponseRepository) ListResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"response", "method":"listResponsesOnJobID"}))
+	defer timer.ObserveDuration()
+
 	var responses []model.ExtendResponse
 	rows, err := r.db.Query(
 		"SELECT R.id, R.freelancerId, R.jobId, R.files, R.date, R.statusManager, R.statusFreelancer, " +

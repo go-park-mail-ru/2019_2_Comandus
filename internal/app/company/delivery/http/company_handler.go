@@ -1,15 +1,17 @@
 package companyhttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -40,31 +42,41 @@ func NewCompanyHandler(m *mux.Router, uc company.Usecase, sanitizer *bluemonday.
 func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/company", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"), "HandleEditCompany: ")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleEditCompany()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleEditCompany<-rBodyClose: ")
+			err = errors.Wrapf(err, "HandleEditCompany<-rBodyClose()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
-	currCompany := new(model.Company)
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(currCompany)
+
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-Decode(): ")
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := h.CompanyUsecase.Edit(u, currCompany); err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit(): ")
+	currCompany := new(model.Company)
+	if err := currCompany.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.CompanyUsecase.Edit(u.ID, currCompany); err != nil {
+		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -75,23 +87,25 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/company/id", "method":r.Method}))
+	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
 	ids := vars["companyId"]
 	id, err := strconv.Atoi(ids)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetCompany<-Atoi(wrong id): ")
+		err = errors.Wrapf(err, "HandleGetCompany<-Atoi(wrong id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	currCompany, err := h.CompanyUsecase.Find(int64(id))
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetCompany<-Find: ")
+		err = errors.Wrapf(err, "HandleGetCompany<-Find()")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
 
-	currCompany.Sanitize(h.sanitizer)
 	respond.Respond(w, r, http.StatusOK, currCompany)
 }

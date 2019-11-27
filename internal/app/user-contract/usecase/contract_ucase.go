@@ -1,7 +1,7 @@
 package contractUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
@@ -10,37 +10,28 @@ import (
 
 type ContractUsecase struct {
 	contractRep		user_contract.Repository
-	freelancerClient clients.ClientFreelancer
-	managerClient   clients.ManagerClient
-	companyClient 	clients.CompanyClient
-	jobClient   	clients.ClientJob
-	responseClient  clients.ClientResponse
+	grpcClients		*server_clients.ServerClients
 }
 
-func NewContractUsecase(c user_contract.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
-	cClient clients.CompanyClient ,jClient clients.ClientJob, rClient clients.ClientResponse) user_contract.Usecase {
+func NewContractUsecase(c user_contract.Repository, clients *server_clients.ServerClients) user_contract.Usecase {
 	return &ContractUsecase{
 		contractRep:	c,
-		freelancerClient: fClient,
-		managerClient: mClient,
-		companyClient: cClient,
-		jobClient: jClient,
-		responseClient: rClient,
+		grpcClients:	clients,
 	}
 }
 
 func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) error {
-	response, err := u.responseClient.GetResponseFromServer(responseId)
+	response, err := u.grpcClients.ResponseClient.GetResponseFromServer(responseId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	job, err := u.jobClient.GetJobFromServer(response.JobId)
+	job, err := u.grpcClients.JobClient.GetJobFromServer(response.JobId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetJobFromServer()")
 	}
 
-	currManager, err := u.managerClient.GetManagerFromServer(job.HireManagerId)
+	currManager, err := u.grpcClients.ManagerClient.GetManagerFromServer(job.HireManagerId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerFromServer()")
 	}
@@ -81,7 +72,7 @@ func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 		return errors.New("user must be freelancer")
 	}
 
-	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
+	currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetFreelancerByUserFromServer()")
 	}
@@ -109,7 +100,7 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	contract, err := u.contractRep.Find(contractId)
 	if err != nil {
-		return errors.Wrapf(err, "contractRep.Find(): ")
+		return errors.Wrapf(err, "contractRep.Find()")
 	}
 
 	if user.IsManager() {
@@ -122,7 +113,7 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	contract.Status = model.ContractStatusReviewed
 
-	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
 	}
@@ -156,17 +147,17 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 			continue
 		}
 
-		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+		company, err := u.grpcClients.CompanyClient.GetCompanyFromServer(contract.CompanyID)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
 		}
 
-		response, err := u.responseClient.GetResponseFromServer(contract.ResponseID)
+		response, err := u.grpcClients.ResponseClient.GetResponseFromServer(contract.ResponseID)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
 		}
 
-		job, err := u.jobClient.GetJobFromServer(response.JobId)
+		job, err := u.grpcClients.JobClient.GetJobFromServer(response.JobId)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
 		}

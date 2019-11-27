@@ -23,7 +23,7 @@ func (u *ManagerUsecase) Create(userId int64, compId int64) (*model.HireManager,
 	}
 
 	if err := u.managerRep.Create(m); err != nil {
-		return nil, errors.Wrap(err, "CreateUser<-managerRep.Create()")
+		return nil, errors.Wrap(err, "managerRep.Create()")
 	}
 
 	return m, nil

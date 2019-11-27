@@ -1,21 +1,21 @@
 package companyUsecase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 )
 
 type CompanyUsecase struct {
-	companyRep company.Repository
-	managerClient clients.ManagerClient
+	companyRep 		company.Repository
+	grpcClients		*server_clients.ServerClients
 }
 
-func NewCompanyUsecase(c company.Repository, mClient clients.ManagerClient ) company.Usecase {
+func NewCompanyUsecase(c company.Repository, clients *server_clients.ServerClients) company.Usecase {
 		return &CompanyUsecase{
 			companyRep: c,
-			managerClient: mClient,
+			grpcClients: clients,
 	}
 }
 
@@ -37,15 +37,15 @@ func (u *CompanyUsecase) Find(id int64) (*model.Company, error) {
 	return c, nil
 }
 
-func (u *CompanyUsecase) Edit(user *model.User, company *model.Company) error {
-	m, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+func (u *CompanyUsecase) Edit(userId int64, company *model.Company) error {
+	m, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(userId)
 	if err != nil {
 		return errors.Wrapf(err, "client.FindByUser()")
 	}
 
 	company.ID = m.CompanyId
 	if err := u.companyRep.Edit(company); err != nil {
-		return errors.Wrapf(err, "HandleEditCompany<-Edit: ")
+		return errors.Wrapf(err, "companyRep.Edit()")
 	}
 	return nil
 }

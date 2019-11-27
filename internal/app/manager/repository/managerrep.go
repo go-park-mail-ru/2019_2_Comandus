@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type ManagerRepository struct {
@@ -15,6 +17,10 @@ func NewManagerRepository(db *sql.DB) manager.Repository {
 }
 
 func (r *ManagerRepository) Create(m *model.HireManager) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"manager", "method":"create"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow(
 		"INSERT INTO managers (accountId, location, companyId) " +
 			"VALUES ($1, $2, $3) RETURNING id",
@@ -25,6 +31,10 @@ func (r *ManagerRepository) Create(m *model.HireManager) error {
 }
 
 func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"manager", "method":"find"}))
+	defer timer.ObserveDuration()
+
 	m := &model.HireManager{}
 	if err := r.db.QueryRow(
 		"SELECT id, accountId, location, companyId FROM managers WHERE id = $1",
@@ -41,6 +51,10 @@ func (r *ManagerRepository) Find(id int64) (*model.HireManager, error) {
 }
 
 func (r *ManagerRepository) FindByUser(accountId int64) (*model.HireManager, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"manager", "method":"findByUser"}))
+	defer timer.ObserveDuration()
+
 	m := &model.HireManager{}
 	if err := r.db.QueryRow(
 		"SELECT id, accountId, location, companyId FROM managers WHERE accountId = $1",
@@ -57,6 +71,10 @@ func (r *ManagerRepository) FindByUser(accountId int64) (*model.HireManager, err
 }
 
 func (r *ManagerRepository) Edit(m * model.HireManager) error {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+		Labels{"rep":"manager", "method":"edit"}))
+	defer timer.ObserveDuration()
+
 	return r.db.QueryRow("UPDATE managers SET location = $1, companyId = $2 WHERE id = $3 RETURNING id",
 		m.Location,
 		m.CompanyID,

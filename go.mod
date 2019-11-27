@@ -9,12 +9,13 @@ require (
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/mux v1.7.3
-	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.0
-	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
+	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3 // indirect
 	github.com/lib/pq v1.2.0
+	github.com/mailru/easyjson v0.7.0
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/pkg/errors v0.8.1
+	github.com/prometheus/client_golang v1.2.1
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.2.0 // indirect

@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -60,6 +61,8 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 		if err != nil {
 			respond.Error(w, r, http.StatusNotFound, err)
 		}
+
+		log.Println(u)
 
 		user := &model.User{
 			ID:              u.ID,

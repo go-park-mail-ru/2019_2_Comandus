@@ -3,28 +3,34 @@ package clients
 import (
 	"context"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc/company_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"log"
 )
 
 type CompanyClient struct {
+	conn *grpc.ClientConn
 }
 
-func (*CompanyClient) CreateCompanyOnServer(userId int64) (*company_grpc.Company, error) {
+func (c *CompanyClient) Connect() error {
 	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
+		return errors.Wrap(err, "grpc.Dial()")
 	}
+	c.conn = conn
+	return nil
+}
 
-	defer func() {
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
+func (c *CompanyClient) Disconnect() error {
+	if err := c.conn.Close(); err != nil {
+		log.Println("conn.Close()", err)
+	}
+	return nil
+}
 
-	client := company_grpc.NewCompanyHandlerClient(conn)
+func (c *CompanyClient) CreateCompanyOnServer(userId int64) (*company_grpc.Company, error) {
+	client := company_grpc.NewCompanyHandlerClient(c.conn)
 	comReq := &company_grpc.UserID{
 		ID: userId,
 	}
@@ -35,19 +41,8 @@ func (*CompanyClient) CreateCompanyOnServer(userId int64) (*company_grpc.Company
 	return company, nil
 }
 
-func (*CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
-	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
-	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
-
-	client := company_grpc.NewCompanyHandlerClient(conn)
+func (c *CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
+	client := company_grpc.NewCompanyHandlerClient(c.conn)
 	companyReq := &company_grpc.CompanyID{
 		ID: id,
 	}
@@ -58,4 +53,32 @@ func (*CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.Company, err
 	}
 
 	return currCompany, nil
+}
+
+func (c *CompanyClient) EditCompanyOnServer(id int64, company *model.Company)  error {
+	client := company_grpc.NewCompanyHandlerClient(c.conn)
+
+	grpccompany := &company_grpc.Company{
+		ID:                   company.ID,
+		CompanyName:          company.CompanyName,
+		Site:                 company.Site,
+		TagLine:              company.TagLine,
+		Description:          company.Description,
+		Country:              company.Country,
+		City:                 company.City,
+		Address:              company.Address,
+		Phone:                company.Phone,
+	}
+
+	companyReq := &company_grpc.CompanyWithUser{
+		MyCompany:            grpccompany,
+		UserID:               id,
+	}
+
+	_, err := client.Edit(context.Background(), companyReq)
+	if err != nil {
+		return errors.Wrap(err, "userRep.Find()")
+	}
+
+	return nil
 }

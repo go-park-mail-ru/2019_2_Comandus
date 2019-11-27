@@ -77,3 +77,12 @@ func (s *FreelancerServer) FindByUser(context context.Context, userID *freelance
 	res := s.TransformFreelancerRPC(currFreelancer)
 	return res, nil
 }
+
+func (s *FreelancerServer) Find(context context.Context, id *freelancer_grpc.FreelancerID) (*freelancer_grpc.Freelancer, error) {
+	currFreelancer, err := s.Ucase.Find(id.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Ucase.FindByUser()")
+	}
+	res := s.TransformFreelancerRPC(currFreelancer)
+	return res, nil
+}

@@ -62,41 +62,7 @@ func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
 	return res
 }
 
-func (s *UserServer) CreateUser(context context.Context, userReq *user_grpc.User) (*user_grpc.User, error) {
-	newUser := &model.User{
-		Email:      userReq.Email,
-		Password:   userReq.Password,
-		FirstName:  userReq.FirstName,
-		SecondName: userReq.SecondName,
-		UserType:   userReq.UserType,
-	}
-
-	if err := s.UserUcase.CreateUser(newUser); err != nil {
-		return nil, errors.Wrap(err, "UserUcase.CreateUser")
-	}
-
-	res := s.TransformUserRPC(newUser)
-	return res, nil
-}
-
-func (s *UserServer) VerifyUser(context context.Context, userReq *user_grpc.UserRequest) (*user_grpc.UserID, error) {
-	newUser := &model.User{
-		Email:    userReq.Email,
-		Password: userReq.Password,
-	}
-
-	id, err := s.UserUcase.VerifyUser(newUser)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &user_grpc.UserID{
-		ID: id,
-	}
-	return res, nil
-}
-
-func (s *UserServer) Find(context context.Context, userId *user_grpc.UserID) (*user_grpc.User, error) {
+func (s *UserServer) Find(context context.Context,userId *user_grpc.UserID) (*user_grpc.User, error) {
 	currUser, err := s.UserUcase.Find(userId.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "UserUcase.Find()")

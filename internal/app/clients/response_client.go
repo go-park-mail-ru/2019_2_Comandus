@@ -10,23 +10,27 @@ import (
 
 
 type ResponseClient struct {
-
+	conn *grpc.ClientConn
 }
 
-func (*ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Response, error){
+func (c *ResponseClient) Connect() error {
 	conn, err := grpc.Dial(":8086", grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
+		return errors.Wrap(err, "grpc.Dial()")
 	}
+	c.conn = conn
+	return nil
+}
 
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
+func (c *ResponseClient) Disconnect() error {
+	if err := c.conn.Close(); err != nil {
+		log.Println("conn.Close()", err)
+	}
+	return nil
+}
 
-	client := response_grpc.NewResponseHandlerClient(conn)
+func (c *ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Response, error){
+	client := response_grpc.NewResponseHandlerClient(c.conn)
 
 	req := &response_grpc.ResponseID {
 		ID:		id,

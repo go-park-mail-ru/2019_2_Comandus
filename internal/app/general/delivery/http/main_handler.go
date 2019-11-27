@@ -1,36 +1,39 @@
 package mainHttp
 
 import (
-	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
+	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
 
 type MainHandler struct {
-	GeneralUsecase	general.Usecase
 	sanitizer		*bluemonday.Policy
 	logger			*zap.SugaredLogger
 	sessionStore	sessions.Store
 	token 			*token.HashToken
+	ucase			general.Usecase
 }
 
 func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger,
-	sessionStore sessions.Store, thisToken *token.HashToken, generalUsecase general.Usecase) {
+	sessionStore sessions.Store, thisToken *token.HashToken, ucase general.Usecase) {
 		handler := &MainHandler{
-		GeneralUsecase:	generalUsecase,
 		sanitizer:		sanitizer,
 		logger:			logger,
 		sessionStore:	sessionStore,
 		token:			thisToken,
+		ucase:			ucase,
 	}
 
 	m.HandleFunc("/", handler.HandleMain)
@@ -41,89 +44,111 @@ func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Pol
 }
 
 func (h *MainHandler) HandleMain(w http.ResponseWriter, r *http.Request) {
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.Labels{"path":"/", "method":"no"}))
+	defer timer.ObserveDuration()
+
 	respond.Respond(w, r, http.StatusOK, "hello from server")
 }
 
 func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/signup", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleCreateUser:<-Body.Close")
+			err = errors.Wrapf(err, "HandleCreateUser<-Body.Close")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
-	newUser := new(model.User)
-	err := decoder.Decode(newUser)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-Decode")
+		err = errors.Wrapf(err, "HandleCreateUser<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	id, err := h.GeneralUsecase.SignUp(newUser)
+	newUser := new(model.User)
+	if err := newUser.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "HandleCreateUser<-user.UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	createdUser, err := h.ucase.CreateUser(newUser)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-CreateUser")
+		err = errors.Wrapf(err, "HandleCreateUser<-ucase.CreateUser()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-sessionGet")
+		err = errors.Wrapf(err, "HandleCreateUser<-sessionGet()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	session.Values["user_id"] = id
+	session.Values["user_id"] = createdUser.ID
 	if err := h.sessionStore.Save(r, w, session); err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-sessionSave")
+		err = errors.Wrapf(err, "HandleCreateUser<-sessionSave()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
+	log.Println(createdUser)
 	newUser.Sanitize(h.sanitizer)
-	respond.Respond(w, r, http.StatusCreated, newUser)
+	respond.Respond(w, r, http.StatusCreated, createdUser)
 }
 
 func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/login", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleSessionCreate<-rBodyClose")
+			err = errors.Wrapf(err, "HandleSessionCreate<-rBodyClose()")
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
 
-	decoder := json.NewDecoder(r.Body)
-	currUser := new(model.User)
-	err := decoder.Decode(currUser)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-DecodeUser")
+		err = errors.Wrapf(err, "HandleSessionCreate<-ioutil.ReadAll()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	id, err := h.GeneralUsecase.VerifyUser(currUser)
+	currUser := new(model.User)
+	if err := currUser.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "HandleSessionCreate<-currCompany.UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	id, err := h.ucase.VerifyUser(currUser)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-UserUseCase.VerifyUser()")
+		err = errors.Wrapf(err, "HandleSessionCreate<-ucase.VerifyUser()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-sessionGet")
+		err = errors.Wrapf(err, "HandleSessionCreate<-sessionGet()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	session.Values["user_id"] = id
 	if err := h.sessionStore.Save(r, w, session); err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-sessionSave")
+		err = errors.Wrapf(err, "HandleSessionCreate<-sessionSave()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return
 	}
@@ -132,9 +157,14 @@ func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Reques
 
 func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"token", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	sess, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get")
+		err = errors.Wrapf(err, "HandleGetToken<-sessionStore.Get()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -144,16 +174,20 @@ func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h * MainHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/logout", "method":r.Method}))
+	defer timer.ObserveDuration()
+
 	session, err := h.sessionStore.Get(r, respond.SessionName)
 	if err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionGet")
+		err = errors.Wrapf(err, "HandleLogout<-sessionGet()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	session.Options.MaxAge = -1
 	if err := session.Save(r, w); err != nil {
-		err = errors.Wrapf(err, "HandleLogout<-sessionSave")
+		err = errors.Wrapf(err, "HandleLogout<-sessionSave()")
 		respond.Error(w, r, http.StatusExpectationFailed, err)
 		return
 	}

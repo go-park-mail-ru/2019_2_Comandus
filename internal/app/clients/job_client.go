@@ -9,23 +9,27 @@ import (
 )
 
 type JobClient struct {
-
+	conn *grpc.ClientConn
 }
 
-func (*JobClient) GetJobFromServer(id int64) (*job_grpc.Job, error) {
+func (c *JobClient) Connect() error {
 	conn, err := grpc.Dial(":8085", grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "grpc.Dial()")
+		return errors.Wrap(err, "grpc.Dial()")
 	}
+	c.conn = conn
+	return nil
+}
 
-	defer func(){
-		if err := conn.Close(); err != nil {
-			// TODO: use zap logger
-			log.Println("conn.Close()", err)
-		}
-	}()
+func (c *JobClient) Disconnect() error {
+	if err := c.conn.Close(); err != nil {
+		log.Println("conn.Close()", err)
+	}
+	return nil
+}
 
-	client := job_grpc.NewJobHandlerClient(conn)
+func (c *JobClient) GetJobFromServer(id int64) (*job_grpc.Job, error) {
+	client := job_grpc.NewJobHandlerClient(c.conn)
 	jobReq := &job_grpc.JobID{
 		ID:		id,
 	}

@@ -1,28 +1,26 @@
 package userUcase
 
 import (
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/interfaces"
+	"bytes"
+	server_clients "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients/server-clients"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"image"
+	"image/jpeg"
 	"log"
-	"os"
+	"net/http"
 )
 
 type UserUsecase struct {
 	userRep			user.Repository
-	freelancerClient clients.ClientFreelancer
-	managerClient   clients.ManagerClient
-	companyClient   clients.CompanyClient
+	grpcClients		*server_clients.ServerClients
 }
 
-func NewUserUsecase(u user.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
-	cClient clients.CompanyClient) user.Usecase {
+func NewUserUsecase(u user.Repository, clients *server_clients.ServerClients) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
-		freelancerClient: fClient,
-		managerClient: mClient,
-		companyClient: cClient,
+		grpcClients:	clients,
 	}
 }
 
@@ -85,33 +83,24 @@ func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 		return user.Avatar, nil
 	}
 
-	var openFile *os.File
-	// TODO: create default user in database, get default image from it
-
-	_, err := os.Getwd()
-	if err != nil {
-		return nil, errors.Wrap(err, "os.Getwd()")
-	}
-
-	filename := "../internal/store/avatars/default.png"
-	openFile, err = os.Open(filename)
-	if err != nil {
-		return nil, errors.Wrap(err, "Open")
-	}
-
+	response, _ := http.Get("https://sun9-69.userapi.com/c855720/v855720288/da766/u_n0r-sbhwY.jpg")
 	defer func() {
-		if err := openFile.Close(); err != nil {
-			// TODO: write in correct logger
-			log.Println(errors.Wrap(err, "GetAvatar<-Close()"))
+		if err := response.Body.Close(); err != nil {
+			log.Println(err)
 		}
 	}()
 
-	avatar := make([]byte, 0)
-	if _, err := openFile.Read(avatar); err != nil {
-		return nil, errors.Wrap(err, "Read()")
+	im, _, err := image.Decode(response.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "image.Decode()")
 	}
 
-	return avatar, nil
+	buf := new(bytes.Buffer)
+	if err := jpeg.Encode(buf, im, nil); err != nil {
+		return nil, errors.Wrap(err, "image.Encode()")
+	}
+
+	return buf.Bytes(), nil
 }
 
 func (u *UserUsecase) Find(id int64) (*model.User, error) {
@@ -120,12 +109,12 @@ func (u *UserUsecase) Find(id int64) (*model.User, error) {
 		return nil, errors.Wrap(err, "userRep.Find()")
 	}
 
-	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(id)
+	currFreelancer, err := u.grpcClients.FreelancerClient.GetFreelancerByUserFromServer(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "clients.GetFreelancerByUserFromServer()")
 	}
 
-	currManager, err := u.managerClient.GetManagerByUserFromServer(id)
+	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "clients.GetManagerByUserFromServer()")
 	}
@@ -162,12 +151,12 @@ func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 }
 
 func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
-	currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	currManager, err := u.grpcClients.ManagerClient.GetManagerByUserFromServer(user.ID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
 	}
 
-	currCompany, err := u.companyClient.GetCompanyFromServer(currManager.CompanyId)
+	currCompany, err := u.grpcClients.CompanyClient.GetCompanyFromServer(currManager.CompanyId)
 	if err != nil {
 		return nil, errors.Wrap(err, "getCompanyFromServer()")
 	}
