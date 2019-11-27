@@ -94,33 +94,6 @@ func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-
-	/*var openFile *os.File
-	// TODO: create default user in database, get default image from it
-	_, err := os.Getwd()
-	if err != nil {
-		return nil, errors.Wrap(err, "os.Getwd()")
-	}
-
-	filename := "../internal/store/avatars/default.png"
-	openFile, err = os.Open(filename)
-	if err != nil {
-		return nil, errors.Wrap(err, "Open")
-	}
-
-	defer func() {
-		if err := openFile.Close(); err != nil {
-			// TODO: write in correct logger
-			log.Println(errors.Wrap(err, "GetAvatar<-Close()"))
-		}
-	}()
-
-	avatar := make([]byte, 0)
-	if _, err := openFile.Read(avatar); err != nil {
-		return nil, errors.Wrap(err, "Read()")
-	}
-
-	return avatar, nil*/
 }
 
 func (u *UserUsecase) Find(id int64) (*model.User, error) {

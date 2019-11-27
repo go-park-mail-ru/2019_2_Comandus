@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -131,10 +132,19 @@ func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request)
 		}
 	}()
 
-	bodyPassword := new(model.BodyPassword)
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(bodyPassword)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		err = errors.Wrapf(err, "HandleEditPassword<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	bodyPassword := new(model.BodyPassword)
+	//decoder := json.NewDecoder(r.Body)
+	//err := decoder.Decode(bodyPassword)
+
+	//err := easyjson.Unmarshal(body, easyjson.Unmarshaler(c))
+	if err := bodyPassword.UnmarshalJSON(body); err != nil {
 		err = errors.Wrapf(err, "HandleEditPassword<-Decode: ")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return

@@ -13,6 +13,7 @@ require (
 	github.com/gorilla/sessions v1.2.0
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
 	github.com/lib/pq v1.2.0
+	github.com/mailru/easyjson v0.7.0
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
