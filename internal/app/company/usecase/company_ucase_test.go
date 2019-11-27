@@ -127,14 +127,14 @@ func TestCompanyUsecase_Edit(t *testing.T) {
 				Edit(tc.newCompany).
 				Return(tc.expectError)
 
-			err := companyUcase.Edit(user, tc.newCompany)
+			err := companyUcase.Edit(user.ID, tc.newCompany)
 
 			if tc.expectError == nil {
 				assert.Equal(t, nil, err)
 				return
 			}
 
-			expectError := "HandleEditCompany<-Edit: :  only manager can edit company"
+			expectError := "companyRep.Edit():  only manager can edit company"
 
 			if err != nil {
 				assert.Equal(t, expectError, err.Error())

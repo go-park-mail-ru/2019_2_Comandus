@@ -14,7 +14,7 @@ func testContract(t *testing.T) *model.Contract {
 		CompanyID:    1,
 		FreelancerID: 1,
 		Status:       "in work",
-		Grade:        0,
+		ClientGrade: 0,
 	}
 }
 
