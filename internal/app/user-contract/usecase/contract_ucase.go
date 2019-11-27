@@ -10,23 +10,32 @@ import (
 
 type ContractUsecase struct {
 	contractRep		user_contract.Repository
-	managerClient   *clients.ClientManager
+	freelancerClient   *clients.FreelancerClient
+	managerClient   *clients.ManagerClient
+	companyClient 	*clients.CompanyClient
+	jobClient   *clients.JobClient
+	responseClient   *clients.ResponseClient
 }
 
-func NewContractUsecase(c user_contract.Repository) user_contract.Usecase {
+func NewContractUsecase(c user_contract.Repository, fClient *clients.FreelancerClient, mClient *clients.ManagerClient,
+	cClient *clients.CompanyClient ,jClient *clients.JobClient, rClient *clients.ResponseClient) user_contract.Usecase {
 	return &ContractUsecase{
 		contractRep:	c,
-		managerClient: new(clients.ClientManager),
+		freelancerClient: fClient,
+		managerClient: mClient,
+		companyClient: cClient,
+		jobClient: jClient,
+		responseClient: rClient,
 	}
 }
 
 func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) error {
-	response, err := clients.GetResponseFromServer(responseId)
+	response, err := u.responseClient.GetResponseFromServer(responseId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	job, err := clients.GetJobFromServer(response.JobId)
+	job, err := u.jobClient.GetJobFromServer(response.JobId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetJobFromServer()")
 	}
@@ -72,7 +81,7 @@ func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 		return errors.New("user must be freelancer")
 	}
 
-	currFreelancer, err := clients.GetFreelancerByUserFromServer(user.ID)
+	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetFreelancerByUserFromServer()")
 	}
@@ -147,17 +156,17 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 			continue
 		}
 
-		company, err := clients.GetCompanyFromServer(contract.CompanyID)
+		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
 		}
 
-		response, err := clients.GetResponseFromServer(contract.ResponseID)
+		response, err := u.responseClient.GetResponseFromServer(contract.ResponseID)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
 		}
 
-		job, err := clients.GetJobFromServer(response.JobId)
+		job, err := u.jobClient.GetJobFromServer(response.JobId)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
 		}

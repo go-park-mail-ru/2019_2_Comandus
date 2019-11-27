@@ -8,7 +8,11 @@ import (
 	"log"
 )
 
-func GetJobFromServer(id int64) (*job_grpc.Job, error) {
+type JobClient struct {
+
+}
+
+func (*JobClient) GetJobFromServer(id int64) (*job_grpc.Job, error) {
 	conn, err := grpc.Dial(":8085", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

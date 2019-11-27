@@ -9,7 +9,11 @@ import (
 	"log"
 )
 
-func CreateUserOnServer(data *model.User) (*user_grpc.User, error) {
+type UserClient struct {
+
+}
+
+func (*UserClient) CreateUserOnServer(data *model.User) (*user_grpc.User, error) {
 	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
@@ -39,7 +43,7 @@ func CreateUserOnServer(data *model.User) (*user_grpc.User, error) {
 	return user, nil
 }
 
-func VerifyUserOnServer(user *model.User) (int64, error){
+func (*UserClient) VerifyUserOnServer(user *model.User) (int64, error){
 	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
 	if err != nil {
 		return 0, errors.Wrap(err, "grpc.Dial()")
@@ -66,7 +70,7 @@ func VerifyUserOnServer(user *model.User) (int64, error){
 	return mes.ID, nil
 }
 
-func GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error){
+func (*UserClient) GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error){
 	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

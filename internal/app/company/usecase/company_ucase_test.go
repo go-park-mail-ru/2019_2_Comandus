@@ -3,6 +3,7 @@ package companyUsecase
 import (
 	"errors"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/mocks/client_mocks"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/mocks/repository_mocks"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/golang/mock/gomock"
@@ -14,6 +15,7 @@ func testUcase(t *testing.T) (*repository_mocks.MockCompanyRepository, company.U
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	companyRep := repository_mocks.NewMockCompanyRepository(ctrl)
+	companyClient := client_mocks.NewMockClientManager(ctrl)
 	companyUcase := NewCompanyUsecase(companyRep)
 	return companyRep, companyUcase
 }

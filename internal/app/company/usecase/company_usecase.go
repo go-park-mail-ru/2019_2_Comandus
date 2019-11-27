@@ -10,14 +10,14 @@ import (
 type CompanyUsecase struct {
 	companyRep company.Repository
 	companyClient *clients.CompanyClient
-	managerClient *clients.ClientManager
+	managerClient *clients.ManagerClient
 }
 
-func NewCompanyUsecase(c company.Repository) company.Usecase {
+func NewCompanyUsecase(c company.Repository, cClient *clients.CompanyClient, mClient *clients.ManagerClient ) company.Usecase {
 	return &CompanyUsecase{
 		companyRep: c,
-		companyClient: new(clients.CompanyClient),
-		managerClient: new(clients.ClientManager),
+		companyClient: cClient,
+		managerClient: mClient,
 	}
 }
 

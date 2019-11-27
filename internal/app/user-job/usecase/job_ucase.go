@@ -10,14 +10,14 @@ import (
 
 type JobUsecase struct {
 	jobRep user_job.Repository
-	managerClient *clients.ClientManager
+	managerClient *clients.ManagerClient
 
 }
 
-func NewJobUsecase(j user_job.Repository) user_job.Usecase {
+func NewJobUsecase(j user_job.Repository, mClient *clients.ManagerClient) user_job.Usecase {
 	return &JobUsecase{
 		jobRep: j,
-		managerClient: new(clients.ClientManager),
+		managerClient: mClient,
 	}
 }
 

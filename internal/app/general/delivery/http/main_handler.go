@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/respond"
-	general_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/gorilla/mux"
@@ -25,9 +24,9 @@ type MainHandler struct {
 }
 
 func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger,
-	sessionStore sessions.Store, thisToken *token.HashToken) {
+	sessionStore sessions.Store, thisToken *token.HashToken, generalUsecase general.Usecase) {
 		handler := &MainHandler{
-		GeneralUsecase:	general_ucase.NewGeneralUsecase(),
+		GeneralUsecase:	generalUsecase,
 		sanitizer:		sanitizer,
 		logger:			logger,
 		sessionStore:	sessionStore,

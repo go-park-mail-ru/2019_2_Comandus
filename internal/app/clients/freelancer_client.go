@@ -8,7 +8,11 @@ import (
 	"log"
 )
 
-func CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error) {
+type FreelancerClient struct{
+
+}
+
+func (*FreelancerClient) CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error) {
 	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
@@ -29,7 +33,7 @@ func CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error)
 	return freelancer, nil
 }
 
-func GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
+func (*FreelancerClient) GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
 	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

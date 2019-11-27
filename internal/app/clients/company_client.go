@@ -8,10 +8,10 @@ import (
 	"log"
 )
 
-//type CompanyClient struct {
-//}
+type CompanyClient struct {
+}
 
-func CreateCompanyOnServer(userId int64) (*company_grpc.Company, error) {
+func (*CompanyClient) CreateCompanyOnServer(userId int64) (*company_grpc.Company, error) {
 	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")
@@ -35,7 +35,7 @@ func CreateCompanyOnServer(userId int64) (*company_grpc.Company, error) {
 	return company, nil
 }
 
-func GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
+func (*CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
 	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

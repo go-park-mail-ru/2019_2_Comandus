@@ -8,7 +8,12 @@ import (
 	"log"
 )
 
-func GetResponseFromServer(id int64) (*response_grpc.Response, error){
+
+type ResponseClient struct {
+
+}
+
+func (*ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Response, error){
 	conn, err := grpc.Dial(":8086", grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.Dial()")

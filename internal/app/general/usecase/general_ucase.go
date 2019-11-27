@@ -8,27 +8,34 @@ import (
 )
 
 type GeneralUsecase struct {
-	ManagerClient *clients.ClientManager
+	UserClient *clients.UserClient
+	ManagerClient *clients.ManagerClient
+	CompanyClient *clients.CompanyClient
+	FreelancerClient *clients.FreelancerClient
 }
 
-func NewGeneralUsecase() general.Usecase {
+func NewGeneralUsecase(UClient *clients.UserClient, MClient *clients.ManagerClient,
+	CClient *clients.CompanyClient, FClient *clients.FreelancerClient) general.Usecase {
 	return &GeneralUsecase{
-		ManagerClient: new(clients.ClientManager),
+		UserClient: UClient,
+		ManagerClient: MClient,
+		CompanyClient: CClient,
+		FreelancerClient: FClient,
 	}
 }
 
 func (u *GeneralUsecase) SignUp(data *model.User) (int64, error) {
-	user, err := clients.CreateUserOnServer(data)
+	user, err := u.UserClient.CreateUserOnServer(data)
 	if err != nil {
 		return 0, errors.Wrap(err, "clients.CreateUserOnServer")
 	}
 
-	company, err := clients.CreateCompanyOnServer(user.ID)
+	company, err := u.CompanyClient.CreateCompanyOnServer(user.ID)
 	if err != nil {
 		return 0, errors.Wrap(err, "clients.CreateCompanyOnServer()")
 	}
 
-	_, err = clients.CreateFreelancerOnServer(user.ID)
+	_, err = u.FreelancerClient.CreateFreelancerOnServer(user.ID)
 	if err != nil {
 		return 0, errors.Wrap(err, "clients.CreateFreelancerOnServer")
 	}
@@ -42,5 +49,5 @@ func (u *GeneralUsecase) SignUp(data *model.User) (int64, error) {
 }
 
 func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, error) {
-	return clients.VerifyUserOnServer(user)
+	return u.UserClient.VerifyUserOnServer(user)
 }

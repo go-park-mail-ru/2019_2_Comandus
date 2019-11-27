@@ -11,13 +11,18 @@ import (
 
 type UserUsecase struct {
 	userRep			user.Repository
-	managerClient   *clients.ClientManager
+	freelancerClient *clients.FreelancerClient
+	managerClient   *clients.ManagerClient
+	companyClient   *clients.CompanyClient
 }
 
-func NewUserUsecase(u user.Repository) user.Usecase {
+func NewUserUsecase(u user.Repository, fClient *clients.FreelancerClient, mClient *clients.ManagerClient,
+	cClient *clients.CompanyClient) user.Usecase {
 	return &UserUsecase{
 		userRep:		u,
-		managerClient: new(clients.ClientManager),
+		freelancerClient: fClient,
+		managerClient: mClient,
+		companyClient: cClient,
 	}
 }
 
@@ -115,7 +120,7 @@ func (u *UserUsecase) Find(id int64) (*model.User, error) {
 		return nil, errors.Wrap(err, "userRep.Find()")
 	}
 
-	currFreelancer, err := clients.GetFreelancerByUserFromServer(id)
+	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "clients.GetFreelancerByUserFromServer()")
 	}
@@ -162,7 +167,7 @@ func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
 		return nil, errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
 	}
 
-	currCompany, err := clients.GetCompanyFromServer(currManager.CompanyId)
+	currCompany, err := u.companyClient.GetCompanyFromServer(currManager.CompanyId)
 	if err != nil {
 		return nil, errors.Wrap(err, "getCompanyFromServer()")
 	}

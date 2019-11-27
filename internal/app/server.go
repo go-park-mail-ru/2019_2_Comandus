@@ -3,6 +3,7 @@ package apiserver
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	cogrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc"
 	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
@@ -12,6 +13,7 @@ import (
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
+	general_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
 	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
 	managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
@@ -83,19 +85,28 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	responseRep := responseRepository.NewResponseRepository(db)
 	contractRep := contractRepository.NewContractRepository(db)
 
-	userU := userUcase.NewUserUsecase(userRep)
-	companyU := companyUcase.NewCompanyUsecase(companyRep)
+	userClient := new(clients.UserClient)
+	freelacerClient := new(clients.FreelancerClient)
+	managerClient := new(clients.ManagerClient)
+	companyClient := new(clients.CompanyClient)
+	jobClient := new(clients.JobClient)
+	responseClient := new(clients.ResponseClient)
+
+	userU := userUcase.NewUserUsecase(userRep, freelacerClient, managerClient, companyClient)
+	companyU := companyUcase.NewCompanyUsecase(companyRep, companyClient, managerClient)
 	managerU := managerUcase.NewManagerUsecase(managerRep)
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep)
-	jobU := jobUcase.NewJobUsecase(jobRep)
-	responseU := responseUcase.NewResponseUsecase(responseRep)
-	contractU := contractUcase.NewContractUsecase(contractRep)
+	jobU := jobUcase.NewJobUsecase(jobRep, managerClient)
+	responseU := responseUcase.NewResponseUsecase(responseRep, freelacerClient, managerClient, jobClient)
+	contractU := contractUcase.NewContractUsecase(contractRep, freelacerClient, managerClient, companyClient,
+		jobClient, responseClient)
+	generalU := general_ucase.NewGeneralUsecase(userClient, managerClient, companyClient, freelacerClient)
 
 	private := s.Mux.PathPrefix("").Subrouter()
 
-	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token)
+	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token, generalU)
 
-	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl)
+	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl, userClient)
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
 
 	// only for auth users

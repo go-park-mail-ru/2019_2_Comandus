@@ -25,14 +25,17 @@ type Middleware struct {
 	logger			*zap.SugaredLogger
 	clientUrl		string
 	token			*token.HashToken
+	userClient      *clients.UserClient
 }
 
-func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken, clientUrl string) Middleware{
+func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken,
+	clientUrl string, uClient *clients.UserClient) Middleware{
 	return Middleware{
 		sessionStore: ss,
 		logger:       logger,
 		clientUrl:    clientUrl,
 		token:        token,
+		userClient:	  uClient,
 	}
 }
 
@@ -53,7 +56,7 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 		req := &user_grpc.UserID{
 			ID:                   id.(int64),
 		}
-		u, err := clients.GetUserFromServer(req)
+		u, err := m.userClient.GetUserFromServer(req)
 		if err != nil {
 			respond.Error(w, r, http.StatusNotFound, err)
 		}
