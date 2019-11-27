@@ -5,7 +5,6 @@ import (
 	user_contract "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-contract"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	"log"
 	"time"
 )
 
@@ -51,7 +50,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		ID:            0,
 		ResponseID:    response.ID,
 		CompanyID:     currManager.CompanyId,
-		FreelancerID:  response.FreelancerId,
+		FreelancerID:  user.FreelancerId,
 		StartTime:     time.Time{},
 		EndTime:       time.Time{},
 		Status:        model.ContractStatusUnderDevelopment,
@@ -161,7 +160,6 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 
 		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
 
-		log.Println(company)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
 		}

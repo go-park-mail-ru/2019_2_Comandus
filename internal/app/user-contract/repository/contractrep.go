@@ -77,7 +77,6 @@ func (r *ContractRepository) Edit(c *model.Contract) error {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep":"contract", "method":"edit"}))
 	defer timer.ObserveDuration()
-
 	return r.db.QueryRow("UPDATE contracts SET freelancerId = $1, startTime = $2, "+
 		"endTime = $3, status = $4, clientGrade = $5, clientComment = $6, freelancerGrade = $7, " +
 		"freelancerComment = $8, paymentAmount = $9 WHERE id = $10 RETURNING id",
