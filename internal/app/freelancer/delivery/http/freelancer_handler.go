@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -38,7 +37,8 @@ func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluem
 		}
 
 	m.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/freelancers/{freelancerId}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/freelancers/{pageID}", handler.HandleGetFreelancers).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/freelancer/{freelancerId}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/search/freelancers", handler.HandleSearchFreelancers).Methods(http.MethodGet, http.MethodOptions)
 }
 
@@ -147,10 +147,38 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
-	log.Println(pattern[0])
 	extendedFreelancers, err := h.FreelancerUsecase.PatternSearch(pattern[0])
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSearchFreelancers<-Ucase.PatternSearch()")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	respond.Respond(w, r, http.StatusOK, extendedFreelancers)
+}
+
+func (h *FreelancerHandler) HandleGetFreelancers (w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+		Labels{"path":"/freelancers/{pageID}", "method":r.Method}))
+	defer timer.ObserveDuration()
+
+	vars := mux.Vars(r)
+	pageIDIn := vars["pageID"]
+	pageID, err := strconv.Atoi(pageIDIn)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancers<-Atoi(wrong id)")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	// TODO get limit from request / now default limit = 20
+	var limit = 20
+	offset := 20 * (pageID - 1)
+
+	extendedFreelancers, err := h.FreelancerUsecase.FindPart(offset, limit)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetFreelancers<-Ucase.FindPart()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 	}
 

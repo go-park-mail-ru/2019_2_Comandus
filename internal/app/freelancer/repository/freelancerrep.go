@@ -144,3 +144,42 @@ func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFree
 	}
 	return exFreelancers, nil
 }
+
+func (r *FreelancerRepository) FindPartByTime(offset int, limit int) ([]model.ExtendFreelancer, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+	Labels{"rep":"freelancer", "method":"listInPattern"}))
+	defer timer.ObserveDuration()
+
+
+	var exFreelancers []model.ExtendFreelancer
+
+	rows, err := r.db.Query(
+		"SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, "+
+			" F.overview, F.experienceLevelId, F.specialityId, U.firstname , U.secondname "+
+			"FROM freelancers AS F "+
+			"INNER JOIN users AS U ON (F.accountid = U.accountid) " +
+			"OFFSET $1 LIMIT $2 ",
+		offset,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		f := model.Freelancer{}
+		exFreelancer := model.ExtendFreelancer{}
+		err := rows.Scan(&f.ID, &f.AccountId, &f.Country, &f.City, &f.Address, &f.Phone,
+			&f.TagLine, &f.Overview, &f.ExperienceLevelId, &f.SpecialityId, &exFreelancer.FirstName, &exFreelancer.SecondName)
+
+		if err != nil {
+			return nil, err
+		}
+		exFreelancer.F = &f
+		exFreelancers = append(exFreelancers, exFreelancer)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return exFreelancers, nil
+}
+

@@ -8,4 +8,5 @@ type Usecase interface {
 	Find(int64) (*model.Freelancer, error)
 	Edit(*model.Freelancer, *model.Freelancer) error
 	PatternSearch(string) ([]model.ExtendFreelancer, error)
+	FindPart(int, int) ([]model.ExtendFreelancer, error)
 }

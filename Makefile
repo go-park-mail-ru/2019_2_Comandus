@@ -4,6 +4,6 @@ build:
 
 .PHONY: test
 test:
-	go test -v -cover -coverpkg=./... -race  ./...
+	go test -v -cover  -race  ./...
 
 .DEFAULT_GOAL := build
