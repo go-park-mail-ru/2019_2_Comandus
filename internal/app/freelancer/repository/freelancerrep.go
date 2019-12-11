@@ -6,6 +6,11 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/prometheus/client_golang/prometheus"
+	"strconv"
+)
+
+const (
+	PATH2AVATAR = "https://89.208.211.100:8080/account/avatar/"
 )
 
 type FreelancerRepository struct {
@@ -60,6 +65,7 @@ func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 	); err != nil {
 		return nil, err
 	}
+	f.Avatar = PATH2AVATAR + strconv.Itoa(int(f.AccountId))
 	return f, nil
 }
 
@@ -87,6 +93,7 @@ func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, e
 	); err != nil {
 		return nil, err
 	}
+	f.Avatar = PATH2AVATAR + strconv.Itoa(int(f.AccountId))
 	return f, nil
 }
 
@@ -136,6 +143,9 @@ func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFree
 		if err != nil {
 			return nil, err
 		}
+
+		f.Avatar = PATH2AVATAR + strconv.Itoa(int(f.AccountId))
+
 		exFreelancer.F = &f
 		exFreelancers = append(exFreelancers, exFreelancer)
 	}
@@ -174,6 +184,8 @@ func (r *FreelancerRepository) FindPartByTime(offset int, limit int) ([]model.Ex
 		if err != nil {
 			return nil, err
 		}
+		f.Avatar = PATH2AVATAR + strconv.Itoa(int(f.AccountId))
+
 		exFreelancer.F = &f
 		exFreelancers = append(exFreelancers, exFreelancer)
 	}
