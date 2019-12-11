@@ -66,3 +66,11 @@ func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.ExtendFreelan
 	}
 	return exFreelancers, nil
 }
+
+func (u *FreelancerUsecase) FindPart(offset int, limit int) ([]model.ExtendFreelancer, error) {
+	exFreelancers, err := u.freelancerRep.FindPartByTime(offset, limit)
+	if err != nil {
+		return nil, errors.Wrap(err, "freelancerRep.FindAll()")
+	}
+	return exFreelancers, nil
+}

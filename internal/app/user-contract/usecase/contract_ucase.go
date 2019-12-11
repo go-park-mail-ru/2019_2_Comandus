@@ -35,12 +35,12 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	job, err := u.jobClient.GetJobFromServer(response.JobId)
-	if err != nil {
-		return errors.Wrapf(err, "clients.GetJobFromServer()")
-	}
+	//job, err := u.jobClient.GetJobFromServer(response.JobId)
+	//if err != nil {
+	//	return errors.Wrapf(err, "clients.GetJobFromServer()")
+	//}
 
-	currManager, err := u.managerClient.GetManagerFromServer(job.HireManagerId)
+	currManager, err := u.managerClient.GetManagerFromServer(user.HireManagerId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerFromServer()")
 	}
@@ -50,7 +50,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		ID:            0,
 		ResponseID:    response.ID,
 		CompanyID:     currManager.CompanyId,
-		FreelancerID:  response.FreelancerId,
+		FreelancerID:  user.FreelancerId,
 		StartTime:     time.Time{},
 		EndTime:       time.Time{},
 		Status:        model.ContractStatusUnderDevelopment,
@@ -159,6 +159,7 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 		}
 
 		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
 		}
