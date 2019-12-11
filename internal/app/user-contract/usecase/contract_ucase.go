@@ -146,7 +146,7 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 		return nil, errors.New("user must be freelancer")
 	}
 
-	list, err := u.contractRep.List(user.ID, "freelancer")
+	list, err := u.contractRep.List(user.FreelancerId, "freelancer")
 	if err != nil {
 		return nil, errors.Wrap(err, "contractRep.List()")
 	}
