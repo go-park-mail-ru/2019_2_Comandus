@@ -13,8 +13,8 @@ func testFreelancer(t *testing.T) *model.Freelancer {
 	return &model.Freelancer{
 		ID:				   1,
 		AccountId:         1,
-		Country:           "Russia",
-		City:              "Moscow",
+		Country:           1,
+		City:              1,
 		Address:           "moscow",
 		Phone:             "111111111",
 	}

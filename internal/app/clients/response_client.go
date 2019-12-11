@@ -14,7 +14,7 @@ type ResponseClient struct {
 }
 
 func (c *ResponseClient) Connect() error {
-	conn, err := grpc.Dial(":8086", grpc.WithInsecure())
+	conn, err := grpc.Dial(RESPONSE_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}

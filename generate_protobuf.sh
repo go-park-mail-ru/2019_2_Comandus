@@ -1,0 +1,9 @@
+protoc --go_out=plugins=grpc:. internal/app/company/delivery/grpc/company_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/freelancer/delivery/grpc/freelancer_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/general/delivery/grpc/auth_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/location/delivery/grpc/location_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/manager/delivery/grpc/manager_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/company/delivery/grpc/company_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/user/delivery/grpc/user_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/user-job/delivery/grpc/job_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/app/user-response/delivery/grpc/response_grpc/*.proto

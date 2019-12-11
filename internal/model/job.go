@@ -21,8 +21,8 @@ type Job struct {
 	SpecialityId      int64     `json:"specialityId,string" valid:"int, optional"`
 	ExperienceLevelId int64     `json:"experienceLevelId,string" valid:"in(1|2|3)"`
 	PaymentAmount     float32 `json:"paymentAmount,string" valid:"float"`
-	Country           string  `json:"country" valid:"utfletternum, optional"`
-	City              string  `json:"city" valid:"utfletternum, optional"`
+	Country           int64  `json:"country" valid:"utfletternum, optional"`
+	City              int64  `json:"city" valid:"utfletternum, optional"`
 	JobTypeId         int64     `json:"jobTypeId,string" valid:"int, optional"`
 	Date			  time.Time `json:"date"`
 	Status			  string `json:"status,string"`
@@ -52,6 +52,4 @@ func (j *Job) Sanitize (sanitizer *bluemonday.Policy)  {
 	j.Title = sanitizer.Sanitize(j.Title)
 	j.Description = sanitizer.Sanitize(j.Description)
 	j.Files = sanitizer.Sanitize(j.Files)
-	j.Country = sanitizer.Sanitize(j.Country)
-	j.City = sanitizer.Sanitize(j.City)
 }

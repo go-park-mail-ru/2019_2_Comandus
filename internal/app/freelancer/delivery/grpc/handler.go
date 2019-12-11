@@ -42,6 +42,26 @@ func (s *FreelancerServer) TransformFreelancerRPC(freelancer *model.Freelancer) 
 	return res
 }
 
+func (s *FreelancerServer) TransformFreelancerOutputRPC(freelancer *model.FreelancerOutput) *freelancer_grpc.FreelancerOutput {
+	if freelancer == nil {
+		return nil
+	}
+
+	res := &freelancer_grpc.FreelancerOutput{
+		ID:                   freelancer.ID,
+		AccountId:            freelancer.AccountId,
+		Country:              freelancer.Country,
+		City:                 freelancer.City,
+		Address:              freelancer.Address,
+		Phone:                freelancer.Phone,
+		TagLine:              freelancer.TagLine,
+		Overview:             freelancer.Overview,
+		ExperienceLevelId:    freelancer.ExperienceLevelId,
+		SpecialityId:         freelancer.SpecialityId,
+	}
+	return res
+}
+
 
 func (s *FreelancerServer) TransformFreelancerData(freelancer *freelancer_grpc.Freelancer) *model.Freelancer {
 	res := &model.Freelancer{
@@ -70,7 +90,7 @@ func (s *FreelancerServer) CreateFreelancer(context context.Context, userID *fre
 }
 
 func (s *FreelancerServer) FindByUser(context context.Context, userID *freelancer_grpc.UserID) (*freelancer_grpc.Freelancer, error) {
-	currFreelancer, err := s.Ucase.FindByUser(userID.ID)
+	currFreelancer, err := s.Ucase.FindNoLocationByUser(userID.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "Ucase.FindByUser()")
 	}
@@ -79,7 +99,7 @@ func (s *FreelancerServer) FindByUser(context context.Context, userID *freelance
 }
 
 func (s *FreelancerServer) Find(context context.Context, id *freelancer_grpc.FreelancerID) (*freelancer_grpc.Freelancer, error) {
-	currFreelancer, err := s.Ucase.Find(id.ID)
+	currFreelancer, err := s.Ucase.FindNoLocation(id.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "Ucase.FindByUser()")
 	}

@@ -13,7 +13,7 @@ type JobClient struct {
 }
 
 func (c *JobClient) Connect() error {
-	conn, err := grpc.Dial(":8085", grpc.WithInsecure())
+	conn, err := grpc.Dial(JOB_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}
