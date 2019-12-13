@@ -25,7 +25,6 @@ type Response struct {
 }
 
 type ResponseOutput struct {
-	Freelancer Freelancer
 	Job Job
 	Response Response
 }
@@ -76,4 +75,9 @@ func (r *Response) IsEqual(response *Response) bool {
 
 func (r *Response) Sanitize(sanitizer *bluemonday.Policy) {
 	r.Files = sanitizer.Sanitize(r.Files)
+}
+
+func (r *ResponseOutput) Sanitize(sanitizer *bluemonday.Policy) {
+	r.Response.Sanitize(sanitizer)
+	r.Job.Sanitize(sanitizer)
 }

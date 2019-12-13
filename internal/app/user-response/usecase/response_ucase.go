@@ -55,7 +55,7 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 	return nil
 }
 
-func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, error) {
+func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.ResponseOutput, error) {
 	var responses []model.Response
 
 	if user.IsManager() {
@@ -84,7 +84,38 @@ func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, erro
 		}
 	}
 
-	return responses, nil
+	var res []model.ResponseOutput
+	for _, response := range responses {
+		grpcjob, err := u.jobClient.GetJobFromServer(response.JobId)
+		if err != nil {
+			return nil, err
+		}
+
+		job := model.Job{
+			ID:                grpcjob.ID,
+			HireManagerId:     grpcjob.HireManagerId,
+			Title:             grpcjob.Title,
+			Description:       grpcjob.Description,
+			Files:             grpcjob.Files,
+			SpecialityId:      grpcjob.SpecialityId,
+			ExperienceLevelId: grpcjob.ExperienceLevelId,
+			PaymentAmount:     grpcjob.PaymentAmount,
+			Country:           grpcjob.Country,
+			City:              grpcjob.City,
+			JobTypeId:         grpcjob.JobTypeId,
+			Date:              time.Unix(grpcjob.Date.Seconds, int64(grpcjob.Date.Nanos)),
+			Status:            grpcjob.Status,
+		}
+
+		elem := model.ResponseOutput{
+			Job:      job,
+			Response: response,
+		}
+
+		res = append(res, elem)
+	}
+
+	return res, nil
 }
 
 func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
