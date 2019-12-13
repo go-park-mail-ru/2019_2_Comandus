@@ -50,15 +50,23 @@ func (r *ResponseRepository) Edit(response *model.Response) error {
 	).Scan(&response.ID)
 }
 
-func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, error) {
+func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.ExtendResponse, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep":"response", "method":"listForFreelancer"}))
 	defer timer.ObserveDuration()
 
-	var responses []model.Response
+	var responses []model.ExtendResponse
 	rows, err := r.db.Query(
-		"SELECT id, freelancerId, jobId, files, date, statusManager, statusFreelancer, paymentAmount "+
-			"FROM responses WHERE freelancerId = $1", id)
+		"SELECT r.id, r.freelancerId, r.jobId, r.files, r.date, r.statusManager, r.statusFreelancer, r.paymentAmount," +
+			"U.firstName, U.secondName, J.title "+
+			"FROM responses AS r " +
+			"INNER JOIN freelancers AS F " +
+			"ON R.freelancerid = F.id " +
+			"INNER JOIN users AS U " +
+			"ON U.accountid = F.accountid " +
+			"INNER JOIN jobs AS J " +
+			"ON J.id = r.jobid " +
+			"WHERE r.freelancerId = $1", id)
 
 	if err != nil {
 		return nil, err
@@ -66,12 +74,14 @@ func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, erro
 
 	for rows.Next() {
 		r := model.Response{}
+		exR := model.ExtendResponse{}
 		err := rows.Scan(&r.ID, &r.FreelancerId, &r.JobId, &r.Files, &r.Date, &r.StatusManager,
-			&r.StatusFreelancer, &r.PaymentAmount)
+			&r.StatusFreelancer, &r.PaymentAmount, &exR.FirstName, &exR.SecondName, &exR.JobTitle)
 		if err != nil {
 			return nil, err
 		}
-		responses = append(responses, r)
+		exR.R = &r
+		responses = append(responses, exR)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -79,32 +89,38 @@ func (r *ResponseRepository) ListForFreelancer(id int64) ([]model.Response, erro
 	return responses, nil
 }
 
-func (r *ResponseRepository) ListForManager(id int64) ([]model.Response, error) {
+func (r *ResponseRepository) ListForManager(id int64) ([]model.ExtendResponse, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep":"response", "method":"listForManager"}))
 	defer timer.ObserveDuration()
 
-	var responses []model.Response
+	var responses []model.ExtendResponse
 	rows, err := r.db.Query(
 		"SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, "+
-			"responses.statusManager, responses.statusFreelancer, responses.paymentAmount "+
+			"responses.statusManager, responses.statusFreelancer, responses.paymentAmount, U.firstName, U.secondName, J.title "+
 			"FROM responses "+
-			"INNER JOIN jobs "+
-			"ON jobs.id = responses.jobId "+
-			"WHERE jobs.managerId = $1", id)
+			"INNER JOIN freelancers AS F " +
+			"ON R.freelancerid = F.id " +
+			"INNER JOIN users AS U " +
+			"ON U.accountid = F.accountid " +
+			"INNER JOIN jobs AS J " +
+			"ON J.id = responses.jobid " +
+			"WHERE J.managerId = $1", id)
 
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
+		exR := model.ExtendResponse{}
 		r := model.Response{}
 		err := rows.Scan(&r.ID, &r.FreelancerId, &r.JobId, &r.Files, &r.Date, &r.StatusManager,
-			&r.StatusFreelancer, &r.PaymentAmount)
+			&r.StatusFreelancer, &r.PaymentAmount, &exR.FirstName, &exR.SecondName, &exR.JobTitle)
 		if err != nil {
 			return nil, err
 		}
-		responses = append(responses, r)
+		exR.R = &r
+		responses = append(responses, exR)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -145,13 +161,15 @@ func (r *ResponseRepository) ListResponsesOnJobID(jobID int64) ([]model.ExtendRe
 	var responses []model.ExtendResponse
 	rows, err := r.db.Query(
 		"SELECT R.id, R.freelancerId, R.jobId, R.files, R.date, R.statusManager, R.statusFreelancer, " +
-			"R.paymentAmount, U.firstname , U.secondname "+
+			"R.paymentAmount, U.firstname , U.secondname, J.title "+
 			"FROM responses AS R " +
 			"INNER JOIN freelancers AS F " +
 			"ON R.freelancerid = F.id " +
 			"INNER JOIN users AS U " +
 			"ON U.accountid = F.accountid " +
-			" WHERE jobid = $1", jobID)
+			"INNER JOIN jobs AS J " +
+			"ON J.id = R.jobid " +
+			"WHERE jobid = $1", jobID)
 
 	if err != nil {
 		return nil, err
@@ -161,7 +179,7 @@ func (r *ResponseRepository) ListResponsesOnJobID(jobID int64) ([]model.ExtendRe
 		r := model.Response{}
 		exR := model.ExtendResponse{}
 		err := rows.Scan(&r.ID, &r.FreelancerId, &r.JobId, &r.Files, &r.Date, &r.StatusManager,
-			&r.StatusFreelancer, &r.PaymentAmount, &exR.FirstName, &exR.SecondName)
+			&r.StatusFreelancer, &r.PaymentAmount, &exR.FirstName, &exR.SecondName, &exR.JobTitle)
 		if err != nil {
 			return nil, err
 		}

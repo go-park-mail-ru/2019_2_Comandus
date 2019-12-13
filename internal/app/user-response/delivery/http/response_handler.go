@@ -117,7 +117,7 @@ func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Requ
 	}
 
 	for i, _ := range responses{
-		(responses)[i].Sanitize(h.sanitizer)
+		(responses)[i].R.Sanitize(h.sanitizer)
 	}
 	respond.Respond(w, r, http.StatusOK, responses)
 }

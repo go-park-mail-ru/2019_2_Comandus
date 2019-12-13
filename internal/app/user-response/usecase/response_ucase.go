@@ -55,8 +55,8 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 	return nil
 }
 
-func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.Response, error) {
-	var responses []model.Response
+func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.ExtendResponse, error) {
+	var responses []model.ExtendResponse
 
 	if user.IsManager() {
 		currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
