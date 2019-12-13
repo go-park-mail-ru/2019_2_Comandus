@@ -144,8 +144,8 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
-	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
-	jobHttp.NewJobHandler(private, jobU, s.Sanitizer, s.Logger, s.SessionStore)
+	freelancerHttp.NewFreelancerHandler(s.Mux, private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
+	jobHttp.NewJobHandler(s.Mux, private, jobU, s.Sanitizer, s.Logger, s.SessionStore)
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
