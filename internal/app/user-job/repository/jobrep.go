@@ -152,3 +152,36 @@ func (r *JobRepository) ListOnPattern(pattern string) ([]model.Job, error) {
 	}
 	return jobs, nil
 }
+
+
+func (r *JobRepository) ListMyJobs(managerID int64) ([]model.Job, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+	Labels{"rep":"job", "method":"list"}))
+	defer timer.ObserveDuration()
+
+	var jobs []model.Job
+	rows, err := r.db.Query(
+		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+			"country, city, jobTypeId, date, status FROM jobs AS j " +
+			"WHERE status != $1 AND managerid = $2 ORDER BY id DESC",
+		model.JobStateDeleted,
+		managerID,
+		)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		j := model.Job{}
+		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
+			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status)
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, j)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return jobs, nil
+}

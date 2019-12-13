@@ -8,4 +8,5 @@ type Repository interface {
 	Edit(job *model.Job) error
 	List() ([]model.Job, error)
 	ListOnPattern (string) ([]model.Job, error)
+	ListMyJobs (int64)([]model.Job, error)
 }

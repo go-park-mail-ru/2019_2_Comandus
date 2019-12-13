@@ -117,3 +117,13 @@ func (u *JobUsecase) PatternSearch(pattern string) ([]model.Job, error) {
 	}
 	return jobs, nil
 }
+
+
+func (u *JobUsecase) GetMyJobs(managerID int64) ([]model.Job, error) {
+	jobs, err := u.jobRep.ListMyJobs(managerID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetMyJobs<-ListMyJobs")
+		return nil, err
+	}
+	return jobs, nil
+}
