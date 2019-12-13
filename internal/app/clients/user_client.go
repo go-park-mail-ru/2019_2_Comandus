@@ -13,7 +13,7 @@ type UserClient struct {
 }
 
 func (c *UserClient) Connect() error {
-	conn, err := grpc.Dial(":8087", grpc.WithInsecure())
+	conn, err := grpc.Dial(USER_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}

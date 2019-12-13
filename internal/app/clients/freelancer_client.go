@@ -13,7 +13,7 @@ type FreelancerClient struct{
 }
 
 func (c *FreelancerClient) Connect() error {
-	conn, err := grpc.Dial(":8083", grpc.WithInsecure())
+	conn, err := grpc.Dial(FREELANCER_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}

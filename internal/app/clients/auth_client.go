@@ -9,12 +9,23 @@ import (
 	"log"
 )
 
+const (
+	AUTH_PORT = ":8081"
+	COMPANY_PORT = ":8082"
+	FREELANCER_PORT = ":8083"
+	JOB_PORT = ":8084"
+	LOCATION_PORT = ":8085"
+	MANAGER_PORT = ":8086"
+	RESPONSE_PORT = ":8087"
+	USER_PORT = ":8088"
+)
+
 type AuthClient struct {
 	conn *grpc.ClientConn
 }
 
 func (c *AuthClient) Connect() error {
-	conn, err := grpc.Dial(":8081", grpc.WithInsecure())
+	conn, err := grpc.Dial(AUTH_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}

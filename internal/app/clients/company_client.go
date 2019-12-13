@@ -14,7 +14,7 @@ type CompanyClient struct {
 }
 
 func (c *CompanyClient) Connect() error {
-	conn, err := grpc.Dial(":8082", grpc.WithInsecure())
+	conn, err := grpc.Dial(COMPANY_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}
@@ -41,7 +41,7 @@ func (c *CompanyClient) CreateCompanyOnServer(userId int64) (*company_grpc.Compa
 	return company, nil
 }
 
-func (c *CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.Company, error) {
+func (c *CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.CompanyOutput, error) {
 	client := company_grpc.NewCompanyHandlerClient(c.conn)
 	companyReq := &company_grpc.CompanyID{
 		ID: id,

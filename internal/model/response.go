@@ -24,6 +24,8 @@ type Response struct {
 	PaymentAmount 		float32	  `json:"paymentAmount,string"`
 }
 
+
+
 func (r *Response) BeforeCreate() {
 	r.StatusManager = ResponseStatusReview
 	r.StatusFreelancer = ResponseStatusBlock
@@ -66,6 +68,6 @@ func (r *Response) IsEqual(response *Response) bool {
 		r.StatusFreelancer == response.StatusFreelancer
 }
 
-func (resp *Response) Sanitize(sanitizer *bluemonday.Policy) {
-	resp.Files = sanitizer.Sanitize(resp.Files)
+func (r *Response) Sanitize(sanitizer *bluemonday.Policy) {
+	r.Files = sanitizer.Sanitize(r.Files)
 }

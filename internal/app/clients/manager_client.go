@@ -13,7 +13,7 @@ type ManagerClient struct {
 }
 
 func (c *ManagerClient) Connect() error {
-	conn, err := grpc.Dial(":8084", grpc.WithInsecure())
+	conn, err := grpc.Dial(MANAGER_PORT, grpc.WithInsecure())
 	if err != nil {
 		return errors.Wrap(err, "grpc.Dial()")
 	}

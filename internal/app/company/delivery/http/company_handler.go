@@ -75,8 +75,8 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := h.CompanyUsecase.Edit(u.ID, currCompany); err != nil {
-		err = errors.Wrapf(err, "HandleEditCompany<-CompanyUsecase.Edit()")
+	if _, err := h.CompanyUsecase.Edit(u.ID, currCompany); err != nil {
+		err = errors.Wrapf(err, "HandleGetCountries<-CompanyUsecase.Edit()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}

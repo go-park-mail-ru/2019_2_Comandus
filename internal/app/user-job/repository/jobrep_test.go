@@ -68,6 +68,10 @@ func TestJobRepository_Create(t *testing.T) {
 			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnRows(rows)
 
+<<<<<<< HEAD
+=======
+	j.HireManagerId = 1
+>>>>>>> location-table
 	err = repo.Create(j)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)

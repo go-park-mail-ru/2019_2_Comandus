@@ -63,11 +63,6 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 		}
 	}()
 
-	freelancer, err := h.FreelancerUsecase.FindByUser(u.ID)
-	if err != nil {
-		err = errors.Wrap(err, "HandleEditFreelancer<-FreelancerUsecase.FindByUser()")
-		respond.Error(w, r, http.StatusInternalServerError, err)
-	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -76,14 +71,14 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 		return
 	}
 
-	currFreelancer := freelancer
+	currFreelancer := new(model.Freelancer)
 	if err := currFreelancer.UnmarshalJSON(body); err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-currFreelancer.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := h.FreelancerUsecase.Edit(freelancer, currFreelancer); err != nil {
+	if err := h.FreelancerUsecase.Edit(u.ID, currFreelancer); err != nil {
 		err = errors.Wrapf(err, "HandleEditFreelancer<-FreelancerUsecase.Edit()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
@@ -93,8 +88,8 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 }
 
 type combined struct {
-	*model.Freelancer
-	*model.User
+	freelancer *model.FreelancerOutput
+	user *model.User
 }
 
 func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
@@ -128,8 +123,8 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 	}
 
 	combined  := combined {
-		Freelancer: currFreelancer,
-		User:       currUser,
+		freelancer: currFreelancer,
+		user:       currUser,
 	}
 	respond.Respond(w, r, http.StatusOK, combined)
 }

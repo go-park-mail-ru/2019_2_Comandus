@@ -9,8 +9,8 @@ func CreateTables(db *sql.DB) error {
 		site varchar,
 		tagLine varchar,
 		description varchar,
-		country varchar,
-		city varchar,
+		country integer,
+		city integer,
 		address varchar,
 		phone varchar
 	);`
@@ -46,8 +46,8 @@ func CreateTables(db *sql.DB) error {
 	freelancersQuery := `CREATE TABLE IF NOT EXISTS freelancers (
 		id bigserial not null primary key,
 		accountId bigserial not null references users,
-		country varchar,
-		city varchar,
+		country integer,
+		city integer,
 		address varchar,
 		phone varchar,
 		tagLine varchar,
@@ -68,8 +68,8 @@ func CreateTables(db *sql.DB) error {
 		specialityId bigserial,  --references specialities,
 		experienceLevelId bigserial,
 		paymentAmount decimal(8,2),
-		country varchar,
-		city varchar,
+		country integer,
+		city integer,
 		jobTypeId bigserial,
 		date timestamp,
 		status varchar
