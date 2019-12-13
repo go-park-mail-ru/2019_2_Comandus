@@ -132,3 +132,7 @@ func (u *FreelancerUsecase) FindNoLocationByUser(id int64) (*model.Freelancer, e
 	}
 	return f, nil
 }
+
+func (u *FreelancerUsecase) GetRating(id int64) (int64, error) {
+	return 0, nil
+}

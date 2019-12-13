@@ -11,4 +11,5 @@ type Usecase interface {
 	FindPart(int, int) ([]model.ExtendFreelancer, error)
 	FindNoLocation(int64) (*model.Freelancer, error)
 	FindNoLocationByUser(id int64) (*model.Freelancer, error)
+	GetRating(id int64) (int64, error)
 }

@@ -24,6 +24,9 @@ type Response struct {
 	PaymentAmount 		float32	  `json:"paymentAmount,string"`
 }
 
+type ResponseOutput struct {
+}
+
 
 
 func (r *Response) BeforeCreate() {

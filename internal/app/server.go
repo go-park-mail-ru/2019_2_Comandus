@@ -123,6 +123,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	private := s.Mux.PathPrefix("").Subrouter()
 
 	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token, generalU)
+	locationhttp.NewLocationHandler(s.Mux, locationU, s.Sanitizer, s.Logger, s.SessionStore)
 
 	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl, userClient)
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
@@ -136,7 +137,6 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
 	contractHttp.NewContractHandler(private, contractU, s.Sanitizer, s.Logger, s.SessionStore)
-	locationhttp.NewLocationHandler(private, locationU, s.Sanitizer, s.Logger, s.SessionStore)
 
 	go func() {
 		lis, err := net.Listen("tcp", clients.AUTH_PORT)
