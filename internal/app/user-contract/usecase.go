@@ -7,4 +7,5 @@ type Usecase interface {
 	SetAsDone(user *model.User, contractId int64) error
 	ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error
 	ReviewList(user *model.User) ([]model.Review, error)
+	ContractList(user *model.User) ([]model.ContractOutput, error)
 }

@@ -29,6 +29,11 @@ type Contract struct {
 	PaymentAmount		float32		`json:"paymentAmount"`
 }
 
+type ContractOutput struct {
+	Job Job
+	Contract Contract
+}
+
 
 func (c * Contract) Validate(lastId int64) error {
 	if c.ID != lastId {

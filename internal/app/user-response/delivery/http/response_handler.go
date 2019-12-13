@@ -116,7 +116,6 @@ func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// TODO: sanitizer for Response output
 	for i, _ := range responses{
 		(responses)[i].Sanitize(h.sanitizer)
 	}

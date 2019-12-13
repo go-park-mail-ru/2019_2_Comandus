@@ -185,3 +185,60 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 	}
 	return reviews, nil
 }
+
+func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput, error) {
+	var userID int64
+	if user.IsManager() {
+		userID = user.HireManagerId
+	} else {
+		userID = user.FreelancerId
+	}
+
+	list, err := u.contractRep.List(userID, user.UserType)
+	if err != nil {
+		return nil, errors.Wrap(err, "contractRep.List()")
+	}
+
+	var res []model.ContractOutput
+	for _, contract := range list {
+
+		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
+		}
+
+		response, err := u.responseClient.GetResponseFromServer(contract.ResponseID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
+		}
+
+		grpcjob, err := u.jobClient.GetJobFromServer(response.JobId)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
+		}
+
+		job := model.Job{
+			ID:                grpcjob.ID,
+			HireManagerId:     grpcjob.HireManagerId,
+			Title:             grpcjob.Title,
+			Description:       grpcjob.Description,
+			Files:             grpcjob.Files,
+			SpecialityId:      grpcjob.SpecialityId,
+			ExperienceLevelId: grpcjob.ExperienceLevelId,
+			PaymentAmount:     grpcjob.PaymentAmount,
+			Country:           grpcjob.Country,
+			City:              grpcjob.City,
+			JobTypeId:         grpcjob.JobTypeId,
+			Date:              time.Unix(grpcjob.Date.Seconds, int64(grpcjob.Date.Nanos)),
+			Status:            grpcjob.Status,
+		}
+
+		contractOutput := model.ContractOutput{
+			Job:      job,
+			Contract: model.Contract{},
+		}
+
+		res = append(res, contractOutput)
+	}
+	return res, nil
+}
