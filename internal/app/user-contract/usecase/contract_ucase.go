@@ -202,11 +202,6 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 	var res []model.ContractOutput
 	for _, contract := range list {
 
-		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
-		if err != nil {
-			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
-		}
-
 		response, err := u.responseClient.GetResponseFromServer(contract.ResponseID)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
