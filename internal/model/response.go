@@ -25,6 +25,9 @@ type Response struct {
 }
 
 type ResponseOutput struct {
+	Freelancer Freelancer
+	Job Job
+	Response Response
 }
 
 

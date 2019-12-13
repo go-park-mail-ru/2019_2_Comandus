@@ -24,7 +24,7 @@ type JobHandler struct {
 	sessionStore sessions.Store
 }
 
-func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
+func NewJobHandler(public *mux.Router, private *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &JobHandler{
 		jobUsecase:   js,
 		sanitizer:    sanitizer,
@@ -32,12 +32,12 @@ func NewJobHandler(m *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Pol
 		sessionStore: sessionStore,
 	}
 
-	m.HandleFunc("/jobs", handler.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)
-	m.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
-	m.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/jobs", handler.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)
+	public.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
+	public.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
