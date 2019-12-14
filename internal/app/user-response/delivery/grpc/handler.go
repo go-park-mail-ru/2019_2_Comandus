@@ -76,5 +76,6 @@ func (s *ResponseServer) Update(context context.Context, response *response_grpc
 	if err := s.Ucase.Update(resp); err != nil {
 		return nil, err
 	}
-	return nil, nil
+
+	return new(response_grpc.Nothing), nil
 }

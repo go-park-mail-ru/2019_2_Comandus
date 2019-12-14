@@ -128,7 +128,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token, generalU)
 	locationhttp.NewLocationHandler(s.Mux, locationU, s.Sanitizer, s.Logger, s.SessionStore)
 
-	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware, mid.SavePrevRequest)
+	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(s.Mux, private, userU, s.Sanitizer, s.Logger, s.SessionStore)

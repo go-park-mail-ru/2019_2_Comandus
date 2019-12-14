@@ -192,13 +192,20 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 
 func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput, error) {
 	var userID int64
+	var listType string
 	if user.IsManager() {
-		userID = user.HireManagerId
+		manager, err := u.managerClient.GetManagerFromServer(user.HireManagerId)
+		if err != nil {
+			return nil, err
+		}
+		userID = manager.CompanyId
+		listType = "company"
 	} else {
 		userID = user.FreelancerId
+		listType = "freelancer"
 	}
 
-	list, err := u.contractRep.List(userID, user.UserType)
+	list, err := u.contractRep.List(userID, listType)
 	if err != nil {
 		return nil, errors.Wrap(err, "contractRep.List()")
 	}
@@ -234,7 +241,7 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 
 		contractOutput := model.ContractOutput{
 			Job:      job,
-			Contract: model.Contract{},
+			Contract: contract,
 		}
 
 		res = append(res, contractOutput)
