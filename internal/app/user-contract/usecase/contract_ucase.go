@@ -194,7 +194,11 @@ func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput, error) {
 	var userID int64
 	if user.IsManager() {
-		userID = user.HireManagerId
+		manager, err := u.managerClient.GetManagerFromServer(user.HireManagerId)
+		if err != nil {
+			return nil, err
+		}
+		userID = manager.CompanyId
 	} else {
 		userID = user.FreelancerId
 	}
