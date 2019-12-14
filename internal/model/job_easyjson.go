@@ -45,9 +45,9 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		case "maxPaymentAmount":
 			out.MaxPaymentAmount = float32(in.Float32())
 		case "country":
-			out.Country = string(in.String())
+			out.Country = int64(in.Int64())
 		case "city":
-			out.City = string(in.String())
+			out.City = int64(in.Int64())
 		case "proposals":
 			out.Proposals = int64(in.Int64())
 		case "experienceLevel":
@@ -106,12 +106,12 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 	{
 		const prefix string = ",\"country\":"
 		out.RawString(prefix)
-		out.String(string(in.Country))
+		out.Int64(int64(in.Country))
 	}
 	{
 		const prefix string = ",\"city\":"
 		out.RawString(prefix)
-		out.String(string(in.City))
+		out.Int64(int64(in.City))
 	}
 	{
 		const prefix string = ",\"proposals\":"

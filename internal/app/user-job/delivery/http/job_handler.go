@@ -258,6 +258,8 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := new(model.JobSearchParams)
+	params.Country = -1
+	params.City = -1
 	if err := params.UnmarshalJSON(body); err != nil {
 		err = errors.Wrapf(err, "UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)

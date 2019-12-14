@@ -224,6 +224,8 @@ func TestJobRepository_Edit(t *testing.T) {
 	j.BeforeCreate()
 
 	//ok query
+	j.City = "sim city"
+	j.Country = "nnn"
 	j.Description = "no description"
 
 	// TODO: uncomment when validation will be implemented

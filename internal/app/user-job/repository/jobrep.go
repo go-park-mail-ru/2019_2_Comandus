@@ -139,8 +139,8 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchPara
 			"status != $1 AND " +
 			"($2 = 0 OR paymentAmount <= $2 AND paymentAmount >= $3) AND " +
 			"($4 = 0 OR grade <= $4 AND grade >= $5) AND " +
-			"($6 = '' OR country = $6) AND " +
-			"($7 = '' OR city = $7) AND " +
+			"($6 = -1 OR country = $6) AND " +
+			"($7 = -1 OR city = $7) AND " +
 			"(($8 AND experienceLevelId = 1) OR ($9 AND experienceLevelId = 2) OR ($10 AND experienceLevelId = 3)) " +
 			"ORDER BY " +
 			"CASE WHEN $11 THEN id END DESC " +
