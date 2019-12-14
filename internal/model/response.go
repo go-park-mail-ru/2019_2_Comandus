@@ -43,7 +43,7 @@ func (r *Response) BeforeCreate() {
 // validation before create and edit
 // for create lastID = 0
 func (r *Response) Validate(lastID int64) error {
-	if !(r.StatusManager == ResponseStatusReview ||
+	/*if !(r.StatusManager == ResponseStatusReview ||
 		r.StatusManager == ResponseStatusDenied ||
 		r.StatusManager == ResponseStatusAccepted) {
 		return errors.New("wrong manager response status")
@@ -53,7 +53,8 @@ func (r *Response) Validate(lastID int64) error {
 		r.StatusFreelancer == ResponseStatusAccepted ||
 		r.StatusFreelancer == ResponseStatusBlock) {
 		return errors.New("wrong freelancer response status")
-	}
+	}*/
+
 	if r.Date.IsZero() {
 		return errors.New("wrong date")
 	}

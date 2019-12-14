@@ -5,6 +5,7 @@ import (
 	"github.com/suggest-go/suggest/pkg/metric"
 	"github.com/suggest-go/suggest/pkg/suggest"
 	"log"
+	"strings"
 )
 
 func formFreelancerDictionary() (dictionary.Dictionary, error){
@@ -83,8 +84,9 @@ func NewSuggestService() (*suggest.Service, error) {
 }
 
 func GetSuggest(service *suggest.Service, query string, dict string) ([]string, error) {
-	log.Println(query)
-	searchConf, err := suggest.NewSearchConfig(query, 5, metric.CosineMetric(), 0.4)
+	words := strings.Fields(query)
+	lastWord := words[len(words)-1]
+	searchConf, err := suggest.NewSearchConfig(lastWord, 5, metric.CosineMetric(), 0.4)
 	if err != nil {
 		return nil, err
 	}
