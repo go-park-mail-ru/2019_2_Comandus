@@ -49,7 +49,6 @@ func (u *JobUsecase) FindJob(id int64) (*model.Job, error) {
 func (u *JobUsecase) GetAllJobs() ([]model.Job, error) {
 	jobs, err := u.jobRep.List()
 	if err != nil {
-		err = errors.Wrapf(err, "HandleGetJob<-Find")
 		return nil, errors.Wrap(err, "jobRep.List()")
 	}
 	return jobs, nil
@@ -114,6 +113,16 @@ func (u *JobUsecase) PatternSearch(pattern string, params model.JobSearchParams)
 	jobs, err := u.jobRep.ListOnPattern(pattern, params)
 	if err != nil {
 		return nil, errors.Wrap(err, "PatternSearch()")
+	}
+	return jobs, nil
+}
+
+
+func (u *JobUsecase) GetMyJobs(managerID int64) ([]model.Job, error) {
+	jobs, err := u.jobRep.ListMyJobs(managerID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetMyJobs<-ListMyJobs")
+		return nil, err
 	}
 	return jobs, nil
 }

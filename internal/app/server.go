@@ -131,8 +131,8 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware, mid.SavePrevRequest)
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
-	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
-	freelancerHttp.NewFreelancerHandler(private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
+	userHttp.NewUserHandler(s.Mux, private, userU, s.Sanitizer, s.Logger, s.SessionStore)
+	freelancerHttp.NewFreelancerHandler(s.Mux, private, freelancerU, s.Sanitizer, s.Logger, s.SessionStore)
 	jobHttp.NewJobHandler(s.Mux, private, jobU, s.Sanitizer, s.Logger, s.SessionStore)
 	companyHttp.NewCompanyHandler(private, companyU, s.Sanitizer, s.Logger, s.SessionStore)
 	responseHttp.NewResponseHandler(private, responseU, s.Sanitizer, s.Logger, s.SessionStore)
@@ -247,7 +247,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	}
 
 	if err := jobClient.Connect(); err != nil {
-		log.Println("job:",err)
+		log.Println("job:", err)
 	}
 
 	if err := managerClient.Connect(); err != nil {
@@ -266,4 +266,3 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 		log.Println("location:", err)
 	}
 }
-

@@ -23,7 +23,8 @@ type JobHandler struct {
 	sessionStore sessions.Store
 }
 
-func NewJobHandler(public *mux.Router, private *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
+
+func NewJobHandler(m *mux.Router, private *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &JobHandler{
 		jobUsecase:   js,
 		sanitizer:    sanitizer,
@@ -32,11 +33,11 @@ func NewJobHandler(public *mux.Router, private *mux.Router, js user_job.Usecase,
 	}
 
 	private.HandleFunc("/jobs", handler.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)
-	public.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
-	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
-	public.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/search/jobs", handler.HandleSearchJob).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
@@ -111,22 +112,43 @@ func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 
 func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
+	var jobs []model.Job
+	var err error
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/jobs/id", "method":r.Method}))
+	Labels{"path": "/jobs/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
-	jobs, err := h.jobUsecase.GetAllJobs()
-	if err != nil {
-		err = errors.Wrapf(err, "HandleGetAllJobs<-jobUsecase.GetAllJobs()")
-		respond.Error(w, r, http.StatusNotFound, err)
-	}
+	pattern, ok := r.URL.Query()["manid"]
+	if !ok || len(pattern[0]) < 1 {
 
-	for i, _ := range jobs{
+		jobs, err = h.jobUsecase.GetAllJobs()
+		if err != nil {
+			err = errors.Wrapf(err, "HandleGetAllJobs<-jobUsecase.GetAllJobs()")
+			respond.Error(w, r, http.StatusNotFound, err)
+			return
+		}
+	} else {
+		manID, err := strconv.Atoi(pattern[0])
+		if err != nil {
+			err = errors.Wrapf(err, "HandleGetAllJobs<-")
+			respond.Error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		jobs, err = h.jobUsecase.GetMyJobs(int64(manID))
+		if err != nil {
+			err = errors.Wrapf(err, "HandleGetAllJobs<-")
+			respond.Error(w, r, http.StatusNotFound, err)
+			return
+
+		}
+	}
+	for i, _ := range jobs {
 		jobs[i].Sanitize(h.sanitizer)
 	}
 
 	respond.Respond(w, r, http.StatusOK, &jobs)
+
 }
 
 func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {

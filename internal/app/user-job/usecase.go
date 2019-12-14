@@ -6,6 +6,7 @@ type Usecase interface {
 	CreateJob(user *model.User, job *model.Job) error
 	FindJob(id int64) (*model.Job, error)
 	GetAllJobs() ([]model.Job, error)
+	GetMyJobs(int64) ([]model.Job, error)
 	EditJob(user *model.User, job *model.Job, id int64) error
 	MarkAsDeleted(id int64, user *model.User) error
 	PatternSearch(string, model.JobSearchParams) ([]model.Job, error)

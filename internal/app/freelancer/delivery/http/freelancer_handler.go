@@ -27,7 +27,7 @@ type FreelancerHandler struct {
 	sessionStore			sessions.Store
 }
 
-func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluemonday.Policy,
+func NewFreelancerHandler(m *mux.Router, private *mux.Router, uf freelancer.Usecase, sanitizer *bluemonday.Policy,
 	logger *zap.SugaredLogger, sessionStore sessions.Store) {
 		handler := &FreelancerHandler{
 			FreelancerUsecase:	uf,
@@ -36,7 +36,7 @@ func NewFreelancerHandler(m *mux.Router, uf freelancer.Usecase, sanitizer *bluem
 			sessionStore:		sessionStore,
 		}
 
-	m.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/freelancers/{pageID}", handler.HandleGetFreelancers).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/freelancer/{freelancerId}", handler.HandleGetFreelancer).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/search/freelancers", handler.HandleSearchFreelancers).Methods(http.MethodGet, http.MethodOptions)

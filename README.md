@@ -88,5 +88,6 @@ https://github.com/go-park-mail-ru/2019_2_Comandus
 #### Удалить сессию:
 `$: http -v --session=user http://localhost:8080/private/logout`
 
+## Сгенерировать easyJSON модели 
 
-	go test -v -cover -coverpkg=./... -race  ./...
+`$: easyjson -all ./internal/model/*.go `
