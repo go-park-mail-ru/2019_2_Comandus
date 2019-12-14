@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	JobStateCreate = "created"
-	JobStateFound = "found"
-	JobStateClosed = "closed"
+	JobStateOpened  = "opened"
+	JobStateFound   = "found"
+	JobStateClosed  = "closed"
 	JobStateDeleted = "deleted"
 	)
 
@@ -57,7 +57,7 @@ func (j *Job) IsEqual(job Job) bool {
 
 func (j *Job) BeforeCreate() {
 	j.Date = time.Now()
-	j.Status = JobStateCreate
+	j.Status = JobStateOpened
 }
 
 func (j *Job) Sanitize (sanitizer *bluemonday.Policy)  {

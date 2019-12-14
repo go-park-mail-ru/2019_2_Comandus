@@ -36,7 +36,7 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 	}
 
 	m.HandleFunc("/responses/{id:[0-9]+}/contract", handler.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
-	m.HandleFunc("/contract/{id:[0-9]+/done}", handler.HandleTickContractAsDone).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/contract/{id:[0-9]+}/done}", handler.HandleTickContractAsDone).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/contract/{id:[0-9]+}", handler.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/grades", handler.HandleGetContractsGrades).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/contracts", handler.HandleGetContracts).Methods(http.MethodGet, http.MethodOptions)
