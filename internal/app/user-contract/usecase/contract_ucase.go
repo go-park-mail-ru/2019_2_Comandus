@@ -239,7 +239,7 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 
 		contractOutput := model.ContractOutput{
 			Job:      job,
-			Contract: model.Contract{},
+			Contract: contract,
 		}
 
 		res = append(res, contractOutput)
