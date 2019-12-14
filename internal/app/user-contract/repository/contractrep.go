@@ -100,16 +100,16 @@ func (r *ContractRepository) List(id int64, mode string) ([]model.Contract, erro
 
 	var contracts []model.Contract
 
-	var query string
-	if mode == ContractListByCompany {
-		query = "SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE companyId = $1"
-	} else if mode == ContractListByFreelancer {
-		query = "SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE freelancerId = $1"
-	}
+	var rows *sql.Rows
+	var err error
 
-	rows, err := r.db.Query(query, id)
+	if mode == ContractListByCompany {
+		rows, err = r.db.Query("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE companyId = $1", id)
+	} else if mode == ContractListByFreelancer {
+		rows, err = r.db.Query("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE freelancerId = $1", id)
+	}
 
 	if err != nil {
 		return nil, err
