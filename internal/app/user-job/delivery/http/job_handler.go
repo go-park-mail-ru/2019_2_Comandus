@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -222,8 +221,28 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
-	log.Println(pattern[0])
-	jobs, err := h.jobUsecase.PatternSearch(pattern[0])
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			err = errors.Wrapf(err, "HandleSearchJob<-Close()")
+			respond.Error(w, r, http.StatusInternalServerError, err)
+		}
+	}()
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleSearchJob<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	params := new(model.JobSearchParams)
+	if err := params.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	jobs, err := h.jobUsecase.PatternSearch(pattern[0], *params)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSearchJob<-jobUsecase.PatternSearch()")
 		respond.Error(w, r, http.StatusInternalServerError, err)

@@ -110,8 +110,8 @@ func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
 	return nil
 }
 
-func (u *JobUsecase) PatternSearch(pattern string) ([]model.Job, error) {
-	jobs, err := u.jobRep.ListOnPattern(pattern)
+func (u *JobUsecase) PatternSearch(pattern string, params model.JobSearchParams) ([]model.Job, error) {
+	jobs, err := u.jobRep.ListOnPattern(pattern, params)
 	if err != nil {
 		return nil, errors.Wrap(err, "PatternSearch()")
 	}

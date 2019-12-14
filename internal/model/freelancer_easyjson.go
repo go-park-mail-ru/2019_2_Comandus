@@ -56,6 +56,8 @@ func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			out.ExperienceLevelId = int64(in.Int64())
 		case "SpecialityId":
 			out.SpecialityId = int64(in.Int64())
+		case "Avatar":
+			out.Avatar = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -119,6 +121,11 @@ func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		const prefix string = ",\"SpecialityId\":"
 		out.RawString(prefix)
 		out.Int64(int64(in.SpecialityId))
+	}
+	{
+		const prefix string = ",\"Avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
 	}
 	out.RawByte('}')
 }
@@ -185,6 +192,8 @@ func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *
 			out.ExperienceLevelId = int64(in.Int64())
 		case "specialityId":
 			out.SpecialityId = int64(in.Int64Str())
+		case "avatar":
+			out.Avatar = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -248,6 +257,11 @@ func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(out 
 		const prefix string = ",\"specialityId\":"
 		out.RawString(prefix)
 		out.Int64Str(int64(in.SpecialityId))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
 	}
 	out.RawByte('}')
 }

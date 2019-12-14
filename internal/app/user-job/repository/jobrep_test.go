@@ -18,8 +18,6 @@ func testJob(t *testing.T) *model.Job {
 		Title:          "title",
 		Description:    "description",
 		PaymentAmount:   11222,
-		Country: 	"russia",
-		City:	"moscow",
 	}
 }
 
@@ -68,10 +66,8 @@ func TestJobRepository_Create(t *testing.T) {
 			j.PaymentAmount, j.Country, j.City, j.JobTypeId, j.Date, j.Status).
 		WillReturnRows(rows)
 
-<<<<<<< HEAD
-=======
 	j.HireManagerId = 1
->>>>>>> location-table
+
 	err = repo.Create(j)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -228,8 +224,6 @@ func TestJobRepository_Edit(t *testing.T) {
 	j.BeforeCreate()
 
 	//ok query
-	j.City = "sim city"
-	j.Country = "nnn"
 	j.Description = "no description"
 
 	// TODO: uncomment when validation will be implemented

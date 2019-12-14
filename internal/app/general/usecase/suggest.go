@@ -31,7 +31,6 @@ func formJobDictionary() (dictionary.Dictionary, error){
 		"server hello",
 		"server golang",
 	})
-
 	return dict, nil
 }
 

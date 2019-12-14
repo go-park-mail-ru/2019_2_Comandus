@@ -17,7 +17,151 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *jlexer.Lexer, out *Job) {
+func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *jlexer.Lexer, out *JobSearchParams) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "minGrade":
+			out.MinGrade = int64(in.Int64())
+		case "maxGrade":
+			out.MaxGrade = int64(in.Int64())
+		case "minPaymentAmount":
+			out.MinPaymentAmount = float32(in.Float32())
+		case "maxPaymentAmount":
+			out.MaxPaymentAmount = float32(in.Float32())
+		case "country":
+			out.Country = string(in.String())
+		case "city":
+			out.City = string(in.String())
+		case "proposals":
+			out.Proposals = int64(in.Int64())
+		case "experienceLevel":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('[')
+				v1 := 0
+				for !in.IsDelim(']') {
+					if v1 < 3 {
+						(out.ExperienceLevel)[v1] = bool(in.Bool())
+						v1++
+					} else {
+						in.SkipRecursive()
+					}
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "desc":
+			out.Desc = bool(in.Bool())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *jwriter.Writer, in JobSearchParams) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"minGrade\":"
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.MinGrade))
+	}
+	{
+		const prefix string = ",\"maxGrade\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.MaxGrade))
+	}
+	{
+		const prefix string = ",\"minPaymentAmount\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.MinPaymentAmount))
+	}
+	{
+		const prefix string = ",\"maxPaymentAmount\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.MaxPaymentAmount))
+	}
+	{
+		const prefix string = ",\"country\":"
+		out.RawString(prefix)
+		out.String(string(in.Country))
+	}
+	{
+		const prefix string = ",\"city\":"
+		out.RawString(prefix)
+		out.String(string(in.City))
+	}
+	{
+		const prefix string = ",\"proposals\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.Proposals))
+	}
+	{
+		const prefix string = ",\"experienceLevel\":"
+		out.RawString(prefix)
+		out.RawByte('[')
+		for v2 := range in.ExperienceLevel {
+			if v2 > 0 {
+				out.RawByte(',')
+			}
+			out.Bool(bool((in.ExperienceLevel)[v2]))
+		}
+		out.RawByte(']')
+	}
+	{
+		const prefix string = ",\"desc\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Desc))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v JobSearchParams) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v JobSearchParams) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *JobSearchParams) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *JobSearchParams) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(l, v)
+}
+func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *jlexer.Lexer, out *Job) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -74,7 +218,7 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		in.Consumed()
 	}
 }
-func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *jwriter.Writer, in Job) {
+func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel1(out *jwriter.Writer, in Job) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -149,23 +293,23 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 // MarshalJSON supports json.Marshaler interface
 func (v Job) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(&w, v)
+	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Job) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(w, v)
+	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Job) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(&r, v)
+	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Job) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(l, v)
+	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel1(l, v)
 }

@@ -28,6 +28,18 @@ type Job struct {
 	Status			  string `json:"status,string"`
 }
 
+type JobSearchParams struct {
+	MinGrade int64 `json:"minGrade"`
+	MaxGrade int64 `json:"maxGrade"`
+	MinPaymentAmount float32 `json:"minPaymentAmount"`
+	MaxPaymentAmount float32 `json:"maxPaymentAmount"`
+	Country string `json:"country"`
+	City string `json:"city"`
+	Proposals int64 `json:"proposals"`
+	ExperienceLevel [3]bool `json:"experienceLevel"`
+	Desc bool `json:"desc"`
+}
+
 func (j *Job) IsEqual(job Job) bool {
 	return j.ID == job.ID &&
 		j.HireManagerId == job.HireManagerId &&
