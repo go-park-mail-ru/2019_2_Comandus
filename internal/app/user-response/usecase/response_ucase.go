@@ -178,11 +178,46 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 	return nil
 }
 
+func (u *ResponseUsecase) GetResponse(id int64) (*model.ResponseOutput, error) {
+	response, err := u.responseRep.Find(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "responseRep.Find()")
+	}
+
+	grpcjob, err := u.jobClient.GetJobFromServer(response.JobId)
+	if err != nil {
+		return nil, err
+	}
+
+	job := model.Job{
+		ID:                grpcjob.ID,
+		HireManagerId:     grpcjob.HireManagerId,
+		Title:             grpcjob.Title,
+		Description:       grpcjob.Description,
+		Files:             grpcjob.Files,
+		SpecialityId:      grpcjob.SpecialityId,
+		ExperienceLevelId: grpcjob.ExperienceLevelId,
+		PaymentAmount:     grpcjob.PaymentAmount,
+		Country:           grpcjob.Country,
+		City:              grpcjob.City,
+		JobTypeId:         grpcjob.JobTypeId,
+		Date:              time.Unix(grpcjob.Date.Seconds, int64(grpcjob.Date.Nanos)),
+		Status:            grpcjob.Status,
+	}
+
+	res := new(model.ResponseOutput)
+	res.Response = *response
+	res.Job = job
+
+	return res, nil
+}
+
 func (u *ResponseUsecase) Find(id int64) (*model.Response, error) {
 	response, err := u.responseRep.Find(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "responseRep.Find()")
 	}
+
 	return response, nil
 }
 

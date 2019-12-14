@@ -8,5 +8,6 @@ type Usecase interface {
 	AcceptResponse(user *model.User, responseId int64) error
 	DenyResponse(user *model.User, responseId int64) error
 	Find(id int64) (*model.Response, error)
+	GetResponse(id int64) (*model.ResponseOutput, error)
 	GetResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error)
 }

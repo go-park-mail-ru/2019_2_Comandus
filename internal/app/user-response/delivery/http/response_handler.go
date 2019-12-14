@@ -34,6 +34,7 @@ func NewResponseHandler(m *mux.Router, rs user_response.Usecase, sanitizer *blue
 
 	m.HandleFunc("/jobs/proposal/{id:[0-9]+}", handler.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/proposals", handler.HandleGetResponses).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/proposals/{id:[0-9]+}", handler.HandleGetResponse).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/proposals/{id:[0-9]+}/accept", handler.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/proposals/{id:[0-9]+}/deny", handler.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/job/{jobid:[0-9]+}/proposals", handler.HandleGetResponsesOnJobID).Methods(http.MethodGet, http.MethodOptions)
@@ -211,4 +212,26 @@ func (h * ResponseHandler) HandleGetResponsesOnJobID(w http.ResponseWriter, r *h
 		return
 	}
 	respond.Respond(w, r, http.StatusOK, exResp)
+}
+
+func (h *ResponseHandler) HandleGetResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.ParseInt(ids, 10, 64)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetResponse<-strconv.Atoi()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	response, err := h.ResponseUsecase.GetResponse(id)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetResponse<-Usecase.GetResponse()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	respond.Respond(w, r, http.StatusOK, response)
 }
