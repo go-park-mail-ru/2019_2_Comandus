@@ -37,6 +37,7 @@ func NewResponseHandler(m *mux.Router, rs user_response.Usecase, sanitizer *blue
 	m.HandleFunc("/proposals/{id:[0-9]+}", handler.HandleGetResponse).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/proposals/{id:[0-9]+}/accept", handler.HandleResponseAccept).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/proposals/{id:[0-9]+}/deny", handler.HandleResponseDeny).Methods(http.MethodPut, http.MethodOptions)
+	m.HandleFunc("/proposals/{id:[0-9]+}/cancel", handler.HandleResponseCancel).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/job/{jobid:[0-9]+}/proposals", handler.HandleGetResponsesOnJobID).Methods(http.MethodGet, http.MethodOptions)
 }
 
@@ -121,6 +122,39 @@ func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Requ
 		(responses)[i].R.Sanitize(h.sanitizer)
 	}
 	respond.Respond(w, r, http.StatusOK, responses)
+}
+
+func (h * ResponseHandler) HandleResponseCancel(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path":"/proposals/id/cancel", "method":r.Method}))
+	defer timer.ObserveDuration()
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleResponseAccept<-strconv.Atoi()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+	responseId := int64(id)
+
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	if err := h.ResponseUsecase.CancelResponse(u, responseId); err != nil {
+		err := errors.Wrapf(err,"HandleResponseCancel<-ResponseUsecase.CancelResponse()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {

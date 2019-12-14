@@ -42,3 +42,11 @@ func (c *ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Respons
 	}
 	return currResponse, nil
 }
+
+func (c *ResponseClient) UpdateResponseOnServer(response *response_grpc.Response) error{
+	client := response_grpc.NewResponseHandlerClient(c.conn)
+	if _, err := client.Update(context.Background(), response); err != nil {
+		return errors.Wrapf(err, "client.Update()")
+	}
+	return nil
+}

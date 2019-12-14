@@ -4,6 +4,7 @@ import "google/protobuf/timestamp.proto";
 
 service ResponseHandler {
     rpc Find(ResponseID) returns (Response);
+    rpc Update(Response) returns (Nothing);
 }
 
 message Response {
@@ -21,4 +22,10 @@ message ResponseID {
     int64 ID=1;
 }
 
+message Status {
+    string name=1;
+}
 
+message Nothing {
+    bool dummy=1;
+}

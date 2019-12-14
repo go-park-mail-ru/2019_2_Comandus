@@ -5,7 +5,6 @@ import (
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
-	"log"
 	"time"
 )
 
@@ -41,9 +40,7 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 	response.JobId = jobId
 	response.Date = time.Now()
 	response.StatusManager = model.ResponseStatusReview
-	response.StatusFreelancer = model.ResponseStatusBlock
-
-	log.Println(response)
+	response.StatusFreelancer = model.ResponseStatusSent
 
 	if err := response.Validate(0); err != nil {
 		return errors.Wrapf(err, "Validate()")
@@ -87,6 +84,34 @@ func (u *ResponseUsecase) GetResponses(user *model.User) ([]model.ExtendResponse
 	return responses, nil
 }
 
+func (u *ResponseUsecase) CancelResponse(user *model.User, responseId int64) error {
+	if user.IsManager() {
+		return errors.New("user must be freelancer")
+	}
+
+	response, err := u.responseRep.Find(responseId)
+	if err != nil {
+		return errors.Wrapf(err, "responseRep.Find()")
+	}
+
+	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
+	if err != nil {
+		return errors.Wrapf(err, "clients.getFreelancerByUserFromServer()")
+	}
+
+	if response.FreelancerId != currFreelancer.ID {
+		return errors.New("no access")
+	}
+
+	response.StatusManager = model.ResponseStatusCancel
+	err = u.responseRep.Edit(response)
+	if err != nil {
+		err = errors.Wrapf(err, "responseRep.Edit()")
+		return err
+	}
+	return nil
+}
+
 func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) error {
 	response, err := u.responseRep.Find(responseId)
 	if err != nil {
@@ -107,8 +132,11 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 		if job.HireManagerId != currManager.ID {
 			return errors.New("current manager cant accept this response")
 		}
+
+		if response.StatusManager != model.ResponseStatusReview {
+			return errors.New("wrong current status")
+		}
 		response.StatusManager = model.ResponseStatusAccepted
-		response.StatusFreelancer = model.ResponseStatusReview
 	} else {
 		currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
@@ -119,11 +147,12 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 			return errors.New("current freelancer can't accept this response")
 		}
 
-		if response.StatusFreelancer == model.ResponseStatusBlock {
-			return errors.New("freelancer can't accept response before manager")
+		if response.StatusManager != model.ResponseStatusContractSent {
+			return errors.New("wrong current status")
 		}
+		response.StatusFreelancer = model.ResponseStatusAccepted
 	}
-	response.StatusManager = model.ResponseStatusAccepted
+
 	err = u.responseRep.Edit(response)
 	if err != nil {
 		err = errors.Wrapf(err, "responseRep.Edit()")
@@ -153,8 +182,10 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 			return errors.New("current manager cant accept this response")
 		}
 
+		if response.StatusManager != model.ResponseStatusReview {
+			return errors.New("wrong current status")
+		}
 		response.StatusManager = model.ResponseStatusDenied
-		response.StatusFreelancer = model.ResponseStatusBlock
 	} else {
 		currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
 		if err != nil {
@@ -165,11 +196,11 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 			return errors.New("current freelancer can't accept this response")
 		}
 
-		if response.StatusFreelancer == model.ResponseStatusBlock {
-			return errors.New("freelancer can't accept response before manager")
+		if response.StatusManager != model.ResponseStatusContractSent {
+			return errors.New("wrong current status")
 		}
+		response.StatusFreelancer = model.ResponseStatusDenied
 	}
-	response.StatusManager = model.ResponseStatusDenied
 	err = u.responseRep.Edit(response)
 	if err != nil {
 		err = errors.Wrapf(err, "responseRep.Edit()")
@@ -228,4 +259,11 @@ func (u *ResponseUsecase) GetResponsesOnJobID(jobID int64) ([]model.ExtendRespon
 		return nil, errors.Wrap(err, "responseRep.GetResponsesOnJobID()")
 	}
 	return responses, nil
+}
+
+func (u *ResponseUsecase) Update(response *model.Response) error {
+	if err := u.responseRep.Edit(response); err != nil {
+		return err
+	}
+	return nil
 }

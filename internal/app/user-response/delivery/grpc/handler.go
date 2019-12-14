@@ -55,7 +55,7 @@ func (s *ResponseServer) TransformResponseData(response *response_grpc.Response)
 		FreelancerId:         response.FreelancerId,
 		JobId:                response.JobId,
 		Files:                response.Files,
-		Date:                 time.Time{},
+		Date:                 time.Unix(response.Date.Seconds, int64(response.Date.Nanos)),
 		StatusManager:        response.StatusManager,
 		StatusFreelancer:     response.StatusFreelancer,
 		PaymentAmount:        response.PaymentAmount,
@@ -70,4 +70,12 @@ func (s *ResponseServer) Find(context context.Context, response *response_grpc.R
 	}
 	res := s.TransformResponseRPC(newResponse)
 	return res, nil
+}
+
+func (s *ResponseServer) Update(context context.Context, response *response_grpc.Response) (*response_grpc.Nothing, error) {
+	resp := s.TransformResponseData(response)
+	if err := s.Ucase.Update(resp); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }

@@ -7,10 +7,13 @@ import (
 )
 
 const (
-	ResponseStatusBlock    = "block"
-	ResponseStatusReview   = "review"
-	ResponseStatusDenied   = "denied"
-	ResponseStatusAccepted = "accepted"
+	ResponseStatusBlock				= "block"
+	ResponseStatusSent				= "SENT"
+	ResponseStatusContractSent		= "SENT_CONTRACT"
+	ResponseStatusCancel			= "CANCEL"
+	ResponseStatusReview			= "REVIEW"
+	ResponseStatusDenied			= "DENIED"
+	ResponseStatusAccepted			= "ACCEPTED"
 )
 
 type Response struct {

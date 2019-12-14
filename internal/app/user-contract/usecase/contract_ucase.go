@@ -59,6 +59,11 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		FreelancerGrade: 0,
 	}
 
+	response.StatusManager = model.ResponseStatusContractSent
+	if err := u.responseClient.UpdateResponseOnServer(response); err != nil {
+		return errors.Wrapf(err, "responseCreate.UpdateResponseOnServer()")
+	}
+
 	if err := u.contractRep.Create(contract); err != nil {
 		return errors.Wrapf(err, "contractRep.Create()")
 	}
