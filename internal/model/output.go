@@ -25,3 +25,5 @@ type ExtendResponse struct {
 	SecondName string    `json:"lastName"`
 	JobTitle   string    `json:"jobTitle, string"`
 }
+
+

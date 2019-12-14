@@ -18,18 +18,18 @@ import (
 )
 
 type ResponseHandler struct {
-	ResponseUsecase	user_response.Usecase
-	sanitizer		*bluemonday.Policy
-	logger			*zap.SugaredLogger
-	sessionStore	sessions.Store
+	ResponseUsecase user_response.Usecase
+	sanitizer       *bluemonday.Policy
+	logger          *zap.SugaredLogger
+	sessionStore    sessions.Store
 }
 
 func NewResponseHandler(m *mux.Router, rs user_response.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &ResponseHandler{
-		ResponseUsecase:	rs,
-		sanitizer:			sanitizer,
-		logger:				logger,
-		sessionStore:		sessionStore,
+		ResponseUsecase: rs,
+		sanitizer:       sanitizer,
+		logger:          logger,
+		sessionStore:    sessionStore,
 	}
 
 	m.HandleFunc("/jobs/proposal/{id:[0-9]+}", handler.HandleResponseJob).Methods(http.MethodPost, http.MethodOptions)
@@ -45,7 +45,7 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/jobs/proposal/id", "method":r.Method}))
+		Labels{"path": "/jobs/proposal/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -55,6 +55,7 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 		err = errors.Wrapf(err, "HandleResponseJob<-strconv.Atoi()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
+
 	jobId := int64(id)
 
 	defer func() {
@@ -82,53 +83,52 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseJob()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleResponseJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.CreateResponse(u, response, jobId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseJob<-UCase.CreateResponse()")
+		err := errors.Wrapf(err, "HandleResponseJob<-UCase.CreateResponse()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
-	respond.Respond(w, r, http.StatusOK, struct {}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
-
 
 func (h *ResponseHandler) HandleGetResponses(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/proposals", "method":r.Method}))
+		Labels{"path": "/proposals", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleGetResponses()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleGetResponses()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	responses, err := h.ResponseUsecase.GetResponses(u)
 	if err != nil {
-		err := errors.Wrapf(err,"HandleGetResponses<-ResponseUsecase.GetResponses()")
+		err := errors.Wrapf(err, "HandleGetResponses<-ResponseUsecase.GetResponses()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
-	for i, _ := range responses{
+	for i, _ := range responses {
 		(responses)[i].R.Sanitize(h.sanitizer)
 	}
 	respond.Respond(w, r, http.StatusOK, responses)
 }
 
-func (h * ResponseHandler) HandleResponseCancel(w http.ResponseWriter, r *http.Request) {
+func (h *ResponseHandler) HandleResponseCancel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-	Labels{"path":"/proposals/id/cancel", "method":r.Method}))
+		Labels{"path": "/proposals/id/cancel", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -143,13 +143,13 @@ func (h * ResponseHandler) HandleResponseCancel(w http.ResponseWriter, r *http.R
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleResponseAccept()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.CancelResponse(u, responseId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseCancel<-ResponseUsecase.CancelResponse()")
+		err := errors.Wrapf(err, "HandleResponseCancel<-ResponseUsecase.CancelResponse()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -157,11 +157,11 @@ func (h * ResponseHandler) HandleResponseCancel(w http.ResponseWriter, r *http.R
 	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
-func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
+func (h *ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/proposals/id/accept", "method":r.Method}))
+		Labels{"path": "/proposals/id/accept", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -176,13 +176,13 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseAccept()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleResponseAccept()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.AcceptResponse(u, responseId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseAccept<-ResponseUsecase.AcceptResponse()")
+		err := errors.Wrapf(err, "HandleResponseAccept<-ResponseUsecase.AcceptResponse()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -190,11 +190,11 @@ func (h * ResponseHandler) HandleResponseAccept(w http.ResponseWriter, r *http.R
 	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
-func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Request) {
+func (h *ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/proposals/id/deny", "method":r.Method}))
+		Labels{"path": "/proposals/id/deny", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -209,13 +209,13 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleResponseDeny()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleResponseDeny()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err := h.ResponseUsecase.DenyResponse(u, responseId); err != nil {
-		err := errors.Wrapf(err,"HandleResponseDeny<-ResponseUsecase.DenyResponse()")
+		err := errors.Wrapf(err, "HandleResponseDeny<-ResponseUsecase.DenyResponse()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -223,12 +223,11 @@ func (h * ResponseHandler) HandleResponseDeny(w http.ResponseWriter, r *http.Req
 	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
-
-func (h * ResponseHandler) HandleGetResponsesOnJobID(w http.ResponseWriter, r *http.Request) {
+func (h *ResponseHandler) HandleGetResponsesOnJobID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/job/id/proposals", "method":r.Method}))
+		Labels{"path": "/job/id/proposals", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)

@@ -8,7 +8,6 @@ import (
 	"log"
 )
 
-
 type ResponseClient struct {
 	conn *grpc.ClientConn
 }
@@ -29,11 +28,11 @@ func (c *ResponseClient) Disconnect() error {
 	return nil
 }
 
-func (c *ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Response, error){
+func (c *ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Response, error) {
 	client := response_grpc.NewResponseHandlerClient(c.conn)
 
-	req := &response_grpc.ResponseID {
-		ID:		id,
+	req := &response_grpc.ResponseID{
+		ID: id,
 	}
 
 	currResponse, err := client.Find(context.Background(), req)
@@ -43,7 +42,7 @@ func (c *ResponseClient) GetResponseFromServer(id int64) (*response_grpc.Respons
 	return currResponse, nil
 }
 
-func (c *ResponseClient) UpdateResponseOnServer(response *response_grpc.Response) error{
+func (c *ResponseClient) UpdateResponseOnServer(response *response_grpc.Response) error {
 	client := response_grpc.NewResponseHandlerClient(c.conn)
 	if _, err := client.Update(context.Background(), response); err != nil {
 		return errors.Wrapf(err, "client.Update()")

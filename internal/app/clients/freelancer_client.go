@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-type FreelancerClient struct{
+type FreelancerClient struct {
 	conn *grpc.ClientConn
 }
 
@@ -57,7 +57,7 @@ func (c *FreelancerClient) GetFreelancerByUserFromServer(id int64) (*freelancer_
 func (c *FreelancerClient) GetFreelancerFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
 	client := freelancer_grpc.NewFreelancerHandlerClient(c.conn)
 	req := &freelancer_grpc.FreelancerID{
-		ID:		id,
+		ID: id,
 	}
 
 	currFreelancer, err := client.Find(context.Background(), req)

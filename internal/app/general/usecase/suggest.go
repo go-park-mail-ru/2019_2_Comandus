@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func formFreelancerDictionary() (dictionary.Dictionary, error){
+func formFreelancerDictionary() (dictionary.Dictionary, error) {
 	dict := dictionary.NewInMemoryDictionary([]string{
 		"dasqha efimova",
 		"daqqsha efimdddova",
@@ -22,7 +22,7 @@ func formFreelancerDictionary() (dictionary.Dictionary, error){
 	return dict, nil
 }
 
-func formJobDictionary() (dictionary.Dictionary, error){
+func formJobDictionary() (dictionary.Dictionary, error) {
 	dict := dictionary.NewInMemoryDictionary([]string{
 		"golang",
 		"java",
@@ -46,7 +46,7 @@ func NewSuggestService() (*suggest.Service, error) {
 		log.Fatalf("Unexpected error: %v", err)
 	}
 
-	jobIndex := suggest.IndexDescription {
+	jobIndex := suggest.IndexDescription{
 		Name:      "jobs",
 		NGramSize: 2,
 		Wrap:      [2]string{"$", "$"},
@@ -54,7 +54,7 @@ func NewSuggestService() (*suggest.Service, error) {
 		Alphabet:  []string{"english", "$"},
 	}
 
-	freelancerIndex := suggest.IndexDescription {
+	freelancerIndex := suggest.IndexDescription{
 		Name:      "freelancers",
 		NGramSize: 3,
 		Wrap:      [2]string{"$", "$"},

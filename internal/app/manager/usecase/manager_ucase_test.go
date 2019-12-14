@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func testUcase(t *testing.T) (*repository_mocks.MockManagerRepository ,manager.Usecase){
+func testUcase(t *testing.T) (*repository_mocks.MockManagerRepository, manager.Usecase) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	managerRep := repository_mocks.NewMockManagerRepository(ctrl)
@@ -21,20 +21,20 @@ func TestManagerUsecase_Create(t *testing.T) {
 	managerRep, managerUcase := testUcase(t)
 
 	testCases := []struct {
-		name			string
-		newCompany		*model.Company
-		userType		string
-		userID 			int64
-		compID 			int64
-		expectError		error
+		name        string
+		newCompany  *model.Company
+		userType    string
+		userID      int64
+		compID      int64
+		expectError error
 	}{
 		{
-			name:			"valid",
-			newCompany:		&model.Company{},
-			userType:		model.UserCustomer,
-			expectError:	nil,
-			userID: 		1,
-			compID: 		1,
+			name:        "valid",
+			newCompany:  &model.Company{},
+			userType:    model.UserCustomer,
+			expectError: nil,
+			userID:      1,
+			compID:      1,
 		},
 	}
 
@@ -43,10 +43,10 @@ func TestManagerUsecase_Create(t *testing.T) {
 			managerRep.
 				EXPECT().
 				Create(&model.HireManager{
-				AccountID: tc.userID,
-				CompanyID: tc.compID,
-			}).
-				Do(func(arg *model.HireManager){
+					AccountID: tc.userID,
+					CompanyID: tc.compID,
+				}).
+				Do(func(arg *model.HireManager) {
 					arg.ID = 1
 				}).
 				Return(tc.expectError)
@@ -54,7 +54,7 @@ func TestManagerUsecase_Create(t *testing.T) {
 			c, err := managerUcase.Create(tc.userID, tc.compID)
 
 			if tc.expectError == nil {
-				assert.Equal(t, int64(1) , c.ID)
+				assert.Equal(t, int64(1), c.ID)
 				assert.Equal(t, nil, err)
 				return
 			}
@@ -69,25 +69,24 @@ func TestManagerUsecase_Create(t *testing.T) {
 	}
 }
 
-
 func TestCompanyUsecase_Find(t *testing.T) {
 	managerRep, managerUcase := testUcase(t)
 
 	testCases := []struct {
-		name			string
-		newCompany		*model.Company
-		userType		string
-		userID 			int64
-		compID 			int64
-		expectError		error
+		name        string
+		newCompany  *model.Company
+		userType    string
+		userID      int64
+		compID      int64
+		expectError error
 	}{
 		{
-			name:			"valid",
-			newCompany:		&model.Company{},
-			userType:		model.UserCustomer,
-			expectError:	nil,
-			userID: 		1,
-			compID: 		1,
+			name:        "valid",
+			newCompany:  &model.Company{},
+			userType:    model.UserCustomer,
+			expectError: nil,
+			userID:      1,
+			compID:      1,
 		},
 	}
 
@@ -103,7 +102,7 @@ func TestCompanyUsecase_Find(t *testing.T) {
 					AccountID: tc.userID,
 					CompanyID: tc.compID,
 				},
-				tc.expectError)
+					tc.expectError)
 
 			c, err := managerUcase.Find(hID)
 
@@ -138,7 +137,7 @@ func TestCompanyUsecase_FindByUser(t *testing.T) {
 		userType    string
 		userID      int64
 		compID      int64
-		hID			int64
+		hID         int64
 		expectError error
 	}{
 		{
@@ -148,7 +147,7 @@ func TestCompanyUsecase_FindByUser(t *testing.T) {
 			expectError: nil,
 			userID:      1,
 			compID:      1,
-			hID: 		1,
+			hID:         1,
 		},
 	}
 

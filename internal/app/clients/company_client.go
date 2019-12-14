@@ -55,24 +55,24 @@ func (c *CompanyClient) GetCompanyFromServer(id int64) (*company_grpc.CompanyOut
 	return currCompany, nil
 }
 
-func (c *CompanyClient) EditCompanyOnServer(id int64, company *model.Company)  error {
+func (c *CompanyClient) EditCompanyOnServer(id int64, company *model.Company) error {
 	client := company_grpc.NewCompanyHandlerClient(c.conn)
 
 	grpccompany := &company_grpc.Company{
-		ID:                   company.ID,
-		CompanyName:          company.CompanyName,
-		Site:                 company.Site,
-		TagLine:              company.TagLine,
-		Description:          company.Description,
-		Country:              company.Country,
-		City:                 company.City,
-		Address:              company.Address,
-		Phone:                company.Phone,
+		ID:          company.ID,
+		CompanyName: company.CompanyName,
+		Site:        company.Site,
+		TagLine:     company.TagLine,
+		Description: company.Description,
+		Country:     company.Country,
+		City:        company.City,
+		Address:     company.Address,
+		Phone:       company.Phone,
 	}
 
 	companyReq := &company_grpc.CompanyWithUser{
-		MyCompany:            grpccompany,
-		UserID:               id,
+		MyCompany: grpccompany,
+		UserID:    id,
 	}
 
 	_, err := client.Edit(context.Background(), companyReq)

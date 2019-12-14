@@ -23,7 +23,7 @@ func NewFreelancerRepository(db *sql.DB) freelancer.Repository {
 
 func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"freelancer", "method":"create"}))
+		Labels{"rep": "freelancer", "method": "create"}))
 	defer timer.ObserveDuration()
 
 	return r.db.QueryRow(
@@ -43,7 +43,7 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 
 func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"freelancer", "method":"find"}))
+		Labels{"rep": "freelancer", "method": "find"}))
 	defer timer.ObserveDuration()
 
 	f := &model.Freelancer{}
@@ -71,7 +71,7 @@ func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 
 func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"freelancer", "method":"findByUser"}))
+		Labels{"rep": "freelancer", "method": "findByUser"}))
 	defer timer.ObserveDuration()
 
 	f := &model.Freelancer{}
@@ -99,7 +99,7 @@ func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, e
 
 func (r *FreelancerRepository) Edit(f *model.Freelancer) error {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"freelancer", "method":"edit"}))
+		Labels{"rep": "freelancer", "method": "edit"}))
 	defer timer.ObserveDuration()
 
 	return r.db.QueryRow("UPDATE freelancers SET country = $1, city = $2, address = $3, "+
@@ -118,7 +118,7 @@ func (r *FreelancerRepository) Edit(f *model.Freelancer) error {
 
 func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFreelancer, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"freelancer", "method":"listInPattern"}))
+		Labels{"rep": "freelancer", "method": "listInPattern"}))
 	defer timer.ObserveDuration()
 
 	var exFreelancers []model.ExtendFreelancer
@@ -157,9 +157,8 @@ func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFree
 
 func (r *FreelancerRepository) FindPartByTime(offset int, limit int) ([]model.ExtendFreelancer, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-	Labels{"rep":"freelancer", "method":"listInPattern"}))
+		Labels{"rep": "freelancer", "method": "listInPattern"}))
 	defer timer.ObserveDuration()
-
 
 	var exFreelancers []model.ExtendFreelancer
 
@@ -167,7 +166,7 @@ func (r *FreelancerRepository) FindPartByTime(offset int, limit int) ([]model.Ex
 		"SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, "+
 			" F.overview, F.experienceLevelId, F.specialityId, U.firstname , U.secondname "+
 			"FROM freelancers AS F "+
-			"INNER JOIN users AS U ON (F.accountid = U.accountid) " +
+			"INNER JOIN users AS U ON (F.accountid = U.accountid) "+
 			"OFFSET $1 LIMIT $2 ",
 		offset,
 		limit,
@@ -194,4 +193,3 @@ func (r *FreelancerRepository) FindPartByTime(offset int, limit int) ([]model.Ex
 	}
 	return exFreelancers, nil
 }
-

@@ -10,8 +10,8 @@ import (
 
 const (
 	freelancerId = 1
-	jobId = 1
-	managerId = 1
+	jobId        = 1
+	managerId    = 1
 )
 
 func testResponse(t *testing.T) *model.Response {
@@ -45,7 +45,7 @@ func TestResponseRepository_Create(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Response{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -114,7 +114,7 @@ func TestResponseRepository_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Response{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -235,7 +235,7 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount" })
+		NewRows([]string{"id", "freelancerId", "jobId", "files", "date", "statusManager", "statusFreelancer", "paymentAmount"})
 
 	expect := []*model.Response{
 		testResponse(t),
@@ -250,11 +250,11 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, " +
-		"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
-		"FROM responses " +
-		"INNER JOIN jobs " +
-		"ON jobs.id = responses.jobId " +
-		"WHERE ").
+			"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
+			"FROM responses " +
+			"INNER JOIN jobs " +
+			"ON jobs.id = responses.jobId " +
+			"WHERE ").
 		WithArgs(managerId).
 		WillReturnRows(rows)
 
@@ -280,11 +280,11 @@ func TestResponseRepository_ListForManager(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT responses.id, responses.freelancerId, responses.jobId, responses.files, responses.date, " +
-		"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
-		"FROM responses " +
-		"INNER JOIN jobs " +
-		"ON jobs.id = responses.jobId " +
-		"WHERE ").
+			"responses.statusManager, responses.statusFreelancer, responses.paymentAmount " +
+			"FROM responses " +
+			"INNER JOIN jobs " +
+			"ON jobs.id = responses.jobId " +
+			"WHERE ").
 		WillReturnError(fmt.Errorf("db_error"))
 
 	_, err = repo.ListForManager(managerId)

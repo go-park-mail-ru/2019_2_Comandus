@@ -19,7 +19,7 @@ func NewJobRepository(db *sql.DB) user_job.Repository {
 // TODO: remove hire manager
 func (r *JobRepository) Create(j *model.Job) error {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"job", "method":"create"}))
+		Labels{"rep": "job", "method": "create"}))
 	defer timer.ObserveDuration()
 
 	return r.db.QueryRow(
@@ -42,12 +42,12 @@ func (r *JobRepository) Create(j *model.Job) error {
 
 func (r *JobRepository) Find(id int64) (*model.Job, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"job", "method":"find"}))
+		Labels{"rep": "job", "method": "find"}))
 	defer timer.ObserveDuration()
 
 	j := &model.Job{}
 	if err := r.db.QueryRow(
-		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status FROM jobs WHERE id = $1 AND status != $2",
 		id,
 		model.JobStateDeleted,
@@ -73,7 +73,7 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 
 func (r *JobRepository) Edit(j *model.Job) error {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"job", "method":"edit"}))
+		Labels{"rep": "job", "method": "edit"}))
 	defer timer.ObserveDuration()
 
 	return r.db.QueryRow("UPDATE jobs SET title = $1, description = $2, files = $3, "+
@@ -95,16 +95,16 @@ func (r *JobRepository) Edit(j *model.Job) error {
 
 func (r *JobRepository) List() ([]model.Job, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"job", "method":"list"}))
+		Labels{"rep": "job", "method": "list"}))
 	defer timer.ObserveDuration()
 
 	var jobs []model.Job
 	rows, err := r.db.Query(
-		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status " +
-			"FROM jobs WHERE status != $1 " +
+		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
+			"country, city, jobTypeId, date, status "+
+			"FROM jobs WHERE status != $1 "+
 			"ORDER BY id DESC LIMIT 20",
-			model.JobStateDeleted)
+		model.JobStateDeleted)
 
 	if err != nil {
 		return nil, err
@@ -127,32 +127,32 @@ func (r *JobRepository) List() ([]model.Job, error) {
 
 func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchParams) ([]model.Job, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-		Labels{"rep":"job", "method":"listOnPattern"}))
+		Labels{"rep": "job", "method": "listOnPattern"}))
 	defer timer.ObserveDuration()
 
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status "+
-			"FROM jobs " +
-			"WHERE to_tsvector('russian' , title) @@ plainto_tsquery('russian', $1) AND " +
-			"status != $1 AND " +
-			"($2 = 0 OR paymentAmount <= $2 AND paymentAmount >= $3) AND " +
-			"($4 = 0 OR grade <= $4 AND grade >= $5) AND " +
-			"($6 = -1 OR country = $6) AND " +
-			"($7 = -1 OR city = $7) AND " +
-			"(($8 AND experienceLevelId = 1) OR ($9 AND experienceLevelId = 2) OR ($10 AND experienceLevelId = 3)) " +
-			"ORDER BY " +
-			"CASE WHEN $11 THEN id END DESC " +
-			"CASE WHEN !$11 THEN id END ASC " +
+			"FROM jobs "+
+			"WHERE to_tsvector('russian' , title) @@ plainto_tsquery('russian', $1) AND "+
+			"status != $1 AND "+
+			"($2 = 0 OR paymentAmount <= $2 AND paymentAmount >= $3) AND "+
+			"($4 = 0 OR grade <= $4 AND grade >= $5) AND "+
+			"($6 = -1 OR country = $6) AND "+
+			"($7 = -1 OR city = $7) AND "+
+			"(($8 AND experienceLevelId = 1) OR ($9 AND experienceLevelId = 2) OR ($10 AND experienceLevelId = 3)) "+
+			"ORDER BY "+
+			"CASE WHEN $11 THEN id END DESC "+
+			"CASE WHEN !$11 THEN id END ASC "+
 			"LIMIT 10",
-			model.JobStateDeleted,
-			params.MaxPaymentAmount, params.MinPaymentAmount,
-			params.MaxGrade, params.MinGrade,
-			params.Country,
-			params.City,
-			params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
-			params.Desc)
+		model.JobStateDeleted,
+		params.MaxPaymentAmount, params.MinPaymentAmount,
+		params.MaxGrade, params.MinGrade,
+		params.Country,
+		params.City,
+		params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
+		params.Desc)
 	if err != nil {
 		return nil, err
 	}
@@ -171,20 +171,19 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchPara
 	return jobs, nil
 }
 
-
 func (r *JobRepository) ListMyJobs(managerID int64) ([]model.Job, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
-	Labels{"rep":"job", "method":"list"}))
+		Labels{"rep": "job", "method": "list"}))
 	defer timer.ObserveDuration()
 
 	var jobs []model.Job
 	rows, err := r.db.Query(
-		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-			"country, city, jobTypeId, date, status FROM jobs AS j " +
+		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
+			"country, city, jobTypeId, date, status FROM jobs AS j "+
 			"WHERE status != $1 AND managerid = $2 ORDER BY id DESC",
 		model.JobStateDeleted,
 		managerID,
-		)
+	)
 	if err != nil {
 		return nil, err
 	}

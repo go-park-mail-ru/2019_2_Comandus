@@ -17,5 +17,5 @@ var (
 
 	Hits = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "hits",
-	}, []string{"status" , "path"})
+	}, []string{"status", "path"})
 )

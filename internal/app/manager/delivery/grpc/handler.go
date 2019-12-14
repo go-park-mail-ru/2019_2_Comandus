@@ -28,22 +28,21 @@ func (s *ManagerServer) TransformManagerRPC(manager *model.HireManager) *manager
 	}
 
 	res := &manager_grpc.Manager{
-		ID:                   manager.ID,
-		AccountId:            manager.AccountID,
-		Location:             manager.Location,
-		CompanyId:            manager.CompanyID,
+		ID:        manager.ID,
+		AccountId: manager.AccountID,
+		Location:  manager.Location,
+		CompanyId: manager.CompanyID,
 	}
 	return res
 }
 
-
 func (s *ManagerServer) TransformManagerData(manager *manager_grpc.Manager) *model.HireManager {
 	// TODO: fix date
 	res := &model.HireManager{
-		ID:               manager.ID,
-		AccountID:        manager.AccountId,
-		Location:         manager.Location,
-		CompanyID:        manager.CompanyId,
+		ID:        manager.ID,
+		AccountID: manager.AccountId,
+		Location:  manager.Location,
+		CompanyID: manager.CompanyId,
 	}
 	return res
 }

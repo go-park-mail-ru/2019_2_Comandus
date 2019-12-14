@@ -7,7 +7,7 @@ import (
 )
 
 type LocationRepository struct {
-	db	*sql.DB
+	db *sql.DB
 }
 
 func NewLocationRepository(db *sql.DB) location.Repository {
@@ -40,10 +40,10 @@ func (r *LocationRepository) CountryList() ([]*model.Country, error) {
 
 func (r *LocationRepository) CityListByCountry(id int64) ([]*model.City, error) {
 	var cities []*model.City
-	rows, err := r.db.Query("SELECT city.id, region.country_id, city.name " +
-		"FROM city " +
-		"INNER JOIN region " +
-		"ON region.id = city.region_id " +
+	rows, err := r.db.Query("SELECT city.id, region.country_id, city.name "+
+		"FROM city "+
+		"INNER JOIN region "+
+		"ON region.id = city.region_id "+
 		"WHERE region.country_id = $1", id)
 
 	if err != nil {

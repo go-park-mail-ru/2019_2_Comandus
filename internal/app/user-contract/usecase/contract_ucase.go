@@ -9,23 +9,23 @@ import (
 )
 
 type ContractUsecase struct {
-	contractRep		user_contract.Repository
+	contractRep      user_contract.Repository
 	freelancerClient clients.ClientFreelancer
-	managerClient   clients.ManagerClient
-	companyClient 	clients.CompanyClient
-	jobClient   	clients.ClientJob
-	responseClient  clients.ClientResponse
+	managerClient    clients.ManagerClient
+	companyClient    clients.CompanyClient
+	jobClient        clients.ClientJob
+	responseClient   clients.ClientResponse
 }
 
 func NewContractUsecase(c user_contract.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
-	cClient clients.CompanyClient ,jClient clients.ClientJob, rClient clients.ClientResponse) user_contract.Usecase {
+	cClient clients.CompanyClient, jClient clients.ClientJob, rClient clients.ClientResponse) user_contract.Usecase {
 	return &ContractUsecase{
-		contractRep:	c,
+		contractRep:      c,
 		freelancerClient: fClient,
-		managerClient: mClient,
-		companyClient: cClient,
-		jobClient: jClient,
-		responseClient: rClient,
+		managerClient:    mClient,
+		companyClient:    cClient,
+		jobClient:        jClient,
+		responseClient:   rClient,
 	}
 }
 
@@ -47,15 +47,15 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 
 	// TODO: write struct for start time and end time
 	contract := &model.Contract{
-		ID:            0,
-		ResponseID:    response.ID,
-		CompanyID:     currManager.CompanyId,
-		FreelancerID:  user.FreelancerId,
-		StartTime:     time.Time{},
-		EndTime:       time.Time{},
-		Status:        model.ContractStatusUnderDevelopment,
-		PaymentAmount: response.PaymentAmount,
-		ClientGrade: 0,
+		ID:              0,
+		ResponseID:      response.ID,
+		CompanyID:       currManager.CompanyId,
+		FreelancerID:    user.FreelancerId,
+		StartTime:       time.Time{},
+		EndTime:         time.Time{},
+		Status:          model.ContractStatusUnderDevelopment,
+		PaymentAmount:   response.PaymentAmount,
+		ClientGrade:     0,
 		FreelancerGrade: 0,
 	}
 
@@ -71,7 +71,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 	return nil
 }
 
-func (u * ContractUsecase) SetStatusContract(user * model.User, contract *model.Contract, status string) error {
+func (u *ContractUsecase) SetStatusContract(user *model.User, contract *model.Contract, status string) error {
 	// TODO: fix if add new modes
 	if !user.IsManager() && status != model.ContractStatusDone {
 		return errors.New("freelancer can change status only to done status")
@@ -83,7 +83,7 @@ func (u * ContractUsecase) SetStatusContract(user * model.User, contract *model.
 	return nil
 }
 
-func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
+func (u *ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 	if user.IsManager() {
 		return errors.New("user must be freelancer")
 	}
@@ -109,7 +109,7 @@ func (u * ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 	return nil
 }
 
-func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error {
+func (u *ContractUsecase) ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error {
 	if review.Grade < model.ContractMinGrade || review.Grade > model.ContractMaxGrade {
 		return errors.New("grade must be between 0 and 5")
 	}
@@ -144,7 +144,6 @@ func (u * ContractUsecase) ReviewContract(user *model.User, contractId int64, re
 
 	return nil
 }
-
 
 func (u *ContractUsecase) ReviewList(user *model.User) ([]model.Review, error) {
 	if user.IsManager() {

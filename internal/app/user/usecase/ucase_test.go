@@ -17,7 +17,7 @@ import (
 )
 
 func testUcase(t *testing.T) (*repository_mocks.MockUserRepository, user.Usecase, *client_mocks.MockClientFreelancer,
-	*client_mocks.MockManagerClient, *client_mocks.MockCompanyClient){
+	*client_mocks.MockManagerClient, *client_mocks.MockCompanyClient) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	userRep := repository_mocks.NewMockUserRepository(ctrl)
@@ -29,21 +29,21 @@ func testUcase(t *testing.T) (*repository_mocks.MockUserRepository, user.Usecase
 }
 
 func TestUcase_CreateUser(t *testing.T) {
-	userRep , userU, _, _, _ := testUcase(t)
+	userRep, userU, _, _, _ := testUcase(t)
 	//userRep , userU, freelancerClient, managerClient, companyClient := testUcase(t)
 	testCases := []struct {
-		name			string
-		user			*model.User
-		expectRun		bool
-		expectError		error
+		name        string
+		user        *model.User
+		expectRun   bool
+		expectError error
 	}{
 		{
-			name:			"valid",
-			user:			&model.User{
-				Email:           "user@example.org",
-				Password:        "secret",
+			name: "valid",
+			user: &model.User{
+				Email:    "user@example.org",
+				Password: "secret",
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -72,36 +72,36 @@ func TestUcase_CreateUser(t *testing.T) {
 }
 
 func TestUcase_EditUser(t *testing.T) {
-	userRep , userU, _, _, _ := testUcase(t)
+	userRep, userU, _, _, _ := testUcase(t)
 	user := &model.User{
-		ID:			1,
-		Email:		"user@example.org",
-		Password:	"secret",
-		UserType:	model.UserFreelancer,
+		ID:       1,
+		Email:    "user@example.org",
+		Password: "secret",
+		UserType: model.UserFreelancer,
 	}
 	if err := user.BeforeCreate(); err != nil {
 		t.Fatal(err)
 	}
 
 	testCases := []struct {
-		name			string
-		newUser			*model.User
-		expectError		error
+		name        string
+		newUser     *model.User
+		expectError error
 	}{
 		{
-			name:			"valid: edit user info",
-			newUser:		&model.User{
-				ID:			user.ID,
-				FirstName:	"ivan",
-				SecondName:	"ivanov",
-				UserName:	"ivan1970",
-				Email:		"user@example.org",
-				Password:	"",
-				EncryptPassword: user.EncryptPassword,
-				UserType:	model.UserFreelancer,
-				RegistrationDate:	user.RegistrationDate,
+			name: "valid: edit user info",
+			newUser: &model.User{
+				ID:               user.ID,
+				FirstName:        "ivan",
+				SecondName:       "ivanov",
+				UserName:         "ivan1970",
+				Email:            "user@example.org",
+				Password:         "",
+				EncryptPassword:  user.EncryptPassword,
+				UserType:         model.UserFreelancer,
+				RegistrationDate: user.RegistrationDate,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 		//{
 		//	name:			"invalid: edit user type",
@@ -126,15 +126,15 @@ func TestUcase_EditUser(t *testing.T) {
 		//	expectError:	errors.New("userRep.Edit(): ComparePassword: can't change password without validation"),
 		//},
 		{
-			name:			"invalid params: edit email",
-			newUser:		&model.User{
-				ID:			user.ID,
-				Email:           "user1@example.org",
-				Password:        "secret",
-				UserType:	model.UserFreelancer,
-				RegistrationDate:	user.RegistrationDate,
+			name: "invalid params: edit email",
+			newUser: &model.User{
+				ID:               user.ID,
+				Email:            "user1@example.org",
+				Password:         "secret",
+				UserType:         model.UserFreelancer,
+				RegistrationDate: user.RegistrationDate,
 			},
-			expectError:	errors.Wrap(errors.New("can't change email"), "EditUser"),
+			expectError: errors.Wrap(errors.New("can't change email"), "EditUser"),
 		},
 	}
 
@@ -463,24 +463,23 @@ func TestUcase_EditUser(t *testing.T) {
 //}
 
 func TestUcase_Find(t *testing.T) {
-	userRep , userU, freelancerClient, managerClient, _ := testUcase(t)
+	userRep, userU, freelancerClient, managerClient, _ := testUcase(t)
 	testCases := []struct {
-		name			string
-		user			*model.User
-		expectRun		bool
-		expectError		error
+		name        string
+		user        *model.User
+		expectRun   bool
+		expectError error
 	}{
 		{
-			name:			"valid",
-			user:			&model.User{
-				ID:				  1,
-				Email:           "user@example.org",
-				FreelancerId: 1,
+			name: "valid",
+			user: &model.User{
+				ID:            1,
+				Email:         "user@example.org",
+				FreelancerId:  1,
 				HireManagerId: 1,
-				CompanyId: 1,
-
+				CompanyId:     1,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -494,18 +493,17 @@ func TestUcase_Find(t *testing.T) {
 			freelancerClient.EXPECT().
 				GetFreelancerByUserFromServer(tc.user.ID).
 				Return(&freelancer_grpc.Freelancer{
-				ID:	tc.user.FreelancerId,
-			}, nil)
+					ID: tc.user.FreelancerId,
+				}, nil)
 
 			managerClient.EXPECT().
 				GetManagerByUserFromServer(tc.user.ID).
 				Return(&manager_grpc.Manager{
-					ID:	tc.user.HireManagerId,
+					ID:        tc.user.HireManagerId,
 					CompanyId: tc.user.CompanyId,
 				}, nil)
 
-
-			u , err := userU.Find(tc.user.ID)
+			u, err := userU.Find(tc.user.ID)
 
 			if tc.expectError == nil {
 				assert.Equal(t, tc.user, u)
@@ -523,26 +521,25 @@ func TestUcase_Find(t *testing.T) {
 	}
 }
 
-
 func TestUcase_SetUserType(t *testing.T) {
-	userRep , userU, _, _, _ := testUcase(t)
+	userRep, userU, _, _, _ := testUcase(t)
 	user := &model.User{
-		ID:			1,
-		UserType:	model.UserCustomer,
+		ID:       1,
+		UserType: model.UserCustomer,
 	}
 
 	testCases := []struct {
-		name			string
-		newUser			*model.User
-		expectError		error
+		name        string
+		newUser     *model.User
+		expectError error
 	}{
 		{
-			name:			"valid",
-			newUser:		&model.User{
-				ID:			user.ID,
-				UserType:	model.UserFreelancer,
+			name: "valid",
+			newUser: &model.User{
+				ID:       user.ID,
+				UserType: model.UserFreelancer,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -575,23 +572,23 @@ func TestUcase_SetUserType(t *testing.T) {
 }
 
 func TestUcase_VerifyUser(t *testing.T) {
-	userRep , userU, _, _, _ := testUcase(t)
-	enc , _ := model.EncryptString("Helloo")
+	userRep, userU, _, _, _ := testUcase(t)
+	enc, _ := model.EncryptString("Helloo")
 	testCases := []struct {
-		name			string
-		user			*model.User
-		expectRun		bool
-		expectError		error
+		name        string
+		user        *model.User
+		expectRun   bool
+		expectError error
 	}{
 		{
-			name:			"valid",
-			user:			&model.User{
-				ID:				  1,
+			name: "valid",
+			user: &model.User{
+				ID:              1,
 				Email:           "user@example.org",
-				Password: "Helloo",
+				Password:        "Helloo",
 				EncryptPassword: enc,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -602,10 +599,10 @@ func TestUcase_VerifyUser(t *testing.T) {
 				FindByEmail(tc.user.Email).
 				Return(tc.user, nil)
 
-			uID , err := userU.VerifyUser(tc.user)
+			uID, err := userU.VerifyUser(tc.user)
 
 			if tc.expectError == nil {
-				assert.Equal(t, tc.user.ID , uID)
+				assert.Equal(t, tc.user.ID, uID)
 				assert.Equal(t, nil, err)
 				return
 			}
@@ -621,21 +618,21 @@ func TestUcase_VerifyUser(t *testing.T) {
 }
 
 func TestUcase_GetRoles(t *testing.T) {
-	_ , userU, _ , managerClient, companyClient := testUcase(t)
+	_, userU, _, managerClient, companyClient := testUcase(t)
 	testCases := []struct {
-		name			string
-		user			*model.User
-		expectRun		bool
-		expectError		error
+		name        string
+		user        *model.User
+		expectRun   bool
+		expectError error
 	}{
 		{
-			name:			"valid",
-			user:			&model.User{
-				ID:				  1,
-				FirstName: "Hi",
-				SecondName:"World",
+			name: "valid",
+			user: &model.User{
+				ID:         1,
+				FirstName:  "Hi",
+				SecondName: "World",
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -649,8 +646,6 @@ func TestUcase_GetRoles(t *testing.T) {
 		CompanyName: "BroBro",
 	}
 
-
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			managerClient.
@@ -663,11 +658,11 @@ func TestUcase_GetRoles(t *testing.T) {
 				GetCompanyFromServer(exm.CompanyId).
 				Return(expC, nil)
 
-			role , err := userU.GetRoles(tc.user)
+			role, err := userU.GetRoles(tc.user)
 
 			if tc.expectError == nil {
-				assert.Equal(t, expC.CompanyName , role[0].Label)
-				assert.Equal(t, tc.user.FirstName + " " + tc.user.SecondName , role[1].Label)
+				assert.Equal(t, expC.CompanyName, role[0].Label)
+				assert.Equal(t, tc.user.FirstName+" "+tc.user.SecondName, role[1].Label)
 				assert.Equal(t, nil, err)
 				return
 			}
@@ -681,4 +676,3 @@ func TestUcase_GetRoles(t *testing.T) {
 		})
 	}
 }
-

@@ -5,23 +5,24 @@ import (
 	user_response "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"strconv"
 	"time"
 )
 
 type ResponseUsecase struct {
-	responseRep   user_response.Repository
+	responseRep      user_response.Repository
 	freelancerClient clients.ClientFreelancer
-	managerClient clients.ManagerClient
-	jobClient 	  clients.ClientJob
+	managerClient    clients.ManagerClient
+	jobClient        clients.ClientJob
 }
 
 func NewResponseUsecase(r user_response.Repository, fClient clients.ClientFreelancer, mclient clients.ManagerClient,
 	jClient clients.ClientJob) user_response.Usecase {
 	return &ResponseUsecase{
-		responseRep:   r,
+		responseRep:      r,
 		freelancerClient: fClient,
-		managerClient: mclient,
-		jobClient: jClient,
+		managerClient:    mclient,
+		jobClient:        jClient,
 	}
 }
 
@@ -209,7 +210,7 @@ func (u *ResponseUsecase) DenyResponse(user *model.User, responseId int64) error
 	return nil
 }
 
-func (u *ResponseUsecase) GetResponse(id int64) (*model.ResponseOutput, error) {
+func (u *ResponseUsecase) GetResponse(id int64) (*model.ResponseOutputWithFreel, error) {
 	response, err := u.responseRep.Find(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "responseRep.Find()")
@@ -236,9 +237,29 @@ func (u *ResponseUsecase) GetResponse(id int64) (*model.ResponseOutput, error) {
 		Status:            grpcjob.Status,
 	}
 
-	res := new(model.ResponseOutput)
+	grpcFreelancer, err := u.freelancerClient.GetFreelancerFromServer(response.FreelancerId)
+	if err != nil {
+		return nil, err
+	}
+
+	freelancer := model.Freelancer{
+		ID:                grpcFreelancer.ID,
+		AccountId:         grpcFreelancer.AccountId,
+		Country:           grpcFreelancer.Country,
+		City:              grpcFreelancer.City,
+		Address:           grpcFreelancer.Address,
+		Phone:             grpcFreelancer.Phone,
+		TagLine:           grpcFreelancer.TagLine,
+		Overview:          grpcFreelancer.Overview,
+		ExperienceLevelId: grpcFreelancer.ExperienceLevelId,
+		SpecialityId:      grpcFreelancer.SpecialityId,
+		Avatar:            "https:api.fwork.live/account/avatar/" + strconv.FormatInt(grpcFreelancer.AccountId, 10),
+	}
+
+	res := new(model.ResponseOutputWithFreel)
 	res.Response = *response
 	res.Job = job
+	res.Freelancer = freelancer
 
 	return res, nil
 }
@@ -251,7 +272,6 @@ func (u *ResponseUsecase) Find(id int64) (*model.Response, error) {
 
 	return response, nil
 }
-
 
 func (u *ResponseUsecase) GetResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error) {
 	responses, err := u.responseRep.ListResponsesOnJobID(jobID)

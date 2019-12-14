@@ -14,7 +14,7 @@ type ctxKey int8
 
 const (
 	SessionName        = "user-session"
-	CtxKeyUser              ctxKey = iota
+	CtxKeyUser  ctxKey = iota
 )
 
 func Error(w http.ResponseWriter, r *http.Request, code int, err error) {

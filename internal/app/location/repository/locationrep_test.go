@@ -103,9 +103,9 @@ func TestLocationRepository_CityListByCountry(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT city.id, region.country_id, city.name" +
-		"FROM city " +
-		"JOIN region " +
-		"ON").
+			"FROM city " +
+			"JOIN region " +
+			"ON").
 		WithArgs(countryId).
 		WillReturnRows(rows)
 

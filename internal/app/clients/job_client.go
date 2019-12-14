@@ -31,7 +31,7 @@ func (c *JobClient) Disconnect() error {
 func (c *JobClient) GetJobFromServer(id int64) (*job_grpc.Job, error) {
 	client := job_grpc.NewJobHandlerClient(c.conn)
 	jobReq := &job_grpc.JobID{
-		ID:		id,
+		ID: id,
 	}
 
 	currJob, err := client.Find(context.Background(), jobReq)

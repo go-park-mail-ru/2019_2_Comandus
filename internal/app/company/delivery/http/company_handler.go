@@ -43,7 +43,7 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/company", "method":r.Method}))
+		Labels{"path": "/company", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
@@ -59,7 +59,6 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
-
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -88,7 +87,7 @@ func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/company/id", "method":r.Method}))
+		Labels{"path": "/company/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)

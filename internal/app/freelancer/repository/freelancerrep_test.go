@@ -11,25 +11,23 @@ import (
 func testFreelancer(t *testing.T) *model.Freelancer {
 	t.Helper()
 	return &model.Freelancer{
-		ID:				   1,
-		AccountId:         1,
-		Country:           1,
-		City:              1,
-		Address:           "moscow",
-		Phone:             "111111111",
+		ID:        1,
+		AccountId: 1,
+		Country:   1,
+		City:      1,
+		Address:   "moscow",
+		Phone:     "111111111",
 	}
 }
 
 func testExFreelancer(t *testing.T) *model.ExtendFreelancer {
 	t.Helper()
 	return &model.ExtendFreelancer{
-		F: testFreelancer(t),
-		FirstName:			"masha",
-		SecondName:			"Ivanova",
+		F:          testFreelancer(t),
+		FirstName:  "masha",
+		SecondName: "Ivanova",
 	}
 }
-
-
 
 func TestFreelancerRep_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -50,7 +48,7 @@ func TestFreelancerRep_Create(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Freelancer{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -120,7 +118,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "accountId", "country", "city", "address", "phone", "tagLine",
-		"overview", "experienceLevelId", "specialityId" })
+			"overview", "experienceLevelId", "specialityId"})
 
 	expect := []*model.Freelancer{
 		testFreelancer(t),
@@ -133,7 +131,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
-		"overview, experienceLevelId, specialityId FROM freelancers WHERE").
+			"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -157,7 +155,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
-		"overview, experienceLevelId, specialityId FROM freelancers WHERE").
+			"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -179,7 +177,7 @@ func TestFreelancerRep_Find(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT id, accountId, country, city, address, phone, tagLine, " +
-		"overview, experienceLevelId, specialityId FROM freelancers WHERE").
+			"overview, experienceLevelId, specialityId FROM freelancers WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -211,7 +209,7 @@ func TestFreelancerRep_FindByUser(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "accountId", "country", "city", "address", "phone", "tagLine",
-			"overview", "experienceLevelId", "specialityId" })
+			"overview", "experienceLevelId", "specialityId"})
 
 	expect := []*model.Freelancer{
 		testFreelancer(t),
@@ -305,7 +303,7 @@ func TestFreelancerRep_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Freelancer{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -326,7 +324,7 @@ func TestFreelancerRep_Edit(t *testing.T) {
 	mock.
 		ExpectQuery(`UPDATE freelancers SET`).
 		WithArgs(f.Country, f.City, f.Address, f.Phone, f.TagLine,
-		f.Overview, f.ExperienceLevelId, f.SpecialityId, f.ID).
+			f.Overview, f.ExperienceLevelId, f.SpecialityId, f.ID).
 		WillReturnRows(rows)
 
 	err = repo.Edit(f)
@@ -412,7 +410,6 @@ func TestFreelancerRepository_ListOnPattern(t *testing.T) {
 		return
 	}
 }
-
 
 func CompareExFr(f1 model.ExtendFreelancer, f2 *model.ExtendFreelancer) bool {
 	if !reflect.DeepEqual(f1.F, f2.F) {

@@ -13,11 +13,11 @@ const managerId = 1
 func testJob(t *testing.T) *model.Job {
 	t.Helper()
 	return &model.Job{
-		ID:				1,
-		HireManagerId:	managerId,
-		Title:          "title",
-		Description:    "description",
-		PaymentAmount:   11222,
+		ID:            1,
+		HireManagerId: managerId,
+		Title:         "title",
+		Description:   "description",
+		PaymentAmount: 11222,
 	}
 }
 
@@ -39,7 +39,7 @@ func TestJobRepository_Create(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Job{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -116,7 +116,7 @@ func TestJobRepository_Find(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
-			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
+			"paymentAmount", "country", "city", "jobTypeId", "date", "status"})
 
 	j := testJob(t)
 	j.BeforeCreate()
@@ -131,8 +131,8 @@ func TestJobRepository_Find(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-		"country, city, jobTypeId, date, status FROM jobs WHERE").
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
+			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(elemID, model.JobStateDeleted).
 		WillReturnRows(rows)
 
@@ -155,7 +155,7 @@ func TestJobRepository_Find(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(elemID, model.JobStateDeleted).
 		WillReturnError(fmt.Errorf("db_error"))
@@ -177,7 +177,7 @@ func TestJobRepository_Find(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(elemID, model.JobStateDeleted).
 		WillReturnRows(rows)
@@ -213,7 +213,7 @@ func TestJobRepository_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Job{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -269,8 +269,7 @@ func TestJobRepository_List(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
-			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
-
+			"paymentAmount", "country", "city", "jobTypeId", "date", "status"})
 
 	j1 := testJob(t)
 	j1.Title = "job1"
@@ -297,7 +296,7 @@ func TestJobRepository_List(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-		"country, city, jobTypeId, date, status FROM jobs WHERE").
+			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(model.JobStateDeleted).
 		WillReturnRows(rows)
 
@@ -323,7 +322,7 @@ func TestJobRepository_List(t *testing.T) {
 	// query error
 	mock.
 		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
-		"country, city, jobTypeId, date, status FROM jobs WHERE").
+			"country, city, jobTypeId, date, status FROM jobs WHERE").
 		WithArgs(model.JobStateDeleted).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -338,7 +337,6 @@ func TestJobRepository_List(t *testing.T) {
 		return
 	}
 }
-
 
 func TestJobRepository_ListOnPattern(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -355,7 +353,7 @@ func TestJobRepository_ListOnPattern(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "managerId", "title", "description", "files", "specialityId", "experienceLevelId",
-			"paymentAmount", "country", "city", "jobTypeId", "date", "status" })
+			"paymentAmount", "country", "city", "jobTypeId", "date", "status"})
 
 	pattern := "job"
 
@@ -383,9 +381,9 @@ func TestJobRepository_ListOnPattern(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-		"country, city, jobTypeId, date, status "+
-		"FROM jobs WHERE ").
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+			"country, city, jobTypeId, date, status " +
+			"FROM jobs WHERE ").
 		WithArgs(pattern).
 		WillReturnRows(rows)
 
@@ -410,9 +408,9 @@ func TestJobRepository_ListOnPattern(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-		"country, city, jobTypeId, date, status "+
-		"FROM jobs WHERE ").
+		ExpectQuery("SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, " +
+			"country, city, jobTypeId, date, status " +
+			"FROM jobs WHERE ").
 		WithArgs(pattern).
 		WillReturnError(fmt.Errorf("db_error"))
 

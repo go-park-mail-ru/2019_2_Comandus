@@ -21,18 +21,18 @@ type ResponseError struct {
 }
 
 type ContractHandler struct {
-	ContractUsecase	user_contract.Usecase
-	sanitizer		*bluemonday.Policy
-	logger			*zap.SugaredLogger
-	sessionStore	sessions.Store
+	ContractUsecase user_contract.Usecase
+	sanitizer       *bluemonday.Policy
+	logger          *zap.SugaredLogger
+	sessionStore    sessions.Store
 }
 
 func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &ContractHandler{
-		ContractUsecase:	cs,
-		sanitizer:			sanitizer,
-		logger:				logger,
-		sessionStore:		sessionStore,
+		ContractUsecase: cs,
+		sanitizer:       sanitizer,
+		logger:          logger,
+		sessionStore:    sessionStore,
 	}
 
 	m.HandleFunc("/responses/{id:[0-9]+}/contract", handler.HandleCreateContract).Methods(http.MethodPost, http.MethodOptions)
@@ -42,11 +42,11 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 	m.HandleFunc("/contracts", handler.HandleGetContracts).Methods(http.MethodGet, http.MethodOptions)
 }
 
-func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
+func (h *ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/responses/id/contract", "method":r.Method}))
+		Labels{"path": "/responses/id/contract", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	defer func() {
@@ -60,7 +60,7 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateContract()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleCreateContract()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -75,7 +75,6 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	}
 	responseId := int64(id)
 
-
 	if err := h.ContractUsecase.CreateContract(u, responseId); err != nil {
 		err = errors.Wrapf(err, "HandleCreateContract<-UСase.CreateContract()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
@@ -86,16 +85,16 @@ func (h * ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.R
 	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
-func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
+func (h *ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/contract/id/done", "method":r.Method}))
+		Labels{"path": "/contract/id/done", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleTickContractAsDone()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleTickContractAsDone()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -116,23 +115,22 @@ func (h * ContractHandler) HandleTickContractAsDone(w http.ResponseWriter, r *ht
 		return
 	}
 
-	respond.Respond(w,r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/contract/id", "method":r.Method}))
+		Labels{"path": "/contract/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleReviewContract()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleReviewContract()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
-
 
 	defer func() {
 		if err := r.Body.Close(); err != nil {
@@ -172,19 +170,19 @@ func (h *ContractHandler) HandleReviewContract(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	respond.Respond(w,r, http.StatusOK, struct{}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h *ContractHandler) HandleGetContractsGrades(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/grades", "method":r.Method}))
+		Labels{"path": "/grades", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleGetContractsGrades()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleGetContractsGrades()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -202,12 +200,12 @@ func (h *ContractHandler) HandleGetContracts(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-	Labels{"path":"/contracts", "method":r.Method}))
+		Labels{"path": "/contracts", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleGetContracts()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleGetContracts()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}

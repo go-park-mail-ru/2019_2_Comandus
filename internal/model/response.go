@@ -7,32 +7,33 @@ import (
 )
 
 const (
-	ResponseStatusBlock				= "block"
-	ResponseStatusSent				= "SENT"
-	ResponseStatusContractSent		= "SENT_CONTRACT"
-	ResponseStatusCancel			= "CANCEL"
-	ResponseStatusReview			= "REVIEW"
-	ResponseStatusDenied			= "DENIED"
-	ResponseStatusAccepted			= "ACCEPTED"
+	ResponseStatusBlock        = "block"
+	ResponseStatusSent         = "SENT"
+	ResponseStatusContractSent = "SENT_CONTRACT"
+	ResponseStatusCancel       = "CANCEL"
+	ResponseStatusReview       = "REVIEW"
+	ResponseStatusDenied       = "DENIED"
+	ResponseStatusAccepted     = "ACCEPTED"
 )
 
 type Response struct {
-	ID					int64     `json:"id"`
-	FreelancerId		int64     `json:"freelancerId"`
-	JobId				int64     `json:"jobId"`
-	Files				string    `json:"files,string"`
-	Date				time.Time `json:"date"`
-	StatusManager		string    `json:"statusManager,string"`
-	StatusFreelancer	string    `json:"statusFreelancer,string"`
-	PaymentAmount 		float32	  `json:"paymentAmount,string"`
+	ID               int64     `json:"id"`
+	FreelancerId     int64     `json:"freelancerId"`
+	JobId            int64     `json:"jobId"`
+	Files            string    `json:"files,string"`
+	Date             time.Time `json:"date"`
+	StatusManager    string    `json:"statusManager,string"`
+	StatusFreelancer string    `json:"statusFreelancer,string"`
+	PaymentAmount    float32   `json:"paymentAmount,string"`
+	CoverLetter      string    `json:"coverLetter,string"`
+	TimeEstimation   int       `json:"timeEstimation"`
 }
 
-type ResponseOutput struct {
-	Job Job
+type ResponseOutputWithFreel struct {
+	Job      Job
 	Response Response
+	Freelancer Freelancer
 }
-
-
 
 func (r *Response) BeforeCreate() {
 	r.StatusManager = ResponseStatusReview
@@ -81,7 +82,8 @@ func (r *Response) Sanitize(sanitizer *bluemonday.Policy) {
 	r.Files = sanitizer.Sanitize(r.Files)
 }
 
-func (r *ResponseOutput) Sanitize(sanitizer *bluemonday.Policy) {
+func (r *ResponseOutputWithFreel) Sanitize(sanitizer *bluemonday.Policy) {
 	r.Response.Sanitize(sanitizer)
 	r.Job.Sanitize(sanitizer)
+	r.Freelancer.Sanitize(sanitizer)
 }

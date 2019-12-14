@@ -31,8 +31,8 @@ func (c *ManagerClient) Disconnect() error {
 func (c *ManagerClient) CreateManagerOnServer(userId int64, companyId int64) (*manager_grpc.Manager, error) {
 	client := manager_grpc.NewManagerHandlerClient(c.conn)
 	manReq := &manager_grpc.Info{
-		UserID:		userId,
-		CompanyID:	companyId,
+		UserID:    userId,
+		CompanyID: companyId,
 	}
 	manager, err := client.CreateManager(context.Background(), manReq)
 	if err != nil {
@@ -41,11 +41,11 @@ func (c *ManagerClient) CreateManagerOnServer(userId int64, companyId int64) (*m
 	return manager, nil
 }
 
-func (c *ManagerClient) GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error){
+func (c *ManagerClient) GetManagerByUserFromServer(id int64) (*manager_grpc.Manager, error) {
 	client := manager_grpc.NewManagerHandlerClient(c.conn)
 
 	userReq := &manager_grpc.UserID{
-		ID:		id,
+		ID: id,
 	}
 
 	currManager, err := client.FindByUser(context.Background(), userReq)
@@ -55,11 +55,11 @@ func (c *ManagerClient) GetManagerByUserFromServer(id int64) (*manager_grpc.Mana
 	return currManager, nil
 }
 
-func (c *ManagerClient) GetManagerFromServer(id int64) (*manager_grpc.Manager, error){
+func (c *ManagerClient) GetManagerFromServer(id int64) (*manager_grpc.Manager, error) {
 	client := manager_grpc.NewManagerHandlerClient(c.conn)
 
-	userReq := &manager_grpc.ManagerID {
-		ID:		id,
+	userReq := &manager_grpc.ManagerID{
+		ID: id,
 	}
 
 	currManager, err := client.Find(context.Background(), userReq)

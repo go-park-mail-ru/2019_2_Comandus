@@ -6,36 +6,35 @@ import (
 )
 
 const (
-	ContractStatusDone = "done"
+	ContractStatusDone             = "done"
 	ContractStatusUnderDevelopment = "develop"
-	ContractStatusCanceled = "cancel"
-	ContractStatusReviewed = "reviewed"
-	ContractMinGrade = 1
-	ContractMaxGrade = 5
+	ContractStatusCanceled         = "cancel"
+	ContractStatusReviewed         = "reviewed"
+	ContractMinGrade               = 1
+	ContractMaxGrade               = 5
 )
 
 type Contract struct {
-	ID					int64		`json:"id"`
-	ResponseID			int64 		`json:"responseId"`
-	CompanyID			int64		`json:"companyId"`
-	FreelancerID		int64		`json:"freelancerId"`
-	StartTime			time.Time	`json:"startTime"`
-	EndTime				time.Time	`json:"endTime"`
-	Status				string		`json:"status,string"`
-	FreelancerGrade		int			`json:"freelancerGrade"`
-	FreelancerComment	string		`json:"freelancerComment,string"`
-	ClientGrade			int			`json:"clientGrade"`
-	ClientComment		string		`json:"clientComment,string"`
-	PaymentAmount		float32		`json:"paymentAmount"`
+	ID                int64     `json:"id"`
+	ResponseID        int64     `json:"responseId"`
+	CompanyID         int64     `json:"companyId"`
+	FreelancerID      int64     `json:"freelancerId"`
+	StartTime         time.Time `json:"startTime"`
+	EndTime           time.Time `json:"endTime"`
+	Status            string    `json:"status,string"`
+	FreelancerGrade   int       `json:"freelancerGrade"`
+	FreelancerComment string    `json:"freelancerComment,string"`
+	ClientGrade       int       `json:"clientGrade"`
+	ClientComment     string    `json:"clientComment,string"`
+	PaymentAmount     float32   `json:"paymentAmount"`
 }
 
 type ContractOutput struct {
-	Job Job
+	Job      Job
 	Contract Contract
 }
 
-
-func (c * Contract) Validate(lastId int64) error {
+func (c *Contract) Validate(lastId int64) error {
 	if c.ID != lastId {
 		return errors.New("cant change contract ID")
 	}

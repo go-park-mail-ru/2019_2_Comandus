@@ -18,31 +18,31 @@ import (
 )
 
 const (
-	SessionName        = "user-session"
+	SessionName = "user-session"
 )
 
 type Middleware struct {
-	sessionStore	sessions.Store
-	logger			*zap.SugaredLogger
-	clientUrl		string
-	token			*token.HashToken
-	userClient      clients.ClientUser
-	lastRequests	[2]string
+	sessionStore sessions.Store
+	logger       *zap.SugaredLogger
+	clientUrl    string
+	token        *token.HashToken
+	userClient   clients.ClientUser
+	lastRequests [2]string
 }
 
 func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken,
-	clientUrl string, uClient clients.ClientUser) Middleware{
+	clientUrl string, uClient clients.ClientUser) Middleware {
 	return Middleware{
 		sessionStore: ss,
 		logger:       logger,
 		clientUrl:    clientUrl,
 		token:        token,
-		userClient:	  uClient,
+		userClient:   uClient,
 	}
 }
 
 func (m *Middleware) SavePrevRequest(next http.Handler) http.Handler {
-	return  http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		m.lastRequests[0] = m.lastRequests[1]
 		m.lastRequests[1] = r.RequestURI
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "prev_req", m.lastRequests[0])))
@@ -64,7 +64,7 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 		}
 
 		req := &user_grpc.UserID{
-			ID:                   id.(int64),
+			ID: id.(int64),
 		}
 		u, err := m.userClient.GetUserFromServer(req)
 		if err != nil {
@@ -92,7 +92,7 @@ func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) RequestIDMiddleware (next http.Handler) http.Handler {
+func (m *Middleware) RequestIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := strconv.Itoa(rand.Int())
 		ctx := r.Context()
@@ -102,7 +102,7 @@ func (m *Middleware) RequestIDMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) AccessLogMiddleware (next http.Handler) http.Handler {
+func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		m.logger.Info(r.URL.Path,
 			zap.String("method:", r.Method),
@@ -113,23 +113,23 @@ func (m *Middleware) AccessLogMiddleware (next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) CORSMiddleware (next http.Handler) http.Handler {
+func (m *Middleware) CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Methods", "POST,PUT,DELETE,GET")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,csrf-token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		//w.Header().Set("Access-Control-Allow-Origin", m.clientUrl)
 		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-		if r.Method == http.MethodOptions{
+		if r.Method == http.MethodOptions {
 			// TODO: http.StatusOK?
-			respond.Respond(w , r , http.StatusOK, nil)
+			respond.Respond(w, r, http.StatusOK, nil)
 			return
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
-func (m *Middleware) CheckTokenMiddleware (next http.Handler) http.Handler {
+func (m *Middleware) CheckTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			sess, err := m.sessionStore.Get(r, SessionName)

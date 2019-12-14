@@ -14,7 +14,7 @@ var (
 
 func init() {
 	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to config file")
-	flag.BoolVar(&runForLocalClient, "local", false, "assign clientUrl as " + localhostClientUrl)
+	flag.BoolVar(&runForLocalClient, "local", false, "assign clientUrl as "+localhostClientUrl)
 }
 
 func main() {

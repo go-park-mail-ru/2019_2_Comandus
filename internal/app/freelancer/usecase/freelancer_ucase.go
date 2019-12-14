@@ -8,13 +8,13 @@ import (
 )
 
 type FreelancerUsecase struct {
-	freelancerRep freelancer.Repository
+	freelancerRep  freelancer.Repository
 	locationClient clients.LocationClient
 }
 
 func NewFreelancerUsecase(f freelancer.Repository, c clients.LocationClient) freelancer.Usecase {
 	return &FreelancerUsecase{
-		freelancerRep: f,
+		freelancerRep:  f,
 		locationClient: c,
 	}
 }
@@ -53,7 +53,7 @@ func (u *FreelancerUsecase) InsertLocation(freelancer *model.Freelancer) (*model
 		Overview:          freelancer.Overview,
 		ExperienceLevelId: freelancer.ExperienceLevelId,
 		SpecialityId:      freelancer.SpecialityId,
-		Avatar:			   freelancer.Avatar,
+		Avatar:            freelancer.Avatar,
 	}
 	return res, nil
 }
