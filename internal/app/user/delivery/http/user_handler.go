@@ -24,40 +24,41 @@ type ResponseError struct {
 }
 
 type UserHandler struct {
-	UserUsecase		user.Usecase
-	sanitizer		*bluemonday.Policy
-	logger			*zap.SugaredLogger
-	sessionStore	sessions.Store
+	UserUsecase  user.Usecase
+	sanitizer    *bluemonday.Policy
+	logger       *zap.SugaredLogger
+	sessionStore sessions.Store
 }
 
-func NewUserHandler(m *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
+func NewUserHandler(m *mux.Router, private *mux.Router, us user.Usecase, sanitizer *bluemonday.Policy,
+	logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &UserHandler{
-		UserUsecase:	us,
-		sanitizer:		sanitizer,
-		logger:			logger,
-		sessionStore:	sessionStore,
+		UserUsecase:  us,
+		sanitizer:    sanitizer,
+		logger:       logger,
+		sessionStore: sessionStore,
 	}
 
-	m.HandleFunc("/account", handler.HandleShowProfile).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/account", handler.HandleEditProfile).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/account/settings/password", handler.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
-	m.HandleFunc("/account/upload-avatar", handler.HandleUploadAvatar).Methods(http.MethodPost, http.MethodOptions)
-	m.HandleFunc("/account/download-avatar", handler.HandleDownloadAvatar).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/account", handler.HandleShowProfile).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/account", handler.HandleEditProfile).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/account/settings/password", handler.HandleEditPassword).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/account/upload-avatar", handler.HandleUploadAvatar).Methods(http.MethodPost, http.MethodOptions)
+	private.HandleFunc("/account/download-avatar", handler.HandleDownloadAvatar).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/account/avatar/{id:[0-9]+}", handler.HandleGetAvatar).Methods(http.MethodGet, http.MethodOptions)
-	m.HandleFunc("/setusertype", handler.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
-	m.HandleFunc("/roles", handler.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/setusertype", handler.HandleSetUserType).Methods(http.MethodPost, http.MethodOptions)
+	private.HandleFunc("/roles", handler.HandleRoles).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *UserHandler) HandleShowProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/account", "method":r.Method}))
+		Labels{"path": "/account", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleShowProfile()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleShowProfile()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -70,7 +71,7 @@ func (h *UserHandler) HandleEditProfile(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/account", "method":r.Method}))
+		Labels{"path": "/account", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
@@ -114,7 +115,7 @@ func (h *UserHandler) HandleEditPassword(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/account/settings/password", "method":r.Method}))
+		Labels{"path": "/account/settings/password", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
@@ -157,7 +158,7 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/account/upload-avatar", "method":r.Method}))
+		Labels{"path": "/account/upload-avatar", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	err := r.ParseMultipartForm(10 << 20)
@@ -207,7 +208,7 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 
 func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Request) {
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/account/download-avatar", "method":r.Method}))
+		Labels{"path": "/account/download-avatar", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
@@ -239,7 +240,7 @@ func (h *UserHandler) HandleDownloadAvatar(w http.ResponseWriter, r *http.Reques
 
 func (h *UserHandler) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/account/avatar/id", "method":r.Method}))
+		Labels{"path": "/account/avatar/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -282,7 +283,7 @@ func (h *UserHandler) HandleSetUserType(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/setusertype", "method":r.Method}))
+		Labels{"path": "/setusertype", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	type Input struct {
@@ -325,7 +326,7 @@ func (h *UserHandler) HandleRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/roles", "method":r.Method}))
+		Labels{"path": "/roles", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
