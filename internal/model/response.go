@@ -36,7 +36,7 @@ type ResponseOutput struct {
 
 func (r *Response) BeforeCreate() {
 	r.StatusManager = ResponseStatusReview
-	r.StatusFreelancer = ResponseStatusBlock
+	r.StatusFreelancer = ResponseStatusSent
 	r.Date = time.Now()
 }
 
