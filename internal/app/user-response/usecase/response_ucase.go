@@ -103,7 +103,7 @@ func (u *ResponseUsecase) CancelResponse(user *model.User, responseId int64) err
 		return errors.New("no access")
 	}
 
-	response.StatusManager = model.ResponseStatusCancel
+	response.StatusFreelancer = model.ResponseStatusCancel
 	err = u.responseRep.Edit(response)
 	if err != nil {
 		err = errors.Wrapf(err, "responseRep.Edit()")
