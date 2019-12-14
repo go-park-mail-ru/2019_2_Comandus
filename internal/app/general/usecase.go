@@ -8,4 +8,5 @@ import (
 type Usecase interface {
 	CreateUser(*model.User) (*auth_grpc.User, error)
 	VerifyUser(*model.User) (int64, error)
+	GetSuggest(query string, update bool, dict string) ([]string, error)
 }

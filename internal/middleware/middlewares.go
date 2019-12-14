@@ -27,6 +27,7 @@ type Middleware struct {
 	clientUrl		string
 	token			*token.HashToken
 	userClient      clients.ClientUser
+	lastRequests	[2]string
 }
 
 func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.HashToken,
@@ -38,6 +39,14 @@ func NewMiddleware(ss sessions.Store, logger *zap.SugaredLogger, token *token.Ha
 		token:        token,
 		userClient:	  uClient,
 	}
+}
+
+func (m *Middleware) SavePrevRequest(next http.Handler) http.Handler {
+	return  http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.lastRequests[0] = m.lastRequests[1]
+		m.lastRequests[1] = r.RequestURI
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "prev_req", m.lastRequests[0])))
+	})
 }
 
 func (m *Middleware) AuthenticateUser(next http.Handler) http.Handler {

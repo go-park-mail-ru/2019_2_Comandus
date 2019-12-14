@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -39,6 +40,7 @@ func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Pol
 	m.HandleFunc("/", handler.HandleMain)
 	m.HandleFunc("/signup", handler.HandleCreateUser).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/login", handler.HandleSessionCreate).Methods(http.MethodPost, http.MethodOptions)
+	m.HandleFunc("/suggest", handler.HandleGetSuggest).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/token", handler.HandleGetToken).Methods(http.MethodGet)
 	private.HandleFunc("/logout", handler.HandleLogout).Methods(http.MethodDelete, http.MethodOptions)
 }
@@ -192,4 +194,37 @@ func (h * MainHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond.Respond(w, r, http.StatusOK, struct{}{})
+}
+
+func (h *MainHandler) HandleGetSuggest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path":"suggest", "method":r.Method}))
+	defer timer.ObserveDuration()
+
+	var updateService bool
+	lastReq, ok := r.Context().Value("prev_req").(string)
+	if !ok || !strings.Contains(lastReq, "suggest"){
+		updateService = true
+	}
+
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		respond.Respond(w, r, http.StatusOK, nil)
+	}
+
+	dict := r.URL.Query().Get("dict")
+	if dict == "" {
+		respond.Error(w, r, http.StatusBadRequest, errors.New("Dict parameter not set"))
+	}
+
+	suggests, err := h.ucase.GetSuggest(query, updateService, dict)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetSuggest")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	respond.Respond(w, r, http.StatusOK, suggests)
 }

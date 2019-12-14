@@ -120,15 +120,15 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	locationU := locationUcase.NewLocationUsecase(locationRep)
 
 	s.Mux.Handle("/metrics", promhttp.Handler())
+
+	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl, userClient)
+
 	private := s.Mux.PathPrefix("").Subrouter()
 
 	mainHttp.NewMainHandler(s.Mux, private, s.Sanitizer, s.Logger, s.SessionStore, s.Token, generalU)
 	locationhttp.NewLocationHandler(s.Mux, locationU, s.Sanitizer, s.Logger, s.SessionStore)
 
-	mid := middleware.NewMiddleware(s.SessionStore, s.Logger, s.Token, s.Config.ClientUrl, userClient)
-	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware)
-
-	// only for auth users
+	s.Mux.Use(mid.RequestIDMiddleware, mid.CORSMiddleware, mid.AccessLogMiddleware, mid.SavePrevRequest)
 	private.Use(mid.AuthenticateUser, mid.CheckTokenMiddleware)
 
 	userHttp.NewUserHandler(private, userU, s.Sanitizer, s.Logger, s.SessionStore)
