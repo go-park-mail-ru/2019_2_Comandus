@@ -35,14 +35,18 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	//job, err := u.jobClient.GetJobFromServer(response.JobId)
-	//if err != nil {
-	//	return errors.Wrapf(err, "clients.GetJobFromServer()")
-	//}
+	job, err := u.jobClient.GetJobFromServer(response.JobId)
+	if err != nil {
+		return errors.Wrapf(err, "clients.GetJobFromServer()")
+	}
 
 	currManager, err := u.managerClient.GetManagerFromServer(user.HireManagerId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetManagerFromServer()")
+	}
+
+	if currManager.ID != job.HireManagerId {
+		return errors.New("this manager can't create contract on that proposal")
 	}
 
 	// TODO: write struct for start time and end time
@@ -50,7 +54,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		ID:              0,
 		ResponseID:      response.ID,
 		CompanyID:       currManager.CompanyId,
-		FreelancerID:    user.FreelancerId,
+		FreelancerID:    response.FreelancerId,
 		StartTime:       time.Time{},
 		EndTime:         time.Time{},
 		Status:          model.ContractStatusUnderDevelopment,

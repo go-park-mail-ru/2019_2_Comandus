@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	ContractStatusDone             = "done"
-	ContractStatusUnderDevelopment = "develop"
-	ContractStatusCanceled         = "cancel"
-	ContractStatusReviewed         = "reviewed"
+	ContractStatusDone             = "closed"
+	ContractStatusUnderDevelopment = "active"
+	ContractStatusCanceled         = "denied"
+	ContractStatusExpected         = "expected"
 	ContractMinGrade               = 1
 	ContractMaxGrade               = 5
 )
@@ -27,6 +27,7 @@ type Contract struct {
 	ClientGrade       int       `json:"clientGrade"`
 	ClientComment     string    `json:"clientComment,string"`
 	PaymentAmount     float32   `json:"paymentAmount"`
+	TimeEstimation    int       `json:"timeEstimation"`
 }
 
 type ContractOutput struct {
