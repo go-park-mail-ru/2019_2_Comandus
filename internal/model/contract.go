@@ -2,6 +2,9 @@ package model
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc/company_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc/freelancer_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/grpc/job_grpc"
 	"time"
 )
 
@@ -30,8 +33,10 @@ type Contract struct {
 }
 
 type ContractOutput struct {
-	Job      Job
-	Contract Contract
+	Company		company_grpc.CompanyOutput
+	Freelancer	freelancer_grpc.Freelancer
+	Job      	job_grpc.Job
+	Contract 	Contract
 }
 
 func (c *Contract) Validate(lastId int64) error {

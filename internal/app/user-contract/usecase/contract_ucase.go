@@ -218,33 +218,62 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
 		}
 
-		grpcjob, err := u.jobClient.GetJobFromServer(response.JobId)
+		job, err := u.jobClient.GetJobFromServer(response.JobId)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
 		}
 
-		job := model.Job{
-			ID:                grpcjob.ID,
-			HireManagerId:     grpcjob.HireManagerId,
-			Title:             grpcjob.Title,
-			Description:       grpcjob.Description,
-			Files:             grpcjob.Files,
-			SpecialityId:      grpcjob.SpecialityId,
-			ExperienceLevelId: grpcjob.ExperienceLevelId,
-			PaymentAmount:     grpcjob.PaymentAmount,
-			Country:           grpcjob.Country,
-			City:              grpcjob.City,
-			JobTypeId:         grpcjob.JobTypeId,
-			Date:              time.Unix(grpcjob.Date.Seconds, int64(grpcjob.Date.Nanos)),
-			Status:            grpcjob.Status,
-		}
-
 		contractOutput := model.ContractOutput{
-			Job:      job,
+			Job:      *job,
 			Contract: contract,
 		}
 
 		res = append(res, contractOutput)
 	}
+	return res, nil
+}
+
+func (u *ContractUsecase) Find(user *model.User, id int64) (*model.ContractOutput, error) {
+	contract, err := u.contractRep.Find(id)
+	if err != nil {
+		return nil, err
+	}
+
+	company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+	if err != nil {
+		return nil, err
+	}
+
+	manager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if contract.FreelancerID != user.FreelancerId && manager.CompanyId != company.ID {
+		return nil, errors.New("no access for current manager")
+	}
+
+	freelancer, err := u.freelancerClient.GetFreelancerFromServer(contract.FreelancerID)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := u.responseClient.GetResponseFromServer(contract.ResponseID)
+	if err != nil {
+		return nil, err
+	}
+
+	job, err := u.jobClient.GetJobFromServer(response.JobId)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &model.ContractOutput{
+		Company:	*company,
+		Freelancer: *freelancer,
+		Job:        *job,
+		Contract:   *contract,
+	}
+
 	return res, nil
 }

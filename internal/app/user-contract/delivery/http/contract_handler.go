@@ -40,6 +40,7 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 	m.HandleFunc("/contract/{id:[0-9]+}", handler.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/grades", handler.HandleGetContractsGrades).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/contracts", handler.HandleGetContracts).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/contracts/{id:[0-9]+}", handler.HandleGetContract).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (h *ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Request) {
@@ -217,4 +218,36 @@ func (h *ContractHandler) HandleGetContracts(w http.ResponseWriter, r *http.Requ
 	}
 
 	respond.Respond(w, r, http.StatusOK, list)
+}
+
+func (h *ContractHandler) HandleGetContract(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path": "/contracts/{id}", "method": r.Method}))
+	defer timer.ObserveDuration()
+
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("no user in context"), "HandleGetContracts()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	id, err := strconv.ParseInt(ids, 10, 64)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetContract<-strconv.Atoi()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	contract, err := h.ContractUsecase.Find(u, id)
+	if err != nil {
+		err = errors.Wrap(err, "HandleGetContract<-ContractUsecase.Find()")
+		respond.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	respond.Respond(w, r, http.StatusOK, contract)
 }
