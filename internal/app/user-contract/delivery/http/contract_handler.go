@@ -67,6 +67,21 @@ func (h *ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleCreateContract<-ioutil.ReadAll()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	input := new(model.ContractInput)
+	if err := input.UnmarshalJSON(body); err != nil {
+		err = errors.Wrapf(err, "CreateContract.UnmarshalJSON()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+
 	vars := mux.Vars(r)
 	ids := vars["id"]
 	id, err := strconv.Atoi(ids)
@@ -77,7 +92,7 @@ func (h *ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Re
 	}
 	responseId := int64(id)
 
-	if err := h.ContractUsecase.CreateContract(u, responseId); err != nil {
+	if err := h.ContractUsecase.CreateContract(u, responseId, input); err != nil {
 		err = errors.Wrapf(err, "HandleCreateContract<-UСase.CreateContract()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return

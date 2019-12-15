@@ -40,5 +40,5 @@ type SearchParams struct {
 
 type ContractInput struct {
 	PaymentAmount float32
-	timeEstimation int
+	TimeEstimation int
 }

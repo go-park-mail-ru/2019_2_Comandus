@@ -406,7 +406,73 @@ func (v *InnerInfo) UnmarshalJSON(data []byte) error {
 func (v *InnerInfo) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel3(l, v)
 }
-func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *jlexer.Lexer, out *BodyPassword) {
+func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *jlexer.Lexer, out *ContractInput) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "PaymentAmount":
+			out.PaymentAmount = float32(in.Float32())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(out *jwriter.Writer, in ContractInput) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"PaymentAmount\":"
+		out.RawString(prefix[1:])
+		out.Float32(float32(in.PaymentAmount))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ContractInput) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ContractInput) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ContractInput) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ContractInput) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(l, v)
+}
+func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel5(in *jlexer.Lexer, out *BodyPassword) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -441,7 +507,7 @@ func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *
 		in.Consumed()
 	}
 }
-func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(out *jwriter.Writer, in BodyPassword) {
+func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel5(out *jwriter.Writer, in BodyPassword) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -466,23 +532,23 @@ func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(out 
 // MarshalJSON supports json.Marshaler interface
 func (v BodyPassword) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(&w, v)
+	easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v BodyPassword) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(w, v)
+	easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BodyPassword) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(&r, v)
+	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *BodyPassword) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(l, v)
+	easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel5(l, v)
 }

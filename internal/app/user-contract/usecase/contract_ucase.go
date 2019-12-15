@@ -29,7 +29,7 @@ func NewContractUsecase(c user_contract.Repository, fClient clients.ClientFreela
 	}
 }
 
-func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) error {
+func (u *ContractUsecase) CreateContract(user *model.User, responseId int64, input *model.ContractInput) error {
 	response, err := u.responseClient.GetResponseFromServer(responseId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
@@ -63,8 +63,8 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		EndTime:              time.Time{},
 		Status:               model.ContractStatusExpected,
 		StatusFreelancerWork: model.FreelacncerNotReady,
-		PaymentAmount:        response.PaymentAmount,
-		TimeEstimation:       int(response.TimeEstimation),
+		PaymentAmount:        input.PaymentAmount,
+		TimeEstimation:       input.TimeEstimation,
 		ClientGrade:          0,
 		FreelancerGrade:      0,
 	}
