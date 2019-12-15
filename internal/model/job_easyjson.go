@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *jlexer.Lexer, out *JobSearchParams) {
+func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *jlexer.Lexer, out *SearchParams) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -81,7 +81,7 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		in.Consumed()
 	}
 }
-func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *jwriter.Writer, in JobSearchParams) {
+func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *jwriter.Writer, in SearchParams) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -146,26 +146,26 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v JobSearchParams) MarshalJSON() ([]byte, error) {
+func (v SearchParams) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v JobSearchParams) MarshalEasyJSON(w *jwriter.Writer) {
+func (v SearchParams) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *JobSearchParams) UnmarshalJSON(data []byte) error {
+func (v *SearchParams) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *JobSearchParams) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *SearchParams) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(l, v)
 }
 func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *jlexer.Lexer, out *Job) {

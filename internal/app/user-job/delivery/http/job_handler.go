@@ -246,7 +246,7 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 
 
 	var err error
-	params := new(model.JobSearchParams)
+	params := new(model.SearchParams)
 	minGrade := r.URL.Query().Get("minGrade")
 	if minGrade != "" {
 		params.MinGrade, err = strconv.ParseInt(minGrade, 10, 64)
@@ -307,7 +307,7 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	expLevel := r.URL.Query().Get("proposals")
+	expLevel := r.URL.Query().Get("experienceLevel")
 	if expLevel != "" {
 		levels, err := strconv.ParseInt(expLevel, 10, 64)
 		if err != nil {
@@ -325,6 +325,10 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		if (levels % 100) % 10 != 0 {
 			params.ExperienceLevel[2] = true
 		}
+	} else {
+		params.ExperienceLevel[0] = true
+		params.ExperienceLevel[1] = true
+		params.ExperienceLevel[2] = true
 	}
 
 	desc := r.URL.Query().Get("desc")

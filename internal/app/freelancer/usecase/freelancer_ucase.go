@@ -106,8 +106,13 @@ func (u *FreelancerUsecase) Edit(userID int64, new *model.Freelancer) error {
 	return nil
 }
 
-func (u *FreelancerUsecase) PatternSearch(pattern string) ([]model.ExtendFreelancer, error) {
-	exFreelancers, err := u.freelancerRep.ListOnPattern(pattern)
+func (u *FreelancerUsecase) PatternSearch(pattern string, params model.SearchParams) ([]model.ExtendFreelancer, error) {
+	if (params.MaxGrade < params.MinGrade) ||
+		(params.Limit < 0) {
+		return nil, errors.New("wrong input parameters")
+	}
+
+	exFreelancers, err := u.freelancerRep.ListOnPattern(pattern, params)
 	if err != nil {
 		return nil, errors.Wrap(err, "freelancerRep.PatternSearch()")
 	}

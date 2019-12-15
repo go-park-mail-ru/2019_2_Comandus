@@ -7,6 +7,6 @@ type Repository interface {
 	Find(int64) (*model.Job, error)
 	Edit(job *model.Job) error
 	List() ([]model.Job, error)
-	ListOnPattern(string, model.JobSearchParams) ([]model.Job, error)
+	ListOnPattern(string, model.SearchParams) ([]model.Job, error)
 	ListMyJobs(int64) ([]model.Job, error)
 }
