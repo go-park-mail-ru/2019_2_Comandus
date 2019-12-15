@@ -108,7 +108,7 @@ func (r *ResponseRepository) ListForManager(id int64) ([]model.ExtendResponse, e
 			"responses.coverLetter, responses.timeEstimation, U.firstName, U.secondName, J.title "+
 			"FROM responses "+
 			"INNER JOIN freelancers AS F "+
-			"ON R.freelancerid = F.id "+
+			"ON responses.freelancerid = F.id "+
 			"INNER JOIN users AS U "+
 			"ON U.accountid = F.accountid "+
 			"INNER JOIN jobs AS J "+
