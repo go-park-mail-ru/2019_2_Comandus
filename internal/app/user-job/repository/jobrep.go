@@ -135,7 +135,8 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchPara
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status "+
 			"FROM jobs "+
-			"WHERE to_tsvector('russian' , title) @@ plainto_tsquery('russian', $1) AND "+
+			//"WHERE to_tsvector('russian' , title) @@ plainto_tsquery('russian', $1) AND "+
+			"WHERE LOWER(title) SIMILAR TO LOWER($1) AND "+
 			"status != $1 AND "+
 			"($2 = 0 OR paymentAmount <= $2 AND paymentAmount >= $3) AND "+
 			"($4 = -1 OR country = $4) AND "+
