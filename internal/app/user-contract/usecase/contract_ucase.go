@@ -78,6 +78,8 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "contractRep.Create()")
 	}
 
+	response.StatusManager = model.ResponseStatusContractSent
+
 	return nil
 }
 
