@@ -364,7 +364,7 @@ func (h *ContractHandler) HandleFreelancerReady(w http.ResponseWriter, r *http.R
 	}
 	contractID := int64(id)
 
-	if err := h.ContractUsecase.ChangeStatus(u, contractID, model.ContractStatusDenied); err != nil {
+	if err := h.ContractUsecase.TickWorkAsReady(u, contractID); err != nil {
 		err = errors.Wrapf(err, "HandleFreelancerReady<-UСase.ChangeStatus()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
 		return

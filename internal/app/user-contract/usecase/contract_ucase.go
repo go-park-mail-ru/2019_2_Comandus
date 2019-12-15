@@ -224,6 +224,7 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
 		}
 
+
 		contractOutput := model.ContractOutput{
 			Job:      *job,
 			Contract: contract,

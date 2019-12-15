@@ -54,7 +54,7 @@ func (r *ContractRepository) Find(id int64) (*model.Contract, error) {
 	c := &model.Contract{}
 	if err := r.db.QueryRow(
 		"SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, statusFreelancerWork, " +
-			"clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount " +
+			"clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount, timeestimation" +
 			"FROM contracts WHERE id = $1",
 		id,
 	).Scan(
@@ -71,6 +71,7 @@ func (r *ContractRepository) Find(id int64) (*model.Contract, error) {
 		&c.FreelancerGrade,
 		&c.FreelancerComment,
 		&c.PaymentAmount,
+		&c.TimeEstimation,
 	); err != nil {
 		return nil, err
 	}
@@ -109,11 +110,13 @@ func (r *ContractRepository) List(id int64, mode string) ([]model.Contract, erro
 
 	if mode == ContractListByCompany {
 		rows, err = r.db.Query("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, " +
-			" statusFreelancerWork, clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount " +
+			" statusFreelancerWork, clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount," +
+			"timeestimation " +
 			"FROM contracts WHERE companyId = $1", id)
 	} else if mode == ContractListByFreelancer {
 		rows, err = r.db.Query("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status," +
-			" statusFreelancerWork, clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount " +
+			" statusFreelancerWork, clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount, " +
+			"timeestimation " +
 			"FROM contracts WHERE freelancerId = $1", id)
 	}
 	if err != nil {
@@ -124,7 +127,7 @@ func (r *ContractRepository) List(id int64, mode string) ([]model.Contract, erro
 		c := model.Contract{}
 		err := rows.Scan(&c.ID, &c.ResponseID, &c.CompanyID, &c.FreelancerID, &c.StartTime, &c.EndTime,
 			&c.Status, &c.StatusFreelancerWork, &c.ClientGrade, &c.ClientComment, &c.FreelancerGrade,
-			&c.FreelancerComment, &c.PaymentAmount)
+			&c.FreelancerComment, &c.PaymentAmount, &c.TimeEstimation)
 		if err != nil {
 			return nil, err
 		}

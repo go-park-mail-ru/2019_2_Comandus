@@ -11,7 +11,6 @@ type BodyPassword struct {
 	NewPasswordConfirmation string `json:"newPasswordConfirmation" valid:"required"`
 }
 
-// TODO: delete
 type InnerInfo struct {
 	UserID          int64  `json:"user_id"`
 	WhoSeeProfile   string `json:"who_see_profile"`
@@ -37,4 +36,9 @@ type SearchParams struct {
 	ExperienceLevel  [3]bool `json:"experienceLevel"`
 	Desc             bool    `json:"desc"`
 	Limit			 int64	 `json:"limit"`
+}
+
+type ContractInput struct {
+	PaymentAmount float32
+	timeEstimation int
 }
