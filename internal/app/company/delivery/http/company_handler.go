@@ -67,7 +67,7 @@ func (h *CompanyHandler) HandleEditCompany(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	currCompany := new(model.Company)
+	currCompany := new(model.CompanyOutput)
 	if err := currCompany.UnmarshalJSON(body); err != nil {
 		err = errors.Wrapf(err, "currCompany.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)

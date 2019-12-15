@@ -83,18 +83,29 @@ func (u *CompanyUsecase) Find(id int64) (*model.CompanyOutput, error) {
 	return res, nil
 }
 
-func (u *CompanyUsecase) Edit(userID int64, company *model.Company) (*model.CompanyOutput, error) {
+func (u *CompanyUsecase) Edit(userID int64, company *model.EditCompany) (*model.CompanyOutput, error) {
 	m, err := u.managerClient.GetManagerByUserFromServer(userID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "client.FindByUser()")
 	}
 
-	company.ID = m.CompanyId
-	if err := u.companyRep.Edit(company); err != nil {
+	editedCompany := &model.Company{
+		ID:          m.CompanyId,
+		CompanyName: company.CompanyName,
+		Site:        "",
+		TagLine:     "",
+		Description: "",
+		Country:     company.Country,
+		City:        company.City,
+		Address:     company.Address,
+		Phone:       company.Phone,
+	}
+
+	if err := u.companyRep.Edit(editedCompany); err != nil {
 		return nil, errors.Wrapf(err, "companyRep.Edit()")
 	}
 
-	res, err := u.InsertLocation(company)
+	res, err := u.InsertLocation(editedCompany)
 	if err != nil {
 		return nil, errors.Wrap(err, "InsertLocation()")
 	}

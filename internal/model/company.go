@@ -14,6 +14,15 @@ type Company struct {
 	Phone       string `json:"phone" valid:"- , optional"`
 }
 
+type EditCompany struct {
+	CompanyName		string 	`json:"companyName"`
+	Country			int64	`json:"country"`
+	City			int64	`json:"city"`
+	Address			string	`json:"address"`
+	CompanyOwner	string	`json:"companyOwner"`
+	Phone 			string	`json:"phone"`
+}
+
 type CompanyOutput struct {
 	ID          int64
 	CompanyName string
