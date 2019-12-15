@@ -108,11 +108,13 @@ func CreateTables(db *sql.DB) error {
 		startTime timestamp not null,
 		endTime timestamp not null,
 		status varchar not null,
+		statusfreelancerwork varchar not null,
 		clientGrade int,
 		clientComment varchar,
 		freelancerGrade int,
 		freelancerComment varchar,
-		paymentAmount decimal(8,2) not null 
+		paymentAmount decimal(8,2) not null,
+		timeestimation integer not null
 	);`
 	if _, err := db.Exec(contractsQuery); err != nil {
 		return err

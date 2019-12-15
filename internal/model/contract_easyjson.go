@@ -760,6 +760,8 @@ func easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *
 			}
 		case "status":
 			out.Status = string(in.String())
+		case "statusFreelancerWork":
+			out.StatusFreelancerWork = string(in.String())
 		case "freelancerGrade":
 			out.FreelancerGrade = int(in.Int())
 		case "freelancerComment":
@@ -820,6 +822,11 @@ func easyjson42340b0aEncodeGithubComGoParkMailRu20192ComandusInternalModel1(out 
 		const prefix string = ",\"status\":"
 		out.RawString(prefix)
 		out.String(string(in.Status))
+	}
+	{
+		const prefix string = ",\"statusFreelancerWork\":"
+		out.RawString(prefix)
+		out.String(string(in.StatusFreelancerWork))
 	}
 	{
 		const prefix string = ",\"freelancerGrade\":"
