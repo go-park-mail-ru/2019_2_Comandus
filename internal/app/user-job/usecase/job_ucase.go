@@ -110,6 +110,12 @@ func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
 }
 
 func (u *JobUsecase) PatternSearch(pattern string, params model.JobSearchParams) ([]model.Job, error) {
+	if (params.MaxPaymentAmount < params.MinPaymentAmount) ||
+		(params.MaxGrade < params.MinGrade) ||
+		(params.Limit < 0) {
+		return nil, errors.New("wrong input parameters")
+	}
+
 	jobs, err := u.jobRep.ListOnPattern(pattern, params)
 	if err != nil {
 		return nil, errors.Wrap(err, "PatternSearch()")
