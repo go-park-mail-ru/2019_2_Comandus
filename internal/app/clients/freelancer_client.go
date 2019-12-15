@@ -54,7 +54,7 @@ func (c *FreelancerClient) GetFreelancerByUserFromServer(id int64) (*freelancer_
 	return currFreelancer, nil
 }
 
-func (c *FreelancerClient) GetFreelancerFromServer(id int64) (*freelancer_grpc.Freelancer, error) {
+func (c *FreelancerClient) GetFreelancerFromServer(id int64) (*freelancer_grpc.ExtendedFreelancer, error) {
 	client := freelancer_grpc.NewFreelancerHandlerClient(c.conn)
 	req := &freelancer_grpc.FreelancerID{
 		ID: id,

@@ -122,7 +122,7 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 	}
 
 	combined := combined{
-		freelancer: currFreelancer,
+		freelancer: currFreelancer.OuFreel,
 		user:       currUser,
 	}
 	respond.Respond(w, r, http.StatusOK, combined)
@@ -174,6 +174,10 @@ func (h *FreelancerHandler) HandleGetFreelancers(w http.ResponseWriter, r *http.
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancers<-Ucase.FindPart()")
 		respond.Error(w, r, http.StatusInternalServerError, err)
+	}
+
+	for i , _ := range extendedFreelancers {
+		extendedFreelancers[i].Sanitize(h.sanitizer)
 	}
 
 	respond.Respond(w, r, http.StatusOK, extendedFreelancers)
