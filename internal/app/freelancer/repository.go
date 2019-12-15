@@ -7,6 +7,6 @@ type Repository interface {
 	Find(int64) (*model.ExtendFreelancer, error)
 	FindByUser(int64) (*model.Freelancer, error)
 	Edit(freelancer *model.Freelancer) error
-	ListOnPattern(string) ([]model.ExtendFreelancer, error)
+	ListOnPattern(string, model.SearchParams) ([]model.ExtendFreelancer, error)
 	FindPartByTime(int, int) ([]model.ExtendFreelancer, error)
 }

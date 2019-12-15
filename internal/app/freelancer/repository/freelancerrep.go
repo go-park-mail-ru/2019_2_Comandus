@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/prometheus/client_golang/prometheus"
+	"log"
 	"strconv"
 )
 
@@ -124,20 +125,34 @@ func (r *FreelancerRepository) Edit(f *model.Freelancer) error {
 	).Scan(&f.ID)
 }
 
-func (r *FreelancerRepository) ListOnPattern(pattern string) ([]model.ExtendFreelancer, error) {
+func (r *FreelancerRepository) ListOnPattern(pattern string, params model.SearchParams) ([]model.ExtendFreelancer, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep": "freelancer", "method": "listInPattern"}))
 	defer timer.ObserveDuration()
 
+	log.Println(params)
+
 	var exFreelancers []model.ExtendFreelancer
 	rows, err := r.db.Query(
 		"SELECT F.id, F.accountId, F.country, F.city, F.address, F.phone, F.tagLine, "+
-			" F.overview, F.experienceLevelId, F.specialityId, U.firstname , U.secondname "+
+			"F.overview, F.experienceLevelId, F.specialityId, U.firstName , U.secondName "+
 			"FROM freelancers AS F "+
 			"INNER JOIN users AS U ON (F.accountid = U.accountid) "+
-			"WHERE to_tsvector('russian' , U.firstname) || to_tsvector('russian' , U.secondname) "+
-			" @@ plainto_tsquery('russian', $1) LIMIT 10",
+			"WHERE (LOWER(U.firstName) like '%' || LOWER($1) || '%' OR " +
+			"LOWER(U.secondName) like '%' || LOWER($1) || '%') AND " +
+			"($2 = -1 OR F.country = $2) AND "+
+			"($3 = -1 OR F.city = $3) AND "+
+			"(($4 AND experienceLevelId = 0) OR ($5 AND experienceLevelId = 1) OR ($6 AND experienceLevelId = 2)) "+
+			"ORDER BY "+
+			"CASE WHEN $7 THEN F.id END DESC, "+
+			"CASE WHEN NOT $7 THEN F.id END ASC "+
+			"LIMIT CASE WHEN $8 > 0 THEN $8 END;",
 		pattern,
+		params.Country,
+		params.City,
+		params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
+		params.Desc,
+		params.Limit,
 	)
 	if err != nil {
 		return nil, err

@@ -125,7 +125,7 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	return jobs, nil
 }
 
-func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchParams) ([]model.Job, error) {
+func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams) ([]model.Job, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep": "job", "method": "listOnPattern"}))
 	defer timer.ObserveDuration()

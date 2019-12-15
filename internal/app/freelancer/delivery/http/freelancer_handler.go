@@ -135,13 +135,116 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 		Labels{"path": "search/freelancer", "method": r.Method}))
 	defer timer.ObserveDuration()
 
-	pattern, ok := r.URL.Query()["q"]
-	if !ok || len(pattern[0]) < 1 {
-		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchFreelancers()")
+	pattern := r.URL.Query().Get("q")
+	if pattern == "" {
+		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchJob()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
-	extendedFreelancers, err := h.FreelancerUsecase.PatternSearch(pattern[0])
+
+	var err error
+	params := new(model.SearchParams)
+	minGrade := r.URL.Query().Get("minGrade")
+	if minGrade != "" {
+		params.MinGrade, err = strconv.ParseInt(minGrade, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	maxGrade := r.URL.Query().Get("maxGrade")
+	if maxGrade != "" {
+		params.MaxGrade, err = strconv.ParseInt(maxGrade, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	minPayment := r.URL.Query().Get("minPaymentAmount")
+	if minPayment != "" {
+		params.MinPaymentAmount, err = strconv.ParseFloat(minPayment, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	maxPayment := r.URL.Query().Get("maxPaymentAmount")
+	if maxPayment != "" {
+		params.MaxPaymentAmount, err = strconv.ParseFloat(maxPayment, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	country := r.URL.Query().Get("country")
+	if country != "" {
+		params.Country, err = strconv.ParseInt(country, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	} else {
+		params.Country = -1
+	}
+
+	city := r.URL.Query().Get("city")
+	if city != "" {
+		params.City, err = strconv.ParseInt(city, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	} else {
+		params.City = -1
+	}
+
+	proposals := r.URL.Query().Get("proposals")
+	if proposals != "" {
+		params.Proposals, err = strconv.ParseInt(proposals, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	expLevel := r.URL.Query().Get("experienceLevel")
+	if expLevel != "" {
+		levels, err := strconv.ParseInt(expLevel, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+
+		if levels / 100 != 0 {
+			params.ExperienceLevel[0] = true
+		}
+
+		if (levels % 100) / 10 != 0 {
+			params.ExperienceLevel[1] = true
+		}
+
+		if (levels % 100) % 10 != 0 {
+			params.ExperienceLevel[2] = true
+		}
+	} else {
+		params.ExperienceLevel[0] = true
+		params.ExperienceLevel[1] = true
+		params.ExperienceLevel[2] = true
+	}
+
+	desc := r.URL.Query().Get("desc")
+	if desc != "" {
+		params.Desc, err = strconv.ParseBool(desc)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	limit := r.URL.Query().Get("limit")
+	if limit != "" {
+		params.Limit, err = strconv.ParseInt(limit, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	extendedFreelancers, err := h.FreelancerUsecase.PatternSearch(pattern, *params)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSearchFreelancers<-Ucase.PatternSearch()")
 		respond.Error(w, r, http.StatusInternalServerError, err)

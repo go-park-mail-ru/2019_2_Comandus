@@ -109,9 +109,8 @@ func (u *JobUsecase) MarkAsDeleted(id int64, user *model.User) error {
 	return nil
 }
 
-func (u *JobUsecase) PatternSearch(pattern string, params model.JobSearchParams) ([]model.Job, error) {
+func (u *JobUsecase) PatternSearch(pattern string, params model.SearchParams) ([]model.Job, error) {
 	if (params.MaxPaymentAmount < params.MinPaymentAmount) ||
-		(params.MaxGrade < params.MinGrade) ||
 		(params.Limit < 0) {
 		return nil, errors.New("wrong input parameters")
 	}

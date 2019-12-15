@@ -246,7 +246,7 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 
 
 	var err error
-	params := new(model.JobSearchParams)
+	params := new(model.SearchParams)
 	minGrade := r.URL.Query().Get("minGrade")
 	if minGrade != "" {
 		params.MinGrade, err = strconv.ParseInt(minGrade, 10, 64)
