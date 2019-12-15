@@ -12,30 +12,29 @@ import (
 	"testing"
 )
 
-
-func testUcase(t *testing.T) (*repository_mocks.MockCompanyRepository, *client_mocks.MockManagerClient ,company.Usecase){
+func testUcase(t *testing.T) (*repository_mocks.MockCompanyRepository, *client_mocks.MockManagerClient, company.Usecase) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	companyRep := repository_mocks.NewMockCompanyRepository(ctrl)
 	managerClient := client_mocks.NewMockManagerClient(ctrl)
 	companyUcase := NewCompanyUsecase(companyRep, managerClient)
-	return companyRep, managerClient,  companyUcase
+	return companyRep, managerClient, companyUcase
 }
 
 func TestCompanyUsecase_Create(t *testing.T) {
-	companyRep, _ ,companyUcase := testUcase(t)
+	companyRep, _, companyUcase := testUcase(t)
 
 	testCases := []struct {
-		name			string
-		newCompany		*model.Company
-		userType		string
-		expectError		error
+		name        string
+		newCompany  *model.Company
+		userType    string
+		expectError error
 	}{
 		{
-			name:			"valid",
-			newCompany:		&model.Company{},
-			userType:		model.UserCustomer,
-			expectError:	nil,
+			name:        "valid",
+			newCompany:  &model.Company{},
+			userType:    model.UserCustomer,
+			expectError: nil,
 		},
 	}
 
@@ -44,15 +43,15 @@ func TestCompanyUsecase_Create(t *testing.T) {
 			companyRep.
 				EXPECT().
 				Create(tc.newCompany).
-				Do(func(arg *model.Company){
+				Do(func(arg *model.Company) {
 					arg.ID = 1
-			}).
+				}).
 				Return(tc.expectError)
 
 			c, err := companyUcase.Create()
 
 			if tc.expectError == nil {
-				assert.Equal(t, int64(1) , c.ID)
+				assert.Equal(t, int64(1), c.ID)
 				assert.Equal(t, nil, err)
 				return
 			}
@@ -71,45 +70,45 @@ func TestCompanyUsecase_Edit(t *testing.T) {
 	companyRep, managerClient, companyUcase := testUcase(t)
 
 	user := &model.User{
-		ID:               1,
-		FirstName:        "ddd",
-		Email:            "ddd@hj.cv",
+		ID:        1,
+		FirstName: "ddd",
+		Email:     "ddd@hj.cv",
 	}
 
 	testCases := []struct {
-		name			string
-		newCompany		*model.Company
-		userType		string
-		expectError		error
+		name            string
+		newCompany      *model.Company
+		userType        string
+		expectError     error
 		expectedManager *manager_grpc.Manager
 	}{
 		{
-			name:			"valid",
-			newCompany:		&model.Company{
-				ID: 		1,
+			name: "valid",
+			newCompany: &model.Company{
+				ID:          1,
 				CompanyName: "new name",
 				Site:        "www.new-site.ru",
 			},
 			expectedManager: &manager_grpc.Manager{
-				ID:                   1,
-				CompanyId:            1,
+				ID:        1,
+				CompanyId: 1,
 			},
-			userType:		model.UserCustomer,
-			expectError:	nil,
+			userType:    model.UserCustomer,
+			expectError: nil,
 		},
 		{
-			name:			"invalid: user is freelancer",
-			newCompany:		&model.Company{
-				ID: 		 1,
+			name: "invalid: user is freelancer",
+			newCompany: &model.Company{
+				ID:          1,
 				CompanyName: "new name",
 				Site:        "www.new-site.ru",
 			},
 			expectedManager: &manager_grpc.Manager{
-				ID:                   1,
-				CompanyId:            1,
+				ID:        1,
+				CompanyId: 1,
 			},
-			userType:		model.UserFreelancer,
-			expectError:	errors.New(" only manager can edit company"),
+			userType:    model.UserFreelancer,
+			expectError: errors.New(" only manager can edit company"),
 		},
 	}
 
@@ -120,7 +119,6 @@ func TestCompanyUsecase_Edit(t *testing.T) {
 				EXPECT().
 				GetManagerByUserFromServer(user.ID).
 				Return(tc.expectedManager, nil)
-
 
 			companyRep.
 				EXPECT().
@@ -154,13 +152,13 @@ func TestCompanyUsecase_Find(t *testing.T) {
 		expectError error
 	}{
 		{
-			name:			"valid",
-			company:		&model.Company{
+			name: "valid",
+			company: &model.Company{
 				ID:          1,
 				CompanyName: "test company",
 				Site:        "test",
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 

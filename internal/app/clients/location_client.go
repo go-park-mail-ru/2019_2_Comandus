@@ -23,7 +23,7 @@ func (c *LocationClient) Connect() error {
 func (c *LocationClient) GetCountry(id int64) (*location_grpc.Country, error) {
 	client := location_grpc.NewLocationHandlerClient(c.conn)
 	req := &location_grpc.CountryID{
-		ID:		id,
+		ID: id,
 	}
 
 	country, err := client.GetCountry(context.Background(), req)
@@ -37,7 +37,7 @@ func (c *LocationClient) GetCountry(id int64) (*location_grpc.Country, error) {
 func (c *LocationClient) GetCity(id int64) (*location_grpc.City, error) {
 	client := location_grpc.NewLocationHandlerClient(c.conn)
 	req := &location_grpc.CityID{
-		ID:		id,
+		ID: id,
 	}
 
 	city, err := client.GetCity(context.Background(), req)

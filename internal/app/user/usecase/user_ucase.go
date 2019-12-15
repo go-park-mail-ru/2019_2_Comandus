@@ -13,10 +13,10 @@ import (
 )
 
 type UserUsecase struct {
-	userRep			user.Repository
+	userRep          user.Repository
 	freelancerClient clients.ClientFreelancer
-	managerClient   clients.ManagerClient
-	companyClient   clients.CompanyClient
+	managerClient    clients.ManagerClient
+	companyClient    clients.CompanyClient
 }
 
 func NewUserUsecase(u user.Repository, fClient clients.ClientFreelancer, mClient clients.ManagerClient,
@@ -45,7 +45,7 @@ func (u *UserUsecase) CreateUser(data *model.User) error {
 	return nil
 }
 
-func (u * UserUsecase) EditUser(new *model.User, old * model.User) error {
+func (u *UserUsecase) EditUser(new *model.User, old *model.User) error {
 	new.ID = old.ID
 
 	if old.Email != new.Email {
@@ -73,7 +73,7 @@ func (u *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user *mode
 
 	newEncryptPassword, err := model.EncryptString(passwords.NewPassword)
 	if err != nil {
-		return errors.Wrap(err,"model.EncryptString")
+		return errors.Wrap(err, "model.EncryptString")
 	}
 	user.EncryptPassword = newEncryptPassword
 
@@ -151,7 +151,7 @@ func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
 	if !us.ComparePassword(currUser.Password) {
 		return 0, errors.New("wrong password")
 	}
-	
+
 	return us.ID, nil
 }
 
@@ -170,13 +170,13 @@ func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
 
 	// TODO: rewrite avatar in Role struct
 	clientRole := &model.Role{
-		Role:	"client",
-		Label:	currCompany.CompanyName,
+		Role:  "client",
+		Label: currCompany.CompanyName,
 	}
 
 	freelanceRole := &model.Role{
-		Role:   "freelancer",
-		Label:  user.FirstName + " " + user.SecondName,
+		Role:  "freelancer",
+		Label: user.FirstName + " " + user.SecondName,
 	}
 
 	roles = append(roles, clientRole)

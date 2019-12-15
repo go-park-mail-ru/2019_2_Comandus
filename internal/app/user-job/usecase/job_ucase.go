@@ -9,13 +9,13 @@ import (
 )
 
 type JobUsecase struct {
-	jobRep user_job.Repository
+	jobRep        user_job.Repository
 	managerClient clients.ManagerClient
 }
 
 func NewJobUsecase(j user_job.Repository, mClient clients.ManagerClient) user_job.Usecase {
 	return &JobUsecase{
-		jobRep: j,
+		jobRep:        j,
 		managerClient: mClient,
 	}
 }
@@ -116,7 +116,6 @@ func (u *JobUsecase) PatternSearch(pattern string, params model.JobSearchParams)
 	}
 	return jobs, nil
 }
-
 
 func (u *JobUsecase) GetMyJobs(managerID int64) ([]model.Job, error) {
 	jobs, err := u.jobRep.ListMyJobs(managerID)

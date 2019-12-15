@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *jlexer.Lexer, out *ResponseOutput) {
+func easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *jlexer.Lexer, out *ResponseOutputWithFreel) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -40,6 +40,8 @@ func easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			(out.Job).UnmarshalEasyJSON(in)
 		case "Response":
 			(out.Response).UnmarshalEasyJSON(in)
+		case "Freelancer":
+			(out.Freelancer).UnmarshalEasyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -50,7 +52,7 @@ func easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		in.Consumed()
 	}
 }
-func easyjson6ff3ac1dEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *jwriter.Writer, in ResponseOutput) {
+func easyjson6ff3ac1dEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *jwriter.Writer, in ResponseOutputWithFreel) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -64,30 +66,35 @@ func easyjson6ff3ac1dEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		out.RawString(prefix)
 		(in.Response).MarshalEasyJSON(out)
 	}
+	{
+		const prefix string = ",\"Freelancer\":"
+		out.RawString(prefix)
+		(in.Freelancer).MarshalEasyJSON(out)
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v ResponseOutput) MarshalJSON() ([]byte, error) {
+func (v ResponseOutputWithFreel) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson6ff3ac1dEncodeGithubComGoParkMailRu20192ComandusInternalModel(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v ResponseOutput) MarshalEasyJSON(w *jwriter.Writer) {
+func (v ResponseOutputWithFreel) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson6ff3ac1dEncodeGithubComGoParkMailRu20192ComandusInternalModel(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *ResponseOutput) UnmarshalJSON(data []byte) error {
+func (v *ResponseOutputWithFreel) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *ResponseOutput) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *ResponseOutputWithFreel) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel(l, v)
 }
 func easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *jlexer.Lexer, out *Response) {
@@ -127,6 +134,10 @@ func easyjson6ff3ac1dDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *
 			out.StatusFreelancer = string(in.String())
 		case "paymentAmount":
 			out.PaymentAmount = float32(in.Float32Str())
+		case "coverLetter":
+			out.CoverLetter = string(in.String())
+		case "timeEstimation":
+			out.TimeEstimation = int(in.Int())
 		default:
 			in.SkipRecursive()
 		}
@@ -180,6 +191,16 @@ func easyjson6ff3ac1dEncodeGithubComGoParkMailRu20192ComandusInternalModel1(out 
 		const prefix string = ",\"paymentAmount\":"
 		out.RawString(prefix)
 		out.Float32Str(float32(in.PaymentAmount))
+	}
+	{
+		const prefix string = ",\"coverLetter\":"
+		out.RawString(prefix)
+		out.String(string(in.CoverLetter))
+	}
+	{
+		const prefix string = ",\"timeEstimation\":"
+		out.RawString(prefix)
+		out.Int(int(in.TimeEstimation))
 	}
 	out.RawByte('}')
 }

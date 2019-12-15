@@ -62,7 +62,7 @@ func (s *UserServer) TransformUserData(user *user_grpc.User) *model.User {
 	return res
 }
 
-func (s *UserServer) Find(context context.Context,userId *user_grpc.UserID) (*user_grpc.User, error) {
+func (s *UserServer) Find(context context.Context, userId *user_grpc.UserID) (*user_grpc.User, error) {
 	currUser, err := s.UserUcase.Find(userId.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "UserUcase.Find()")

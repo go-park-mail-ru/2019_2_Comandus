@@ -13,18 +13,18 @@ import (
 )
 
 type LocationHandler struct {
-	LocationUsecase		location.Usecase
-	sanitizer      		*bluemonday.Policy
-	logger         		*zap.SugaredLogger
-	sessionStore   		sessions.Store
+	LocationUsecase location.Usecase
+	sanitizer       *bluemonday.Policy
+	logger          *zap.SugaredLogger
+	sessionStore    sessions.Store
 }
 
 func NewLocationHandler(m *mux.Router, u location.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &LocationHandler{
-		LocationUsecase:	u,
-		sanitizer:      	sanitizer,
-		logger:         	logger,
-		sessionStore:   	sessionStore,
+		LocationUsecase: u,
+		sanitizer:       sanitizer,
+		logger:          logger,
+		sessionStore:    sessionStore,
 	}
 
 	m.HandleFunc("/country-list", handler.HandleGetCountries).Methods(http.MethodGet, http.MethodOptions)

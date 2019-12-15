@@ -27,8 +27,8 @@ func (s *LocationServer) TransformCountryRPC(location *model.Country) *location_
 	}
 
 	res := &location_grpc.Country{
-		ID:                   location.ID,
-		Name:                 location.Name,
+		ID:   location.ID,
+		Name: location.Name,
 	}
 	return res
 }
@@ -39,9 +39,9 @@ func (s *LocationServer) TransformCityRPC(location *model.City) *location_grpc.C
 	}
 
 	res := &location_grpc.City{
-		ID:                   location.ID,
-		CountryID:            location.CountryID,
-		Name:                 location.Name,
+		ID:        location.ID,
+		CountryID: location.CountryID,
+		Name:      location.Name,
 	}
 	return res
 }
@@ -63,7 +63,7 @@ func (s *LocationServer) TransformCityData(location *location_grpc.City) *model.
 	return res
 }
 
-func (s *LocationServer) GetCountry(context context.Context,req *location_grpc.CountryID) (*location_grpc.Country, error) {
+func (s *LocationServer) GetCountry(context context.Context, req *location_grpc.CountryID) (*location_grpc.Country, error) {
 	country, err := s.Ucase.GetCountry(req.ID)
 	if err != nil {
 		return nil, err

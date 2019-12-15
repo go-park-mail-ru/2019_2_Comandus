@@ -9,7 +9,7 @@ type Usecase interface {
 	DenyResponse(user *model.User, responseId int64) error
 	CancelResponse(user *model.User, responseId int64) error
 	Find(id int64) (*model.Response, error)
-	GetResponse(id int64) (*model.ResponseOutput, error)
+	GetResponse(id int64) (*model.ResponseOutputWithFreel, error)
 	GetResponsesOnJobID(jobID int64) ([]model.ExtendResponse, error)
 	Update(response *model.Response) error
 }

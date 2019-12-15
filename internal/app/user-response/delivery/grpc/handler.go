@@ -30,35 +30,34 @@ func (s *ResponseServer) TransformResponseRPC(response *model.Response) *respons
 	}
 
 	date := &timestamp.Timestamp{
-		Seconds:              response.Date.Unix(),
-		Nanos:                int32(response.Date.UnixNano()),
+		Seconds: response.Date.Unix(),
+		Nanos:   int32(response.Date.UnixNano()),
 	}
 
 	res := &response_grpc.Response{
-		ID:                   response.ID,
-		FreelancerId:         response.FreelancerId,
-		JobId:                response.JobId,
-		Files:                response.Files,
-		Date:                 date,
-		StatusManager:        response.StatusManager,
-		StatusFreelancer:     response.StatusFreelancer,
-		PaymentAmount:        response.PaymentAmount,
+		ID:               response.ID,
+		FreelancerId:     response.FreelancerId,
+		JobId:            response.JobId,
+		Files:            response.Files,
+		Date:             date,
+		StatusManager:    response.StatusManager,
+		StatusFreelancer: response.StatusFreelancer,
+		PaymentAmount:    response.PaymentAmount,
 	}
 	return res
 }
 
-
 func (s *ResponseServer) TransformResponseData(response *response_grpc.Response) *model.Response {
 	// TODO: fix date
 	res := &model.Response{
-		ID:                   response.ID,
-		FreelancerId:         response.FreelancerId,
-		JobId:                response.JobId,
-		Files:                response.Files,
-		Date:                 time.Unix(response.Date.Seconds, int64(response.Date.Nanos)),
-		StatusManager:        response.StatusManager,
-		StatusFreelancer:     response.StatusFreelancer,
-		PaymentAmount:        response.PaymentAmount,
+		ID:               response.ID,
+		FreelancerId:     response.FreelancerId,
+		JobId:            response.JobId,
+		Files:            response.Files,
+		Date:             time.Unix(response.Date.Seconds, int64(response.Date.Nanos)),
+		StatusManager:    response.StatusManager,
+		StatusFreelancer: response.StatusFreelancer,
+		PaymentAmount:    response.PaymentAmount,
 	}
 	return res
 }
@@ -77,5 +76,6 @@ func (s *ResponseServer) Update(context context.Context, response *response_grpc
 	if err := s.Ucase.Update(resp); err != nil {
 		return nil, err
 	}
+
 	return new(response_grpc.Nothing), nil
 }

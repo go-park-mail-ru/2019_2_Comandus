@@ -28,48 +28,47 @@ func (s *AuthServer) TransformUserRPC(user *model.User) *auth_grpc2.User {
 	}
 
 	res := &auth_grpc2.User{
-		ID:              	user.ID,
-		FirstName:       	user.FirstName,
-		SecondName:      	user.SecondName,
-		UserName:        	user.UserName,
-		Email:           	user.Email,
-		Password:        	user.Password,
-		EncryptPassword: 	user.EncryptPassword,
-		UserType:        	user.UserType,
-		FreelancerId:    	user.FreelancerId,
-		HireManagerId:   	user.HireManagerId,
-		CompanyId:       	user.CompanyId,
-		Avatar:				user.Avatar,
+		ID:              user.ID,
+		FirstName:       user.FirstName,
+		SecondName:      user.SecondName,
+		UserName:        user.UserName,
+		Email:           user.Email,
+		Password:        user.Password,
+		EncryptPassword: user.EncryptPassword,
+		UserType:        user.UserType,
+		FreelancerId:    user.FreelancerId,
+		HireManagerId:   user.HireManagerId,
+		CompanyId:       user.CompanyId,
+		Avatar:          user.Avatar,
 	}
 	return res
 }
-
 
 func (s *AuthServer) TransformUserData(user *auth_grpc2.User) *model.User {
 	res := &model.User{
-		ID:              	user.ID,
-		FirstName:       	user.FirstName,
-		SecondName:      	user.SecondName,
-		UserName:        	user.UserName,
-		Email:           	user.Email,
-		Password:        	user.Password,
-		EncryptPassword: 	user.EncryptPassword,
-		UserType:        	user.UserType,
-		FreelancerId:    	user.FreelancerId,
-		HireManagerId:   	user.HireManagerId,
-		CompanyId:       	user.CompanyId,
-		Avatar:				user.Avatar,
+		ID:              user.ID,
+		FirstName:       user.FirstName,
+		SecondName:      user.SecondName,
+		UserName:        user.UserName,
+		Email:           user.Email,
+		Password:        user.Password,
+		EncryptPassword: user.EncryptPassword,
+		UserType:        user.UserType,
+		FreelancerId:    user.FreelancerId,
+		HireManagerId:   user.HireManagerId,
+		CompanyId:       user.CompanyId,
+		Avatar:          user.Avatar,
 	}
 	return res
 }
 
-func (s *AuthServer) CreateUser(context context.Context,userReq *auth_grpc2.User) (*auth_grpc2.User, error) {
+func (s *AuthServer) CreateUser(context context.Context, userReq *auth_grpc2.User) (*auth_grpc2.User, error) {
 	newUser := &model.User{
-		Email:		userReq.Email,
-		Password:	userReq.Password,
-		FirstName: 	userReq.FirstName,
-		SecondName:	userReq.SecondName,
-		UserType:	userReq.UserType,
+		Email:      userReq.Email,
+		Password:   userReq.Password,
+		FirstName:  userReq.FirstName,
+		SecondName: userReq.SecondName,
+		UserType:   userReq.UserType,
 	}
 
 	if err := s.UserUcase.CreateUser(newUser); err != nil {
@@ -80,10 +79,10 @@ func (s *AuthServer) CreateUser(context context.Context,userReq *auth_grpc2.User
 	return res, nil
 }
 
-func (s *AuthServer) VerifyUser(context context.Context,userReq *auth_grpc2.UserRequest) (*auth_grpc2.UserID, error) {
+func (s *AuthServer) VerifyUser(context context.Context, userReq *auth_grpc2.UserRequest) (*auth_grpc2.UserID, error) {
 	newUser := &model.User{
-		Email:           userReq.Email,
-		Password:        userReq.Password,
+		Email:    userReq.Email,
+		Password: userReq.Password,
 	}
 
 	id, err := s.UserUcase.VerifyUser(newUser)
@@ -92,7 +91,7 @@ func (s *AuthServer) VerifyUser(context context.Context,userReq *auth_grpc2.User
 	}
 
 	res := &auth_grpc2.UserID{
-		ID:		id,
+		ID: id,
 	}
 	return res, nil
 }

@@ -11,9 +11,9 @@ import (
 func testManager(t *testing.T) *model.HireManager {
 	t.Helper()
 	return &model.HireManager{
-		ID:					1,
-		AccountID: 			1,
-		Location:			"Moscow",
+		ID:        1,
+		AccountID: 1,
+		Location:  "Moscow",
 	}
 }
 
@@ -35,7 +35,7 @@ func TestManagerRepository_Create(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.HireManager{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -103,7 +103,7 @@ func TestManagerRepository_Find(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "location", "companyId" })
+		NewRows([]string{"id", "accountId", "location", "companyId"})
 
 	expect := []*model.HireManager{
 		testManager(t),
@@ -187,7 +187,7 @@ func TestManagerRepository_FindByUser(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{"id", "accountId", "location", "companyId" })
+		NewRows([]string{"id", "accountId", "location", "companyId"})
 
 	expect := []*model.HireManager{
 		testManager(t),
@@ -277,7 +277,7 @@ func TestManagerRepository_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.HireManager{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {

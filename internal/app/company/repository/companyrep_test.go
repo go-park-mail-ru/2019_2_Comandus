@@ -111,7 +111,7 @@ func TestCompanyRep_Find(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "companyName", "site", "tagLine", "description", "country", "city", "address",
-			"phone" })
+			"phone"})
 
 	expect := []*model.Company{
 		testCompany(t),
@@ -203,7 +203,7 @@ func TestCompanyRep_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Company{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {

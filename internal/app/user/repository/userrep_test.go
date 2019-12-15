@@ -15,15 +15,15 @@ import (
 func testUser(t *testing.T) *model.User {
 	t.Helper()
 	return &model.User{
-		ID: 1,
-		FirstName: "masha",
-		SecondName: "ivanova",
-		UserName: "masha1996",
-		Email: "masha@mail.ru",
-		Password: "123456",
+		ID:              1,
+		FirstName:       "masha",
+		SecondName:      "ivanova",
+		UserName:        "masha1996",
+		Email:           "masha@mail.ru",
+		Password:        "123456",
 		EncryptPassword: "",
-		Avatar: nil,
-		UserType: "freelancer",
+		Avatar:          nil,
+		UserType:        "freelancer",
 	}
 }
 
@@ -39,8 +39,8 @@ func TestUserRepository_Find(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-	NewRows([]string{"accountId", "firsName", "secondName", "username", "email", "password", "encryptPassword",
-		"avatar", "userType"})
+		NewRows([]string{"accountId", "firsName", "secondName", "username", "email", "password", "encryptPassword",
+			"avatar", "userType"})
 	expect := []*model.User{
 		testUser(t),
 	}
@@ -90,7 +90,7 @@ func TestUserRepository_Find(t *testing.T) {
 	}
 
 	// row scan error
-	rows = sqlmock.NewRows([]string{"id", "firstName", "secondName", "username", "email" }).
+	rows = sqlmock.NewRows([]string{"id", "firstName", "secondName", "username", "email"}).
 		AddRow(1, "masha", "ivanova", "masha1996", "masha@mail.ru")
 
 	mock.
@@ -123,7 +123,7 @@ func TestUserRepository_Create(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.User{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -238,7 +238,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	}
 
 	// row scan error
-	rows = sqlmock.NewRows([]string{"id", "firstName", "secondName", "username", "email" }).
+	rows = sqlmock.NewRows([]string{"id", "firstName", "secondName", "username", "email"}).
 		AddRow(1, "masha", "ivanova", "masha1996", "masha@mail.ru")
 
 	mock.
@@ -271,7 +271,7 @@ func TestUserRepository_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.User{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {

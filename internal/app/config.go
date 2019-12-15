@@ -6,18 +6,18 @@ type Config struct {
 	DatabaseURL string
 	SessionKey  string
 	TokenSecret string
-	ClientUrl	string
+	ClientUrl   string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		BindAddr:		":8080",
-		LogLevel:		"debug",
-		SessionKey:		"jdfhdfdj",
-		//DatabaseURL:	"host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d",
-		DatabaseURL:	"host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=ubuntu",
-		TokenSecret:	"golangsecpark",
+		BindAddr:   ":8080",
+		LogLevel:   "debug",
+		SessionKey: "jdfhdfdj",
+		//DatabaseURL: "host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=d",
+		DatabaseURL: "host=localhost dbname=restapi_dev sslmode=disable port=5432 password=1234 user=ubuntu",
+		TokenSecret: "golangsecpark",
 		//ClientUrl:		"http://127.0.0.1:9000", //"http://localhost:9000",//
-		ClientUrl:		"http://89.208.211.100:9000",
+		ClientUrl: "http://89.208.211.100:9000",
 	}
 }

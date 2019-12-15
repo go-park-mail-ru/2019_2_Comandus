@@ -20,21 +20,21 @@ import (
 )
 
 type MainHandler struct {
-	sanitizer		*bluemonday.Policy
-	logger			*zap.SugaredLogger
-	sessionStore	sessions.Store
-	token 			*token.HashToken
-	ucase			general.Usecase
+	sanitizer    *bluemonday.Policy
+	logger       *zap.SugaredLogger
+	sessionStore sessions.Store
+	token        *token.HashToken
+	ucase        general.Usecase
 }
 
-func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger,
+func NewMainHandler(m *mux.Router, private *mux.Router, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger,
 	sessionStore sessions.Store, thisToken *token.HashToken, ucase general.Usecase) {
-		handler := &MainHandler{
-		sanitizer:		sanitizer,
-		logger:			logger,
-		sessionStore:	sessionStore,
-		token:			thisToken,
-		ucase:			ucase,
+	handler := &MainHandler{
+		sanitizer:    sanitizer,
+		logger:       logger,
+		sessionStore: sessionStore,
+		token:        thisToken,
+		ucase:        ucase,
 	}
 
 	m.HandleFunc("/", handler.HandleMain)
@@ -46,7 +46,7 @@ func NewMainHandler(m *mux.Router,private *mux.Router, sanitizer *bluemonday.Pol
 }
 
 func (h *MainHandler) HandleMain(w http.ResponseWriter, r *http.Request) {
-	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.Labels{"path":"/", "method":"no"}))
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.Labels{"path": "/", "method": "no"}))
 	defer timer.ObserveDuration()
 
 	respond.Respond(w, r, http.StatusOK, "hello from server")
@@ -56,7 +56,7 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/signup", "method":r.Method}))
+		Labels{"path": "/signup", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	defer func() {
@@ -106,11 +106,11 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	respond.Respond(w, r, http.StatusCreated, createdUser)
 }
 
-func (h * MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
+func (h *MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/login", "method":r.Method}))
+		Labels{"path": "/login", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	defer func() {
@@ -161,7 +161,7 @@ func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"token", "method":r.Method}))
+		Labels{"path": "token", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	sess, err := h.sessionStore.Get(r, respond.SessionName)
@@ -175,9 +175,9 @@ func (h *MainHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
 	respond.Respond(w, r, http.StatusOK, map[string]string{"csrf-token": currToken})
 }
 
-func (h * MainHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
+func (h *MainHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/logout", "method":r.Method}))
+		Labels{"path": "/logout", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	session, err := h.sessionStore.Get(r, respond.SessionName)
@@ -200,12 +200,12 @@ func (h *MainHandler) HandleGetSuggest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-	Labels{"path":"suggest", "method":r.Method}))
+		Labels{"path": "suggest", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	var updateService bool
 	lastReq, ok := r.Context().Value("prev_req").(string)
-	if !ok || !strings.Contains(lastReq, "suggest"){
+	if !ok || !strings.Contains(lastReq, "suggest") {
 		updateService = true
 	}
 

@@ -7,12 +7,12 @@ import (
 )
 
 type LocationUsecase struct {
-	locationRep   location.Repository
+	locationRep location.Repository
 }
 
 func NewLocationUsecase(r location.Repository) location.Usecase {
 	return &LocationUsecase{
-		locationRep:   r,
+		locationRep: r,
 	}
 }
 

@@ -21,20 +21,20 @@ type ResponseError struct {
 }
 
 type FreelancerHandler struct {
-	FreelancerUsecase		freelancer.Usecase
-	sanitizer				*bluemonday.Policy
-	logger					*zap.SugaredLogger
-	sessionStore			sessions.Store
+	FreelancerUsecase freelancer.Usecase
+	sanitizer         *bluemonday.Policy
+	logger            *zap.SugaredLogger
+	sessionStore      sessions.Store
 }
 
 func NewFreelancerHandler(m *mux.Router, private *mux.Router, uf freelancer.Usecase, sanitizer *bluemonday.Policy,
 	logger *zap.SugaredLogger, sessionStore sessions.Store) {
-		handler := &FreelancerHandler{
-			FreelancerUsecase:	uf,
-			sanitizer:			sanitizer,
-			logger:				logger,
-			sessionStore:		sessionStore,
-		}
+	handler := &FreelancerHandler{
+		FreelancerUsecase: uf,
+		sanitizer:         sanitizer,
+		logger:            logger,
+		sessionStore:      sessionStore,
+	}
 
 	private.HandleFunc("/freelancer", handler.HandleEditFreelancer).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/freelancers/{pageID}", handler.HandleGetFreelancers).Methods(http.MethodGet, http.MethodOptions)
@@ -46,12 +46,12 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/freelancer", "method":r.Method}))
+		Labels{"path": "/freelancer", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleEditFreelancer()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleEditFreelancer()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -62,7 +62,6 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 			respond.Error(w, r, http.StatusInternalServerError, err)
 		}
 	}()
-
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -89,14 +88,14 @@ func (h *FreelancerHandler) HandleEditFreelancer(w http.ResponseWriter, r *http.
 
 type combined struct {
 	freelancer *model.FreelancerOutput
-	user *model.User
+	user       *model.User
 }
 
 func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/freelancer/id", "method":r.Method}))
+		Labels{"path": "/freelancer/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -122,7 +121,7 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	combined  := combined {
+	combined := combined{
 		freelancer: currFreelancer,
 		user:       currUser,
 	}
@@ -133,12 +132,12 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"search/freelancer", "method":r.Method}))
+		Labels{"path": "search/freelancer", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	pattern, ok := r.URL.Query()["q"]
 	if !ok || len(pattern[0]) < 1 {
-		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchFreelancers()")
+		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchFreelancers()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
@@ -151,11 +150,11 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 	respond.Respond(w, r, http.StatusOK, extendedFreelancers)
 }
 
-func (h *FreelancerHandler) HandleGetFreelancers (w http.ResponseWriter, r *http.Request) {
+func (h *FreelancerHandler) HandleGetFreelancers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/freelancers/{pageID}", "method":r.Method}))
+		Labels{"path": "/freelancers/{pageID}", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)

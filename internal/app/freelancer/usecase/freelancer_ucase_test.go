@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func testUcase(t *testing.T) (*repository_mocks.MockFreelancerRepository, freelancer.Usecase){
+func testUcase(t *testing.T) (*repository_mocks.MockFreelancerRepository, freelancer.Usecase) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	freelancerRep := repository_mocks.NewMockFreelancerRepository(ctrl)
@@ -21,29 +21,28 @@ func TestNewFreelancerUsecase_Create(t *testing.T) {
 	freelancerRep, freelancerUcase := testUcase(t)
 
 	user := &model.User{
-		ID:               1,
-		FirstName:        "ddd",
-		Email:            "ddd@hj.cv",
+		ID:        1,
+		FirstName: "ddd",
+		Email:     "ddd@hj.cv",
 	}
 
-
 	freelancer := &model.Freelancer{
-		ID:                1,
-		AccountId:         user.ID,
+		ID:        1,
+		AccountId: user.ID,
 	}
 
 	testCases := []struct {
-		name			string
-		newFreelancer	*model.Freelancer
-		expectError		error
+		name          string
+		newFreelancer *model.Freelancer
+		expectError   error
 	}{
 		{
-			name:			"valid",
-			newFreelancer:	&model.Freelancer{
-				ID:			1,
-				AccountId:	user.ID,
+			name: "valid",
+			newFreelancer: &model.Freelancer{
+				ID:        1,
+				AccountId: user.ID,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -56,7 +55,7 @@ func TestNewFreelancerUsecase_Create(t *testing.T) {
 				}).Do(func(arg *model.Freelancer) {
 				arg.ID = 1
 			}).
-				Return (tc.expectError)
+				Return(tc.expectError)
 			fr, err := freelancerUcase.Create(user.ID)
 
 			if tc.expectError == nil {
@@ -79,32 +78,31 @@ func TestNewFreelancerUsecase_Create(t *testing.T) {
 func TestFreelancerUsecase_Edit(t *testing.T) {
 	freelancerRep, freelancerUcase := testUcase(t)
 
-
 	user := &model.User{
-		ID:               1,
-		FirstName:        "ddd",
-		Email:            "ddd@hj.cv",
+		ID:        1,
+		FirstName: "ddd",
+		Email:     "ddd@hj.cv",
 	}
 
 	freelancer := &model.Freelancer{
-		ID:                1,
-		AccountId:         user.ID,
+		ID:        1,
+		AccountId: user.ID,
 	}
 
 	testCases := []struct {
-		name			string
-		newFreelancer	*model.Freelancer
-		expectError		error
+		name          string
+		newFreelancer *model.Freelancer
+		expectError   error
 	}{
 		{
-			name:			"valid",
-			newFreelancer:	&model.Freelancer{
-				ID:			freelancer.ID,
-				AccountId:	user.ID,
-				Country:	"russia",
-				City:		"moscow",
+			name: "valid",
+			newFreelancer: &model.Freelancer{
+				ID:        freelancer.ID,
+				AccountId: user.ID,
+				Country:   "russia",
+				City:      "moscow",
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -136,29 +134,28 @@ func TestFreelancerUsecase_Find(t *testing.T) {
 	freelancerRep, freelancerUcase := testUcase(t)
 
 	user := &model.User{
-		ID:               1,
-		FirstName:        "ddd",
-		Email:            "ddd@hj.cv",
+		ID:        1,
+		FirstName: "ddd",
+		Email:     "ddd@hj.cv",
 	}
 
-
 	freelancer := &model.Freelancer{
-		ID:                1,
-		AccountId:         user.ID,
+		ID:        1,
+		AccountId: user.ID,
 	}
 
 	testCases := []struct {
-		name			string
-		newFreelancer	*model.Freelancer
-		expectError		error
+		name          string
+		newFreelancer *model.Freelancer
+		expectError   error
 	}{
 		{
-			name:			"valid",
-			newFreelancer:	&model.Freelancer{
-				ID:			1,
-				AccountId:	user.ID,
+			name: "valid",
+			newFreelancer: &model.Freelancer{
+				ID:        1,
+				AccountId: user.ID,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -167,7 +164,7 @@ func TestFreelancerUsecase_Find(t *testing.T) {
 			freelancerRep.
 				EXPECT().
 				Find(testCases[0].newFreelancer.ID).
-				Return (freelancer, tc.expectError)
+				Return(freelancer, tc.expectError)
 			fr, err := freelancerUcase.Find(testCases[0].newFreelancer.ID)
 
 			if tc.expectError == nil {
@@ -190,29 +187,28 @@ func TestFreelancerUsecase_FindByUser(t *testing.T) {
 	freelancerRep, freelancerUcase := testUcase(t)
 
 	user := &model.User{
-		ID:               1,
-		FirstName:        "ddd",
-		Email:            "ddd@hj.cv",
+		ID:        1,
+		FirstName: "ddd",
+		Email:     "ddd@hj.cv",
 	}
 
-
 	freelancer := &model.Freelancer{
-		ID:                1,
-		AccountId:         user.ID,
+		ID:        1,
+		AccountId: user.ID,
 	}
 
 	testCases := []struct {
-		name			string
-		newFreelancer	*model.Freelancer
-		expectError		error
+		name          string
+		newFreelancer *model.Freelancer
+		expectError   error
 	}{
 		{
-			name:			"valid",
-			newFreelancer:	&model.Freelancer{
-				ID:			1,
-				AccountId:	user.ID,
+			name: "valid",
+			newFreelancer: &model.Freelancer{
+				ID:        1,
+				AccountId: user.ID,
 			},
-			expectError:	nil,
+			expectError: nil,
 		},
 	}
 
@@ -221,7 +217,7 @@ func TestFreelancerUsecase_FindByUser(t *testing.T) {
 			freelancerRep.
 				EXPECT().
 				FindByUser(testCases[0].newFreelancer.AccountId).
-				Return (freelancer, tc.expectError)
+				Return(freelancer, tc.expectError)
 			fr, err := freelancerUcase.FindByUser(testCases[0].newFreelancer.AccountId)
 
 			if tc.expectError == nil {

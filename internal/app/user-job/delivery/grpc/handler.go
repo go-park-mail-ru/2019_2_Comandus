@@ -30,28 +30,27 @@ func (s *JobServer) TransformJobRPC(job *model.Job) *job_grpc.Job {
 	}
 
 	date := &timestamp.Timestamp{
-		Seconds:              job.Date.Unix(),
-		Nanos:                int32(job.Date.UnixNano()),
+		Seconds: job.Date.Unix(),
+		Nanos:   int32(job.Date.UnixNano()),
 	}
 
 	res := &job_grpc.Job{
-		ID:                   job.ID,
-		HireManagerId:        job.HireManagerId,
-		Title:                job.Title,
-		Description:          job.Description,
-		Files:                job.Files,
-		SpecialityId:         job.SpecialityId,
-		ExperienceLevelId:    job.ExperienceLevelId,
-		PaymentAmount:        job.PaymentAmount,
-		Country:              job.Country,
-		City:                 job.City,
-		JobTypeId:            job.JobTypeId,
-		Date:                 date,
-		Status:               job.Status,
+		ID:                job.ID,
+		HireManagerId:     job.HireManagerId,
+		Title:             job.Title,
+		Description:       job.Description,
+		Files:             job.Files,
+		SpecialityId:      job.SpecialityId,
+		ExperienceLevelId: job.ExperienceLevelId,
+		PaymentAmount:     job.PaymentAmount,
+		Country:           job.Country,
+		City:              job.City,
+		JobTypeId:         job.JobTypeId,
+		Date:              date,
+		Status:            job.Status,
 	}
 	return res
 }
-
 
 func (s *JobServer) TransformJobData(job *job_grpc.Job) *model.Job {
 	// TODO: fix date

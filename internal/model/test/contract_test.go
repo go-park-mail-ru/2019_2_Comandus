@@ -14,11 +14,11 @@ func testContract(t *testing.T) *model.Contract {
 		CompanyID:    1,
 		FreelancerID: 1,
 		Status:       "in work",
-		ClientGrade: 0,
+		ClientGrade:  0,
 	}
 }
 
-func  TestContract_Validate(t *testing.T) {
+func TestContract_Validate(t *testing.T) {
 	testCases := []struct {
 		name     string
 		contract func() *model.Contract
@@ -70,4 +70,3 @@ func  TestContract_Validate(t *testing.T) {
 		})
 	}
 }
-

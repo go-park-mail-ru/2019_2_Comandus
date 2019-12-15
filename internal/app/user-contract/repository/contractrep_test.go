@@ -10,30 +10,30 @@ import (
 )
 
 const (
-	responseId = 1
-	companyId = 1
+	responseId   = 1
+	companyId    = 1
 	freelancerId = 1
-	)
+)
 
-func testContract(t * testing.T) *model.Contract {
+func testContract(t *testing.T) *model.Contract {
 	t.Helper()
 	return &model.Contract{
-		ID:            1,
-		ResponseID:    responseId,
-		CompanyID:     companyId,
-		FreelancerID:  freelancerId,
-		StartTime:     time.Now(),
-		EndTime:       time.Time{},
-		Status:        "review",
-		ClientGrade:     5,
-		FreelancerGrade: 4,
-		ClientComment: "Coool",
+		ID:                1,
+		ResponseID:        responseId,
+		CompanyID:         companyId,
+		FreelancerID:      freelancerId,
+		StartTime:         time.Now(),
+		EndTime:           time.Time{},
+		Status:            "review",
+		ClientGrade:       5,
+		FreelancerGrade:   4,
+		ClientComment:     "Coool",
 		FreelancerComment: "Good",
-		PaymentAmount: 100,
+		PaymentAmount:     100,
 	}
 }
 
-func IsEqual(t *testing.T, c1 *model.Contract, c2 * model.Contract) bool {
+func IsEqual(t *testing.T, c1 *model.Contract, c2 *model.Contract) bool {
 	t.Helper()
 	return c1.ID == c2.ID &&
 		c1.ResponseID == c2.ResponseID &&
@@ -85,7 +85,7 @@ func TestContractRep_Create(t *testing.T) {
 	mock.
 		ExpectQuery(`INSERT INTO contracts`).
 		WithArgs(contract.ResponseID, contract.CompanyID, contract.FreelancerID, contract.StartTime,
-			contract.EndTime, contract.Status,contract.PaymentAmount).
+			contract.EndTime, contract.Status, contract.PaymentAmount).
 		WillReturnRows(rows)
 
 	err = repo.Create(contract)
@@ -137,7 +137,7 @@ func TestContractRep_Find(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
-			"clientgrade","freelancergrade", "clientcomment", "freelancercomment", "paymentAmount" })
+			"clientgrade", "freelancergrade", "clientcomment", "freelancercomment", "paymentAmount"})
 
 	contract := testContract(t)
 	expect := []*model.Contract{
@@ -147,12 +147,12 @@ func TestContractRep_Find(t *testing.T) {
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime, item.EndTime,
 			item.Status, item.ClientGrade, item.ClientComment,
-			item.FreelancerGrade, item.FreelancerComment ,item.PaymentAmount)
+			item.FreelancerGrade, item.FreelancerComment, item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -175,8 +175,8 @@ func TestContractRep_Find(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(elemID).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -197,8 +197,8 @@ func TestContractRep_Find(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(elemID).
 		WillReturnRows(rows)
 
@@ -233,7 +233,7 @@ func TestContractRep_Edit(t *testing.T) {
 
 	var elemID int64 = 1
 	expect := []*model.Contract{
-		{ ID: elemID },
+		{ID: elemID},
 	}
 
 	for _, item := range expect {
@@ -254,7 +254,7 @@ func TestContractRep_Edit(t *testing.T) {
 	mock.
 		ExpectQuery(`UPDATE contracts SET`).
 		WithArgs(contract.FreelancerID, contract.StartTime, contract.EndTime, contract.Status, contract.ClientGrade,
-			contract.ClientComment, contract.FreelancerGrade, contract.FreelancerComment,contract.PaymentAmount, contract.ID).
+			contract.ClientComment, contract.FreelancerGrade, contract.FreelancerComment, contract.PaymentAmount, contract.ID).
 		WillReturnRows(rows)
 
 	err = repo.Edit(contract)
@@ -287,7 +287,7 @@ func TestContractRepository_ListCompany(t *testing.T) {
 	// good query
 	rows := sqlmock.
 		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
-		"clientgrade","freelancergrade", "clientcomment", "freelancercomment", "paymentAmount" })
+			"clientgrade", "freelancergrade", "clientcomment", "freelancercomment", "paymentAmount"})
 
 	c1 := testContract(t)
 	c2 := testContract(t)
@@ -302,12 +302,12 @@ func TestContractRepository_ListCompany(t *testing.T) {
 	// company mode
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime, item.EndTime,
-			item.Status, item.ClientGrade, item.ClientComment, item.FreelancerGrade, item.FreelancerComment ,item.PaymentAmount)
+			item.Status, item.ClientGrade, item.ClientComment, item.FreelancerGrade, item.FreelancerComment, item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(companyId).
 		WillReturnRows(rows)
 
@@ -332,8 +332,8 @@ func TestContractRepository_ListCompany(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(companyId).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -363,8 +363,8 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 
 	// good query
 	rows := sqlmock.
-		NewRows([]string{ "id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
-		"clientgrade","freelancergrade", "clientcomment", "freelancercomment", "paymentAmount" })
+		NewRows([]string{"id", "responseId", "companyId", "freelancerId", "startTime", "endTime", "status",
+			"clientgrade", "freelancergrade", "clientcomment", "freelancercomment", "paymentAmount"})
 
 	c1 := testContract(t)
 	c2 := testContract(t)
@@ -381,12 +381,12 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 	// freelancer mode
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.ResponseID, item.CompanyID, item.FreelancerID, item.StartTime, item.EndTime,
-			item.Status, item.ClientGrade, item.ClientComment, item.FreelancerGrade, item.FreelancerComment ,item.PaymentAmount)
+			item.Status, item.ClientGrade, item.ClientComment, item.FreelancerGrade, item.FreelancerComment, item.PaymentAmount)
 	}
 
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(freelancerId).
 		WillReturnRows(rows)
 
@@ -409,8 +409,8 @@ func TestContractRepository_ListFreelancer(t *testing.T) {
 
 	// query error
 	mock.
-		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, "+
-		"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
+		ExpectQuery("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, clientGrade, " +
+			"clientComment, freelancerGrade, freelancerComment, paymentAmount FROM contracts WHERE").
 		WithArgs(freelancerId).
 		WillReturnError(fmt.Errorf("db_error"))
 

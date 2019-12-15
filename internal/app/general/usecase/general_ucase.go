@@ -10,11 +10,11 @@ import (
 )
 
 type GeneralUsecase struct {
-	authClient			clients.AuthClient
-	freelancerClient	clients.ClientFreelancer
-	managerClient   	clients.ManagerClient
-	companyClient 		clients.CompanyClient
-	suggestService		*suggest.Service
+	authClient       clients.AuthClient
+	freelancerClient clients.ClientFreelancer
+	managerClient    clients.ManagerClient
+	companyClient    clients.CompanyClient
+	suggestService   *suggest.Service
 }
 
 func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, error) {
@@ -62,7 +62,7 @@ func (u *GeneralUsecase) CreateUser(newUser *model.User) (*auth_grpc.User, error
 	return user, nil
 }
 
-func (u *GeneralUsecase) GetSuggest(query string, update bool, dict string) ([]string, error){
+func (u *GeneralUsecase) GetSuggest(query string, update bool, dict string) ([]string, error) {
 	if update {
 		var err error
 		u.suggestService, err = NewSuggestService()

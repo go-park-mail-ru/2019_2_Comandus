@@ -28,11 +28,11 @@ func (c *UserClient) Disconnect() error {
 	return nil
 }
 
-func (c *UserClient) GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error){
+func (c *UserClient) GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error) {
 	client := user_grpc.NewUserHandlerClient(c.conn)
 
 	req := &user_grpc.UserID{
-		ID:                   userID.ID,
+		ID: userID.ID,
 	}
 	res, err := client.Find(context.Background(), req)
 	if err != nil {

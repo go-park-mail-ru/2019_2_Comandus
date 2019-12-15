@@ -28,16 +28,16 @@ func (s *FreelancerServer) TransformFreelancerRPC(freelancer *model.Freelancer) 
 	}
 
 	res := &freelancer_grpc.Freelancer{
-		ID:                   freelancer.ID,
-		AccountId:            freelancer.AccountId,
-		Country:              freelancer.Country,
-		City:                 freelancer.City,
-		Address:              freelancer.Address,
-		Phone:                freelancer.Phone,
-		TagLine:              freelancer.TagLine,
-		Overview:             freelancer.Overview,
-		ExperienceLevelId:    freelancer.ExperienceLevelId,
-		SpecialityId:         freelancer.SpecialityId,
+		ID:                freelancer.ID,
+		AccountId:         freelancer.AccountId,
+		Country:           freelancer.Country,
+		City:              freelancer.City,
+		Address:           freelancer.Address,
+		Phone:             freelancer.Phone,
+		TagLine:           freelancer.TagLine,
+		Overview:          freelancer.Overview,
+		ExperienceLevelId: freelancer.ExperienceLevelId,
+		SpecialityId:      freelancer.SpecialityId,
 	}
 	return res
 }
@@ -48,20 +48,19 @@ func (s *FreelancerServer) TransformFreelancerOutputRPC(freelancer *model.Freela
 	}
 
 	res := &freelancer_grpc.FreelancerOutput{
-		ID:                   freelancer.ID,
-		AccountId:            freelancer.AccountId,
-		Country:              freelancer.Country,
-		City:                 freelancer.City,
-		Address:              freelancer.Address,
-		Phone:                freelancer.Phone,
-		TagLine:              freelancer.TagLine,
-		Overview:             freelancer.Overview,
-		ExperienceLevelId:    freelancer.ExperienceLevelId,
-		SpecialityId:         freelancer.SpecialityId,
+		ID:                freelancer.ID,
+		AccountId:         freelancer.AccountId,
+		Country:           freelancer.Country,
+		City:              freelancer.City,
+		Address:           freelancer.Address,
+		Phone:             freelancer.Phone,
+		TagLine:           freelancer.TagLine,
+		Overview:          freelancer.Overview,
+		ExperienceLevelId: freelancer.ExperienceLevelId,
+		SpecialityId:      freelancer.SpecialityId,
 	}
 	return res
 }
-
 
 func (s *FreelancerServer) TransformFreelancerData(freelancer *freelancer_grpc.Freelancer) *model.Freelancer {
 	res := &model.Freelancer{

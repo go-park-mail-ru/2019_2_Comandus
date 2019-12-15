@@ -23,7 +23,6 @@ type JobHandler struct {
 	sessionStore sessions.Store
 }
 
-
 func NewJobHandler(m *mux.Router, private *mux.Router, js user_job.Usecase, sanitizer *bluemonday.Policy, logger *zap.SugaredLogger, sessionStore sessions.Store) {
 	handler := &JobHandler{
 		jobUsecase:   js,
@@ -44,7 +43,7 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/jobs", "method":r.Method}))
+		Labels{"path": "/jobs", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	defer func() {
@@ -70,7 +69,7 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleCreateJob()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleCreateJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -88,7 +87,7 @@ func (h *JobHandler) HandleGetJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/jobs", "method":r.Method}))
+		Labels{"path": "/jobs", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	vars := mux.Vars(r)
@@ -115,7 +114,7 @@ func (h *JobHandler) HandleGetAllJobs(w http.ResponseWriter, r *http.Request) {
 	var jobs []model.Job
 	var err error
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-	Labels{"path": "/jobs/id", "method": r.Method}))
+		Labels{"path": "/jobs/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	pattern, ok := r.URL.Query()["manid"]
@@ -155,12 +154,12 @@ func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/jobs/id", "method":r.Method}))
+		Labels{"path": "/jobs/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleDeleteJob()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleDeleteJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -177,19 +176,19 @@ func (h *JobHandler) HandleDeleteJob(w http.ResponseWriter, r *http.Request) {
 		err = errors.Wrapf(err, "HandleDeleteJob<-jobUsecase.MarkAsDeleted()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
-	respond.Respond(w, r, http.StatusOK, struct {}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/jobs/id", "method":r.Method}))
+		Labels{"path": "/jobs/id", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
-		err := errors.Wrapf(errors.New("no user in context"),"HandleUpdateJob()")
+		err := errors.Wrapf(errors.New("no user in context"), "HandleUpdateJob()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
 		return
 	}
@@ -227,19 +226,19 @@ func (h *JobHandler) HandleUpdateJob(w http.ResponseWriter, r *http.Request) {
 		err = errors.Wrapf(err, "HandleUpdateJob<-jobUsecase.EditJob()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
-	respond.Respond(w, r, http.StatusOK, struct {}{})
+	respond.Respond(w, r, http.StatusOK, struct{}{})
 }
 
 func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
-		Labels{"path":"/search/jobs", "method":r.Method}))
+		Labels{"path": "/search/jobs", "method": r.Method}))
 	defer timer.ObserveDuration()
 
 	pattern, ok := r.URL.Query()["q"]
 	if !ok || len(pattern[0]) < 1 {
-		err := errors.Wrapf(errors.New("No search pattern"),"HandleSearchJob()")
+		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchJob()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 

@@ -18,8 +18,8 @@ func NewManagerUsecase(rep manager.Repository) manager.Usecase {
 
 func (u *ManagerUsecase) Create(userId int64, compId int64) (*model.HireManager, error) {
 	m := &model.HireManager{
-		AccountID:			userId,
-		CompanyID:			compId,
+		AccountID: userId,
+		CompanyID: compId,
 	}
 
 	if err := u.managerRep.Create(m); err != nil {

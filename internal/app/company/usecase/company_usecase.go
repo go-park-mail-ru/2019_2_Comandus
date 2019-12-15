@@ -8,20 +8,20 @@ import (
 )
 
 type CompanyUsecase struct {
-	companyRep 		company.Repository
-	managerClient 	clients.ManagerClient
-	locationClient	clients.LocationClient
+	companyRep     company.Repository
+	managerClient  clients.ManagerClient
+	locationClient clients.LocationClient
 }
 
 func NewCompanyUsecase(c company.Repository, mClient clients.ManagerClient, cClient clients.LocationClient) company.Usecase {
 	return &CompanyUsecase{
-		companyRep: c,
-		managerClient: mClient,
+		companyRep:     c,
+		managerClient:  mClient,
 		locationClient: cClient,
 	}
 }
 
-func (u * CompanyUsecase) Create() (*model.Company, error) {
+func (u *CompanyUsecase) Create() (*model.Company, error) {
 	c := &model.Company{}
 
 	if err := u.companyRep.Create(c); err != nil {
