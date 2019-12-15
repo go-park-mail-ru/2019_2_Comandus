@@ -27,7 +27,7 @@ func (r *ContractRepository) Create(contract *model.Contract) error {
 	defer timer.ObserveDuration()
 
 	return r.db.QueryRow(
-		"INSERT INTO contracts (responseId, companyId, freelancerId, startTime, endTime, status, statusFreelancerWork "+
+		"INSERT INTO contracts (responseId, companyId, freelancerId, startTime, endTime, status, statusFreelancerWork, "+
 			"paymentAmount, clientgrade, freelancergrade, clientcomment, freelancercomment, timeEstimation)"+
 			" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
 		contract.ResponseID,
@@ -113,7 +113,7 @@ func (r *ContractRepository) List(id int64, mode string) ([]model.Contract, erro
 			"FROM contracts WHERE companyId = $1", id)
 	} else if mode == ContractListByFreelancer {
 		rows, err = r.db.Query("SELECT id, responseId, companyId, freelancerId, startTime, endTime, status," +
-			" statusFreelancerWork, clientGrade,clientComment, freelancerGrade, freelancerComment, paymentAmount " +
+			" statusFreelancerWork, clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount " +
 			"FROM contracts WHERE freelancerId = $1", id)
 	}
 	if err != nil {
