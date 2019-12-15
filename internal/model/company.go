@@ -5,6 +5,7 @@ import "github.com/microcosm-cc/bluemonday"
 type Company struct {
 	ID          int64  `json:"id" valid:"int , optional"`
 	CompanyName string `json:"companyName" valid:"utfletternum, required"`
+	CompanyOwner string `json:"companyOwner"`
 	Site        string `json:"site" valid:"url"`
 	TagLine     string `json:"tagline" valid:"- , optional"`
 	Description string `json:"description" valid:"-"`
@@ -12,15 +13,6 @@ type Company struct {
 	City        int64  `json:"city" valid:"utfletter"`
 	Address     string `json:"address" valid:"-"`
 	Phone       string `json:"phone" valid:"- , optional"`
-}
-
-type EditCompany struct {
-	CompanyName		string 	`json:"companyName"`
-	Country			int64	`json:"country"`
-	City			int64	`json:"city"`
-	Address			string	`json:"address"`
-	CompanyOwner	string	`json:"companyOwner"`
-	Phone 			string	`json:"phone"`
 }
 
 type CompanyOutput struct {
