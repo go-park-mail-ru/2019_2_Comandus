@@ -54,7 +54,7 @@ func (r *ContractRepository) Find(id int64) (*model.Contract, error) {
 	c := &model.Contract{}
 	if err := r.db.QueryRow(
 		"SELECT id, responseId, companyId, freelancerId, startTime, endTime, status, statusFreelancerWork, " +
-			"clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount, timeestimation" +
+			"clientGrade, clientComment, freelancerGrade, freelancerComment, paymentAmount, timeestimation " +
 			"FROM contracts WHERE id = $1",
 		id,
 	).Scan(
