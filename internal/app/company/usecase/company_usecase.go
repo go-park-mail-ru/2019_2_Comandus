@@ -7,6 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	NOT_SET = "не задано"
+	)
+
 type CompanyUsecase struct {
 	companyRep     company.Repository
 	managerClient  clients.ManagerClient
@@ -23,6 +27,8 @@ func NewCompanyUsecase(c company.Repository, mClient clients.ManagerClient, cCli
 
 func (u *CompanyUsecase) Create() (*model.Company, error) {
 	c := &model.Company{}
+	c.City = -1
+	c.Country = -1
 
 	if err := u.companyRep.Create(c); err != nil {
 		return nil, errors.Wrap(err, "companyRep.Create()")
@@ -32,14 +38,21 @@ func (u *CompanyUsecase) Create() (*model.Company, error) {
 }
 
 func (u *CompanyUsecase) InsertLocation(company *model.Company) (*model.CompanyOutput, error) {
-	country, err := u.locationClient.GetCountry(company.Country)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.GetCountry()")
-	}
+	country := NOT_SET
+	city := NOT_SET
 
-	city, err := u.locationClient.GetCity(company.City)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.GetCity()")
+	if company.City != -1 && company.Country != -1 {
+		grpcCountry, err := u.locationClient.GetCountry(company.Country)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCountry()")
+		}
+		country = grpcCountry.Name
+
+		grpcCity, err := u.locationClient.GetCity(company.City)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCity()")
+		}
+		city = grpcCity.Name
 	}
 
 	res := &model.CompanyOutput{
@@ -48,8 +61,8 @@ func (u *CompanyUsecase) InsertLocation(company *model.Company) (*model.CompanyO
 		Site:        company.Site,
 		TagLine:     company.TagLine,
 		Description: company.Description,
-		Country:     country.Name,
-		City:        city.Name,
+		Country:     country,
+		City:        city,
 		Address:     company.Address,
 		Phone:       company.Phone,
 	}
