@@ -1,5 +1,7 @@
 package model
 
+import "github.com/microcosm-cc/bluemonday"
+
 type ExtendFreelancer struct {
 	F          *Freelancer `json:"freelancer"`
 	FirstName  string      `json:"firstName"`
@@ -27,3 +29,15 @@ type ExtendResponse struct {
 }
 
 
+type ExtendedOutputFreelancer struct {
+	OuFreel    *FreelancerOutput `json:"freelancer"`
+	FirstName  string            `json:"firstName"`
+	SecondName string            `json:"secondName"`
+}
+
+
+func (freel *ExtendFreelancer) Sanitize(sanitizer *bluemonday.Policy) {
+	freel.F.Sanitize(sanitizer)
+	freel.FirstName = sanitizer.Sanitize(freel.FirstName)
+	freel.SecondName = sanitizer.Sanitize(freel.SecondName)
+}

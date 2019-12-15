@@ -32,7 +32,7 @@ type Response struct {
 type ResponseOutputWithFreel struct {
 	Job      Job
 	Response Response
-	Freelancer Freelancer
+	Freelancer ExtendFreelancer
 }
 
 func (r *Response) BeforeCreate() {
