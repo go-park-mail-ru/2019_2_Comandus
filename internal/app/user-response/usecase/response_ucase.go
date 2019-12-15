@@ -242,24 +242,30 @@ func (u *ResponseUsecase) GetResponse(id int64) (*model.ResponseOutputWithFreel,
 		return nil, err
 	}
 
-	freelancer := model.Freelancer{
-		ID:                grpcFreelancer.ID,
-		AccountId:         grpcFreelancer.AccountId,
-		Country:           grpcFreelancer.Country,
-		City:              grpcFreelancer.City,
-		Address:           grpcFreelancer.Address,
-		Phone:             grpcFreelancer.Phone,
-		TagLine:           grpcFreelancer.TagLine,
-		Overview:          grpcFreelancer.Overview,
-		ExperienceLevelId: grpcFreelancer.ExperienceLevelId,
-		SpecialityId:      grpcFreelancer.SpecialityId,
-		Avatar:            "https:api.fwork.live/account/avatar/" + strconv.FormatInt(grpcFreelancer.AccountId, 10),
+	freelancer := &model.Freelancer{
+		ID:                grpcFreelancer.Fr.ID,
+		AccountId:         grpcFreelancer.Fr.AccountId,
+		Country:           grpcFreelancer.Fr.Country,
+		City:              grpcFreelancer.Fr.City,
+		Address:           grpcFreelancer.Fr.Address,
+		Phone:             grpcFreelancer.Fr.Phone,
+		TagLine:           grpcFreelancer.Fr.TagLine,
+		Overview:          grpcFreelancer.Fr.Overview,
+		ExperienceLevelId: grpcFreelancer.Fr.ExperienceLevelId,
+		SpecialityId:      grpcFreelancer.Fr.SpecialityId,
+		Avatar:            "https:api.fwork.live/account/avatar/" + strconv.FormatInt(grpcFreelancer.Fr.AccountId, 10),
 	}
+	exFr := model.ExtendFreelancer{
+		F:          freelancer,
+		FirstName:  grpcFreelancer.FirstName,
+		SecondName: grpcFreelancer.SecondName,
+	}
+
 
 	res := new(model.ResponseOutputWithFreel)
 	res.Response = *response
 	res.Job = job
-	res.Freelancer = freelancer
+	res.Freelancer = exFr
 
 	return res, nil
 }

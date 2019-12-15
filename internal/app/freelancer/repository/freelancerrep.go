@@ -41,15 +41,20 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 	).Scan(&f.ID)
 }
 
-func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
+func (r *FreelancerRepository) Find(id int64) (*model.ExtendFreelancer, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep": "freelancer", "method": "find"}))
 	defer timer.ObserveDuration()
 
 	f := &model.Freelancer{}
+	exF := &model.ExtendFreelancer{}
 	if err := r.db.QueryRow(
-		"SELECT id, accountId, country, city, address, phone, tagLine, "+
-			"overview, experienceLevelId, specialityId FROM freelancers WHERE id = $1",
+		"SELECT f.id, f.accountId, f.country, f.city, f.address, f.phone, f.tagLine, "+
+			"f.overview, f.experienceLevelId, f.specialityId, u.firstName, u.secondName " +
+			"FROM freelancers AS f " +
+			"INNER JOIN users AS u " +
+			"ON (f.accountid = u.accountid) " +
+			"WHERE id = $1",
 		id,
 	).Scan(
 		&f.ID,
@@ -62,11 +67,14 @@ func (r *FreelancerRepository) Find(id int64) (*model.Freelancer, error) {
 		&f.Overview,
 		&f.ExperienceLevelId,
 		&f.SpecialityId,
+		&exF.FirstName,
+		&exF.SecondName,
 	); err != nil {
 		return nil, err
 	}
 	f.Avatar = PATH2AVATAR + strconv.Itoa(int(f.AccountId))
-	return f, nil
+	exF.F = f
+	return exF, nil
 }
 
 func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, error) {

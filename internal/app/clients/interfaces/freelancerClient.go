@@ -7,5 +7,5 @@ import (
 type ClientFreelancer interface {
 	CreateFreelancerOnServer(userId int64) (*freelancer_grpc.Freelancer, error)
 	GetFreelancerByUserFromServer(id int64) (*freelancer_grpc.Freelancer, error)
-	GetFreelancerFromServer(id int64) (*freelancer_grpc.Freelancer, error)
+	GetFreelancerFromServer(id int64) (*freelancer_grpc.ExtendedFreelancer, error)
 }
