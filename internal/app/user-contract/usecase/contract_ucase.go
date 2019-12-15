@@ -224,10 +224,21 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
 		}
 
+		exF, err := u.freelancerClient.GetFreelancerFromServer(contract.FreelancerID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetFreelancerFromServer()")
+		}
+
+		company , err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
+		}
 
 		contractOutput := model.ContractOutput{
 			Job:      *job,
 			Contract: contract,
+			Freelancer:*exF,
+			Company:*company,
 		}
 
 		res = append(res, contractOutput)
