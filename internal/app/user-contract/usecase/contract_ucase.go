@@ -35,7 +35,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
-	if response.StatusManager != model.ResponseStatusSent {
+	if response.StatusManager != model.ResponseStatusAccepted {
 		return errors.New("Manager isn't accept proposal yet")
 	}
 
