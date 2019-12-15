@@ -135,24 +135,24 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchPara
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
 			"country, city, jobTypeId, date, status "+
 			"FROM jobs "+
-			"WHERE to_tsvector('russian' , title) @@ plainto_tsquery('russian', $1) AND "+
+			//"WHERE to_tsvector('russian' , title) @@ plainto_tsquery('russian', $1) AND "+
+			"WHERE LOWER(title) SIMILAR TO LOWER($1) AND "+
 			"status != $1 AND "+
 			"($2 = 0 OR paymentAmount <= $2 AND paymentAmount >= $3) AND "+
-			"($4 = 0 OR grade <= $4 AND grade >= $5) AND "+
-			"($6 = -1 OR country = $6) AND "+
-			"($7 = -1 OR city = $7) AND "+
-			"(($8 AND experienceLevelId = 1) OR ($9 AND experienceLevelId = 2) OR ($10 AND experienceLevelId = 3)) "+
+			"($4 = -1 OR country = $4) AND "+
+			"($5 = -1 OR city = $5) AND "+
+			"(($6 AND experienceLevelId = 0) OR ($7 AND experienceLevelId = 1) OR ($8 AND experienceLevelId = 2)) "+
 			"ORDER BY "+
-			"CASE WHEN $11 THEN id END DESC "+
-			"CASE WHEN !$11 THEN id END ASC "+
-			"LIMIT 10",
+			"CASE WHEN $9 THEN id END DESC, "+
+			"CASE WHEN NOT $9 THEN id END ASC "+
+			"LIMIT CASE WHEN $10 > 0 THEN $10 END;",
 		model.JobStateDeleted,
 		params.MaxPaymentAmount, params.MinPaymentAmount,
-		params.MaxGrade, params.MinGrade,
 		params.Country,
 		params.City,
 		params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
-		params.Desc)
+		params.Desc,
+		params.Limit)
 	if err != nil {
 		return nil, err
 	}

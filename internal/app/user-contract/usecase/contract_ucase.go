@@ -35,6 +35,10 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 		return errors.Wrapf(err, "clients.GetResponseFromServer()")
 	}
 
+	if response.StatusManager != model.ResponseStatusSent {
+		return errors.New("Manager isn't accept proposal yet")
+	}
+
 	job, err := u.jobClient.GetJobFromServer(response.JobId)
 	if err != nil {
 		return errors.Wrapf(err, "clients.GetJobFromServer()")
@@ -51,16 +55,18 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 
 	// TODO: write struct for start time and end time
 	contract := &model.Contract{
-		ID:              0,
-		ResponseID:      response.ID,
-		CompanyID:       currManager.CompanyId,
-		FreelancerID:    response.FreelancerId,
-		StartTime:       time.Time{},
-		EndTime:         time.Time{},
-		Status:          model.ContractStatusUnderDevelopment,
-		PaymentAmount:   response.PaymentAmount,
-		ClientGrade:     0,
-		FreelancerGrade: 0,
+		ID:                   0,
+		ResponseID:           response.ID,
+		CompanyID:            currManager.CompanyId,
+		FreelancerID:         response.FreelancerId,
+		StartTime:            time.Time{},
+		EndTime:              time.Time{},
+		Status:               model.ContractStatusExpected,
+		StatusFreelancerWork: model.FreelacncerNotReady,
+		PaymentAmount:        response.PaymentAmount,
+		TimeEstimation:       int(response.TimeEstimation),
+		ClientGrade:          0,
+		FreelancerGrade:      0,
 	}
 
 	response.StatusManager = model.ResponseStatusContractSent
@@ -75,39 +81,28 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64) err
 	return nil
 }
 
-func (u *ContractUsecase) SetStatusContract(user *model.User, contract *model.Contract, status string) error {
-	// TODO: fix if add new modes
-	if !user.IsManager() && status != model.ContractStatusDone {
-		return errors.New("freelancer can change status only to done status")
-	}
-	contract.Status = status
-	if err := u.contractRep.Edit(contract); err != nil {
-		return errors.Wrapf(err, "contractRep.Edit()")
-	}
-	return nil
-}
-
 func (u *ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
-	if user.IsManager() {
-		return errors.New("user must be freelancer")
-	}
-
-	currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)
-	if err != nil {
-		return errors.Wrapf(err, "clients.GetFreelancerByUserFromServer()")
-	}
 
 	contract, err := u.contractRep.Find(contractId)
 	if err != nil {
 		return errors.Wrapf(err, "contractRep.Find()")
 	}
 
-	if contract.FreelancerID != currFreelancer.ID {
-		return errors.New("current freelancer can't manage this contract")
+	if contract.CompanyID != user.CompanyId {
+		return errors.New("This company can't set done this contract")
 	}
 
-	if err := u.SetStatusContract(user, contract, model.ContractStatusDone); err != nil {
-		return errors.Wrapf(err, "SetStatusContract()")
+	if contract.Status != model.ContractStatusUnderDevelopment {
+		return errors.New("incorrect Status, must be active")
+	}
+
+	if contract.StatusFreelancerWork != model.FreelancerReady {
+		return errors.New("StatusFreelancerWork must be ready")
+	}
+
+	err = u.contractRep.ChangeStatus(contractId, model.ContractStatusDone)
+	if err != nil {
+		return errors.Wrapf(err, "ChangeStatus()")
 	}
 
 	return nil
@@ -115,7 +110,7 @@ func (u *ContractUsecase) SetAsDone(user *model.User, contractId int64) error {
 
 func (u *ContractUsecase) ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error {
 	if review.Grade < model.ContractMinGrade || review.Grade > model.ContractMaxGrade {
-		return errors.New("grade must be between 0 and 5")
+		return errors.New("grade must be between 1 and 5")
 	}
 
 	contract, err := u.contractRep.Find(contractId)
@@ -123,24 +118,24 @@ func (u *ContractUsecase) ReviewContract(user *model.User, contractId int64, rev
 		return errors.Wrapf(err, "contractRep.Find()")
 	}
 
-	if user.IsManager() {
-		contract.ClientGrade = review.Grade
-		contract.ClientComment = review.Comment
-	} else {
-		contract.FreelancerGrade = review.Grade
-		contract.FreelancerComment = review.Comment
+	if contract.CompanyID != user.CompanyId && contract.FreelancerID != user.FreelancerId {
+		return errors.New("you can't review this contract, you are not freelancer and not company")
 	}
 
-	contract.Status = model.ContractStatusReviewed
+	if contract.Status != model.ContractStatusDone {
+		return errors.New("contract status must be closed")
+	}
 
-	//currManager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
-	//if err != nil {
-	//	return errors.Wrapf(err, "clients.GetManagerByUserFromServer()")
-	//}
+	if user.IsManager() && contract.ClientGrade == 0 {
+		contract.ClientGrade = review.Grade
+		contract.ClientComment = review.Comment
 
-	/*if contract.CompanyID != currManager.CompanyId {
-		return errors.New("current manager cant manage this contract")
-	}*/
+	} else if !user.IsManager() && contract.FreelancerGrade == 0 {
+		contract.FreelancerGrade = review.Grade
+		contract.FreelancerComment = review.Comment
+	} else {
+		return errors.New("error , you reviewed this contract yet")
+	}
 
 	if err := u.contractRep.Edit(contract); err != nil {
 		return errors.Wrap(err, "contractRep.Edit()")
@@ -222,33 +217,96 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 			return nil, errors.Wrap(err, "clients.GetResponseFromServer()")
 		}
 
-		grpcjob, err := u.jobClient.GetJobFromServer(response.JobId)
+		job, err := u.jobClient.GetJobFromServer(response.JobId)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetJobFromServer()")
 		}
 
-		job := model.Job{
-			ID:                grpcjob.ID,
-			HireManagerId:     grpcjob.HireManagerId,
-			Title:             grpcjob.Title,
-			Description:       grpcjob.Description,
-			Files:             grpcjob.Files,
-			SpecialityId:      grpcjob.SpecialityId,
-			ExperienceLevelId: grpcjob.ExperienceLevelId,
-			PaymentAmount:     grpcjob.PaymentAmount,
-			Country:           grpcjob.Country,
-			City:              grpcjob.City,
-			JobTypeId:         grpcjob.JobTypeId,
-			Date:              time.Unix(grpcjob.Date.Seconds, int64(grpcjob.Date.Nanos)),
-			Status:            grpcjob.Status,
-		}
-
 		contractOutput := model.ContractOutput{
-			Job:      job,
+			Job:      *job,
 			Contract: contract,
 		}
 
 		res = append(res, contractOutput)
 	}
 	return res, nil
+}
+
+func (u *ContractUsecase) Find(user *model.User, id int64) (*model.ContractOutput, error) {
+	contract, err := u.contractRep.Find(id)
+	if err != nil {
+		return nil, err
+	}
+
+	company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+	if err != nil {
+		return nil, err
+	}
+
+	manager, err := u.managerClient.GetManagerByUserFromServer(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if contract.FreelancerID != user.FreelancerId && manager.CompanyId != company.ID {
+		return nil, errors.New("no access for current manager")
+	}
+
+	freelancer, err := u.freelancerClient.GetFreelancerFromServer(contract.FreelancerID)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := u.responseClient.GetResponseFromServer(contract.ResponseID)
+	if err != nil {
+		return nil, err
+	}
+
+	job, err := u.jobClient.GetJobFromServer(response.JobId)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &model.ContractOutput{
+		Company:    *company,
+		Freelancer: *freelancer,
+		Job:        *job,
+		Contract:   *contract,
+	}
+
+	return res, nil
+}
+
+func (u *ContractUsecase) ChangeStatus(user *model.User, contractID int64, newStatus string) error {
+	contract, err := u.contractRep.Find(contractID)
+	if err != nil {
+		return err
+	}
+	if contract.FreelancerID != user.FreelancerId {
+		return errors.New("That freelancer can't to accept this contract")
+	}
+	if contract.Status != model.ContractStatusExpected {
+		return errors.New("Incorrect status of contract, must be Expected")
+	}
+
+	err = u.contractRep.ChangeStatus(contractID, newStatus)
+
+	return err
+}
+
+func (u *ContractUsecase) TickWorkAsReady(user *model.User, contractID int64) error {
+	contract, err := u.contractRep.Find(contractID)
+	if err != nil {
+		return err
+	}
+	if contract.FreelancerID != user.FreelancerId {
+		return errors.New("That freelancer can't to accept this contract")
+	}
+	if contract.Status != model.ContractStatusUnderDevelopment {
+		return errors.New("Incorrect status of contract, must be active")
+	}
+
+	err = u.contractRep.ChangeStatusWorkAsReady(contractID)
+
+	return err
 }

@@ -2,37 +2,47 @@ package model
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc/company_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc/freelancer_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/grpc/job_grpc"
 	"time"
 )
 
 const (
 	ContractStatusDone             = "closed"
 	ContractStatusUnderDevelopment = "active"
-	ContractStatusCanceled         = "denied"
+	ContractStatusDenied           = "denied"
 	ContractStatusExpected         = "expected"
-	ContractMinGrade               = 1
-	ContractMaxGrade               = 5
+
+	ContractMinGrade = 1
+	ContractMaxGrade = 5
+
+	FreelancerReady     = "Ready"
+	FreelacncerNotReady = "NotReady"
 )
 
 type Contract struct {
-	ID                int64     `json:"id"`
-	ResponseID        int64     `json:"responseId"`
-	CompanyID         int64     `json:"companyId"`
-	FreelancerID      int64     `json:"freelancerId"`
-	StartTime         time.Time `json:"startTime"`
-	EndTime           time.Time `json:"endTime"`
-	Status            string    `json:"status,string"`
-	FreelancerGrade   int       `json:"freelancerGrade"`
-	FreelancerComment string    `json:"freelancerComment,string"`
-	ClientGrade       int       `json:"clientGrade"`
-	ClientComment     string    `json:"clientComment,string"`
-	PaymentAmount     float32   `json:"paymentAmount"`
-	TimeEstimation    int       `json:"timeEstimation"`
+	ID                   int64     `json:"id"`
+	ResponseID           int64     `json:"responseId"`
+	CompanyID            int64     `json:"companyId"`
+	FreelancerID         int64     `json:"freelancerId"`
+	StartTime            time.Time `json:"startTime"`
+	EndTime              time.Time `json:"endTime"`
+	Status               string    `json:"status,string"`
+	StatusFreelancerWork string    `json:"statusFreelancerWork,string"`
+	FreelancerGrade      int       `json:"freelancerGrade"`
+	FreelancerComment    string    `json:"freelancerComment,string"`
+	ClientGrade          int       `json:"clientGrade"`
+	ClientComment        string    `json:"clientComment,string"`
+	PaymentAmount        float32   `json:"paymentAmount"`
+	TimeEstimation       int       `json:"timeEstimation"`
 }
 
 type ContractOutput struct {
-	Job      Job
-	Contract Contract
+	Company    company_grpc.CompanyOutput
+	Freelancer freelancer_grpc.ExtendedFreelancer
+	Job        job_grpc.Job
+	Contract   Contract
 }
 
 func (c *Contract) Validate(lastId int64) error {

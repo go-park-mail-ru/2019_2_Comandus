@@ -8,4 +8,7 @@ type Usecase interface {
 	ReviewContract(user *model.User, contractId int64, review *model.ReviewInput) error
 	ReviewList(user *model.User) ([]model.Review, error)
 	ContractList(user *model.User) ([]model.ContractOutput, error)
+	Find(user *model.User, id int64) (*model.ContractOutput, error)
+	ChangeStatus(user *model.User, id int64, status string) error
+	TickWorkAsReady(user *model.User, id int64) error
 }

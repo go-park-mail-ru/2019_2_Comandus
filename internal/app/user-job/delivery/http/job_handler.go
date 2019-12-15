@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -236,36 +237,113 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		Labels{"path": "/search/jobs", "method": r.Method}))
 	defer timer.ObserveDuration()
 
-	pattern, ok := r.URL.Query()["q"]
-	if !ok || len(pattern[0]) < 1 {
+	pattern := r.URL.Query().Get("q")
+	if pattern == "" {
+		log.Println("HERE")
 		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchJob()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 	}
 
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			err = errors.Wrapf(err, "HandleSearchJob<-Close()")
-			respond.Error(w, r, http.StatusInternalServerError, err)
-		}
-	}()
 
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleSearchJob<-ioutil.ReadAll()")
-		respond.Error(w, r, http.StatusBadRequest, err)
-		return
-	}
-
+	var err error
 	params := new(model.JobSearchParams)
-	params.Country = -1
-	params.City = -1
-	if err := params.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "UnmarshalJSON()")
-		respond.Error(w, r, http.StatusBadRequest, err)
-		return
+	minGrade := r.URL.Query().Get("minGrade")
+	if minGrade != "" {
+		params.MinGrade, err = strconv.ParseInt(minGrade, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
 	}
 
-	jobs, err := h.jobUsecase.PatternSearch(pattern[0], *params)
+	maxGrade := r.URL.Query().Get("maxGrade")
+	if maxGrade != "" {
+		params.MaxGrade, err = strconv.ParseInt(maxGrade, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	minPayment := r.URL.Query().Get("minPaymentAmount")
+	if minPayment != "" {
+		params.MinPaymentAmount, err = strconv.ParseFloat(minPayment, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	maxPayment := r.URL.Query().Get("maxPaymentAmount")
+	if maxPayment != "" {
+		params.MaxPaymentAmount, err = strconv.ParseFloat(maxPayment, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	country := r.URL.Query().Get("country")
+	if country != "" {
+		params.Country, err = strconv.ParseInt(country, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	} else {
+		params.Country = -1
+	}
+
+	city := r.URL.Query().Get("city")
+	if city != "" {
+		params.City, err = strconv.ParseInt(city, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	} else {
+		params.City = -1
+	}
+
+	proposals := r.URL.Query().Get("proposals")
+	if proposals != "" {
+		params.Proposals, err = strconv.ParseInt(proposals, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	expLevel := r.URL.Query().Get("proposals")
+	if expLevel != "" {
+		levels, err := strconv.ParseInt(expLevel, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+
+		if levels / 100 != 0 {
+			params.ExperienceLevel[0] = true
+		}
+
+		if (levels % 100) / 10 != 0 {
+			params.ExperienceLevel[1] = true
+		}
+
+		if (levels % 100) % 10 != 0 {
+			params.ExperienceLevel[2] = true
+		}
+	}
+
+	desc := r.URL.Query().Get("desc")
+	if desc != "" {
+		params.Desc, err = strconv.ParseBool(desc)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	limit := r.URL.Query().Get("limit")
+	if limit != "" {
+		params.Limit, err = strconv.ParseInt(limit, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	jobs, err := h.jobUsecase.PatternSearch(pattern, *params)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleSearchJob<-jobUsecase.PatternSearch()")
 		respond.Error(w, r, http.StatusInternalServerError, err)

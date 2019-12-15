@@ -16,6 +16,7 @@ message Response {
     string StatusManager=6;
     string StatusFreelancer=7;
     float PaymentAmount=8;
+    int32 TimeEstimation=9;
 }
 
 message ResponseID {

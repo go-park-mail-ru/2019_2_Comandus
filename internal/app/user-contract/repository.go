@@ -7,4 +7,6 @@ type Repository interface {
 	Edit(contract *model.Contract) error
 	List(int64, string) ([]model.Contract, error)
 	Find(int64) (*model.Contract, error)
+	ChangeStatus(contractID int64, newStatus string) error
+	ChangeStatusWorkAsReady(conractID int64) error
 }
