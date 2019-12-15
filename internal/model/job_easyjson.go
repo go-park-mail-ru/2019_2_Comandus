@@ -41,9 +41,9 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		case "maxGrade":
 			out.MaxGrade = int64(in.Int64())
 		case "minPaymentAmount":
-			out.MinPaymentAmount = float32(in.Float32())
+			out.MinPaymentAmount = float64(in.Float64())
 		case "maxPaymentAmount":
-			out.MaxPaymentAmount = float32(in.Float32())
+			out.MaxPaymentAmount = float64(in.Float64())
 		case "country":
 			out.Country = int64(in.Int64())
 		case "city":
@@ -69,6 +69,8 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			}
 		case "desc":
 			out.Desc = bool(in.Bool())
+		case "limit":
+			out.Limit = int64(in.Int64())
 		default:
 			in.SkipRecursive()
 		}
@@ -96,12 +98,12 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 	{
 		const prefix string = ",\"minPaymentAmount\":"
 		out.RawString(prefix)
-		out.Float32(float32(in.MinPaymentAmount))
+		out.Float64(float64(in.MinPaymentAmount))
 	}
 	{
 		const prefix string = ",\"maxPaymentAmount\":"
 		out.RawString(prefix)
-		out.Float32(float32(in.MaxPaymentAmount))
+		out.Float64(float64(in.MaxPaymentAmount))
 	}
 	{
 		const prefix string = ",\"country\":"
@@ -134,6 +136,11 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		const prefix string = ",\"desc\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Desc))
+	}
+	{
+		const prefix string = ",\"limit\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.Limit))
 	}
 	out.RawByte('}')
 }

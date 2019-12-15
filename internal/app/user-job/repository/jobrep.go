@@ -142,15 +142,16 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.JobSearchPara
 			"($5 = -1 OR city = $5) AND "+
 			"(($6 AND experienceLevelId = 0) OR ($7 AND experienceLevelId = 1) OR ($8 AND experienceLevelId = 2)) "+
 			"ORDER BY "+
-			"CASE WHEN $9 THEN id END DESC "+
-			"CASE WHEN !$9 THEN id END ASC "+
-			"LIMIT 20",
+			"CASE WHEN $9 THEN id END DESC, "+
+			"CASE WHEN NOT $9 THEN id END ASC "+
+			"LIMIT CASE WHEN $10 > 0 THEN $10 END;",
 		model.JobStateDeleted,
 		params.MaxPaymentAmount, params.MinPaymentAmount,
 		params.Country,
 		params.City,
 		params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
-		params.Desc)
+		params.Desc,
+		params.Limit)
 	if err != nil {
 		return nil, err
 	}
