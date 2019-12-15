@@ -83,7 +83,11 @@ func (r *LocationRepository) FindCountry(id int64) (*model.Country, error) {
 func (r *LocationRepository) FindCity(id int64) (*model.City, error) {
 	city := &model.City{}
 	if err := r.db.QueryRow(
-		"SELECT id, country_id, name FROM city WHERE id = $1",
+		"SELECT city.id, region.country_id, city.name " +
+			"FROM city " +
+			"INNER JOIN region " +
+			"ON region.id = city.region_id " +
+			"WHERE id = $1",
 		id,
 	).Scan(
 		&city.ID,
