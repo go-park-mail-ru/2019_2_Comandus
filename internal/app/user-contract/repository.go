@@ -9,4 +9,5 @@ type Repository interface {
 	Find(int64) (*model.Contract, error)
 	ChangeStatus(contractID int64, newStatus string) error
 	ChangeStatusWorkAsReady(conractID int64) error
+	GetClosedContracts(id int64) ([]model.PublicContractVersion, error)
 }

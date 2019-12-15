@@ -11,4 +11,5 @@ type Usecase interface {
 	Find(user *model.User, id int64) (*model.ContractOutput, error)
 	ChangeStatus(user *model.User, id int64, status string) error
 	TickWorkAsReady(user *model.User, id int64) error
+	GetClosedContracts(id int64) ([]model.PublicContractVersion, error)
 }

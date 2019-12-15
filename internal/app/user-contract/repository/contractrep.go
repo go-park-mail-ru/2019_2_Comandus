@@ -176,3 +176,45 @@ func (r *ContractRepository) ChangeStatusWorkAsReady(contractID int64) error {
 	}
 	return nil
 }
+
+func (r *ContractRepository) GetClosedContracts(id int64) ([]model.PublicContractVersion, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+	Labels{"rep": "contract", "method": "GetClosedContracts"}))
+	defer timer.ObserveDuration()
+
+	var contracts []model.PublicContractVersion
+
+	var rows *sql.Rows
+	var err error
+
+	rows, err = r.db.Query("SELECT con.clientGrade , con.clientComment, con.freelancerGrade, " +
+		" con.freelancerComment, con.status, u.firstName , u.SecondName, cp.companyName, j.Title " +
+		"FROM contracts AS con " +
+		"INNER JOIN freelancers AS f ON (f.id = con.freelancerid) " +
+		"INNER JOIN users AS u ON(u.accountid = f.accountid) " +
+		"INNER JOIN companies AS cp ON(cp.id = con.companyid) " +
+		"INNER JOIN responses AS r ON(r.id = con.responseid) " +
+		"INNER JOIN jobs AS j ON (j.id = r.jobID) " +
+		"WHERE con.freelancerId = $1 AND con.status = 'closed'",
+		id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		c := model.PublicContractVersion{}
+		err := rows.Scan(&c.ClientGrade, &c.ClientComment, &c.FreelancerGrade, &c.FreelancerComment, &c.Status,
+			&c.FirstName, &c.SecondName, &c.CompanyName, &c.JobTitle)
+		if err != nil {
+			return nil, err
+		}
+
+		contracts = append(contracts, c)
+	}
+
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return contracts, nil
+}

@@ -43,6 +43,7 @@ func NewContractHandler(m *mux.Router, cs user_contract.Usecase, sanitizer *blue
 	m.HandleFunc("/contract/{id:[0-9]+}/review", handler.HandleReviewContract).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/contracts", handler.HandleGetContracts).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/contracts/{id:[0-9]+}", handler.HandleGetContract).Methods(http.MethodGet, http.MethodOptions)
+	m.HandleFunc("/contracts/archive/{freelancerID:[0-9]+}", handler.HandleGetClosedContracts).Methods(http.MethodGet, http.MethodOptions)
 	m.HandleFunc("/grades", handler.HandleGetContractsGrades).Methods(http.MethodGet, http.MethodOptions)
 }
 
@@ -386,4 +387,37 @@ func (h *ContractHandler) HandleFreelancerReady(w http.ResponseWriter, r *http.R
 	}
 
 	respond.Respond(w, r, http.StatusOK, struct{}{})
+}
+
+
+
+func (h *ContractHandler) HandleGetClosedContracts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path": "/contracts/archive/{freelancerID}", "method": r.Method}))
+	defer timer.ObserveDuration()
+
+	vars := mux.Vars(r)
+	ids := vars["freelancerID"]
+	id, err := strconv.Atoi(ids)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetContracts<-strconv.Atoi()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+	freelancerID := int64(id)
+
+	publicContracts , err := h.ContractUsecase.GetClosedContracts(freelancerID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleGetContracts<-strconv.Atoi()")
+		respond.Error(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	for i, _ := range publicContracts {
+		publicContracts[i].Sanitize(h.sanitizer)
+	}
+
+	respond.Respond(w, r, http.StatusOK, publicContracts)
 }

@@ -62,7 +62,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64, inp
 		StartTime:            time.Time{},
 		EndTime:              time.Time{},
 		Status:               model.ContractStatusExpected,
-		StatusFreelancerWork: model.FreelacncerNotReady,
+		StatusFreelancerWork: model.FreelancerNotReady,
 		PaymentAmount:        input.PaymentAmount,
 		TimeEstimation:       input.TimeEstimation,
 		ClientGrade:          0,
@@ -323,4 +323,13 @@ func (u *ContractUsecase) TickWorkAsReady(user *model.User, contractID int64) er
 	err = u.contractRep.ChangeStatusWorkAsReady(contractID)
 
 	return err
+}
+
+func (u *ContractUsecase) GetClosedContracts(id int64) ([]model.PublicContractVersion, error) {
+	publicContracts , err := u.contractRep.GetClosedContracts(id)
+	if err != nil {
+		err = errors.Wrapf(err, "GetClosedContracts()")
+		return nil, err
+	}
+	return publicContracts, nil
 }

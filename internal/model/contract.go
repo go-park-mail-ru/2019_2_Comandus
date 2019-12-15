@@ -18,7 +18,7 @@ const (
 	ContractMaxGrade = 5
 
 	FreelancerReady     = "Ready"
-	FreelacncerNotReady = "NotReady"
+	FreelancerNotReady = "NotReady"
 )
 
 type Contract struct {
