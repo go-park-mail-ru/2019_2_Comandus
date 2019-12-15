@@ -34,7 +34,7 @@ type Contract struct {
 
 type ContractOutput struct {
 	Company		company_grpc.CompanyOutput
-	Freelancer	freelancer_grpc.Freelancer
+	Freelancer	freelancer_grpc.ExtendedFreelancer
 	Job      	job_grpc.Job
 	Contract 	Contract
 }
