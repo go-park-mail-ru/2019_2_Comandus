@@ -87,7 +87,7 @@ func (r *LocationRepository) FindCity(id int64) (*model.City, error) {
 			"FROM city " +
 			"INNER JOIN region " +
 			"ON region.id = city.region_id " +
-			"WHERE id = $1",
+			"WHERE city.id = $1",
 		id,
 	).Scan(
 		&city.ID,
