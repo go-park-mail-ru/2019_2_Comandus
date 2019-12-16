@@ -48,8 +48,10 @@ func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			out.Country = int64(in.Int64())
 		case "city":
 			out.City = int64(in.Int64())
-		case "proposals":
-			out.Proposals = int64(in.Int64())
+		case "minProposalCount":
+			out.MinProposals = int64(in.Int64())
+		case "maxProposalCount":
+			out.MaxProposals = int64(in.Int64())
 		case "experienceLevel":
 			if in.IsNull() {
 				in.Skip()
@@ -69,6 +71,8 @@ func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			}
 		case "desc":
 			out.Desc = bool(in.Bool())
+		case "jobTypeId":
+			out.JobType = int64(in.Int64())
 		case "limit":
 			out.Limit = int64(in.Int64())
 		default:
@@ -116,9 +120,14 @@ func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		out.Int64(int64(in.City))
 	}
 	{
-		const prefix string = ",\"proposals\":"
+		const prefix string = ",\"minProposalCount\":"
 		out.RawString(prefix)
-		out.Int64(int64(in.Proposals))
+		out.Int64(int64(in.MinProposals))
+	}
+	{
+		const prefix string = ",\"maxProposalCount\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.MaxProposals))
 	}
 	{
 		const prefix string = ",\"experienceLevel\":"
@@ -136,6 +145,11 @@ func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		const prefix string = ",\"desc\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Desc))
+	}
+	{
+		const prefix string = ",\"jobTypeId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.JobType))
 	}
 	{
 		const prefix string = ",\"limit\":"

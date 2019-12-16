@@ -191,14 +191,6 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 		params.City = -1
 	}
 
-	proposals := r.URL.Query().Get("proposals")
-	if proposals != "" {
-		params.Proposals, err = strconv.ParseInt(proposals, 10, 64)
-		if err != nil {
-			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
-		}
-	}
-
 	expLevel := r.URL.Query().Get("experienceLevel")
 	if expLevel != "" {
 		levels, err := strconv.ParseInt(expLevel, 10, 64)

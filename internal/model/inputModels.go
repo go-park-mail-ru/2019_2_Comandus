@@ -32,9 +32,11 @@ type SearchParams struct {
 	MaxPaymentAmount float64 `json:"maxPaymentAmount"`
 	Country          int64   `json:"country"`
 	City             int64   `json:"city"`
-	Proposals        int64   `json:"proposals"`
+	MinProposals     int64   `json:"minProposalCount"`
+	MaxProposals     int64   `json:"maxProposalCount"`
 	ExperienceLevel  [3]bool `json:"experienceLevel"`
 	Desc             bool    `json:"desc"`
+	JobType			 int64	 `json:"jobTypeId"`
 	Limit            int64   `json:"limit"`
 }
 

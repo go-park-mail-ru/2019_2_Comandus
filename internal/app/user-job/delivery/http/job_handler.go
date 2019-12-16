@@ -291,9 +291,17 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		params.City = -1
 	}
 
-	proposals := r.URL.Query().Get("proposals")
-	if proposals != "" {
-		params.Proposals, err = strconv.ParseInt(proposals, 10, 64)
+	minProposals := r.URL.Query().Get("minProposalCount")
+	if minProposals != "" {
+		params.MinProposals, err = strconv.ParseInt(minProposals, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	}
+
+	maxProposals := r.URL.Query().Get("maxProposalCount")
+	if maxProposals != "" {
+		params.MaxProposals, err = strconv.ParseInt(maxProposals, 10, 64)
 		if err != nil {
 			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
 		}
@@ -329,6 +337,16 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
 		}
+	}
+
+	jobType := r.URL.Query().Get("jobTypeId")
+	if jobType != "" {
+		params.JobType, err = strconv.ParseInt(jobType, 10, 64)
+		if err != nil {
+			respond.Error(w, r, http.StatusBadRequest, errors.Wrap(err, "HandleSearchJob()"))
+		}
+	} else {
+		params.JobType = -1
 	}
 
 	limit := r.URL.Query().Get("limit")
