@@ -31,8 +31,8 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 		"INSERT INTO freelancers (accountId, country, city, address, phone, tagLine, "+
 			"overview, experienceLevelId, specialityId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
 		f.AccountId,
-		f.Country,
-		f.City,
+		0,//f.Country,
+		1,//f.City,
 		f.Address,
 		f.Phone,
 		f.TagLine,
