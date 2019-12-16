@@ -27,8 +27,8 @@ func NewCompanyUsecase(c company.Repository, mClient clients.ManagerClient, cCli
 
 func (u *CompanyUsecase) Create() (*model.Company, error) {
 	c := &model.Company{}
-	c.City = -1
-	c.Country = -1
+	c.City = 1
+	c.Country = 0
 
 	if err := u.companyRep.Create(c); err != nil {
 		return nil, errors.Wrap(err, "companyRep.Create()")

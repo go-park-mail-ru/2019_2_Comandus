@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/go-park-mail-ru/2019_2_Comandus/monitoring"
 	"github.com/prometheus/client_golang/prometheus"
+	"log"
 )
 
 type JobRepository struct {
@@ -130,6 +131,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 		Labels{"rep": "job", "method": "listOnPattern"}))
 	defer timer.ObserveDuration()
 
+	log.Println(params.JobType)
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
@@ -143,11 +145,11 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 			"($4 = 0 OR J.paymentAmount >= $4) AND " +
 			"($5 = -1 OR J.country = $5) AND "+
 			"($6 = -1 OR J.city = $6) AND " +
-			"($12 = -1 OR jobTypeId = $12) AND " +
+			"($14 = -1 OR jobTypeId = $14) AND " +
 			"(($7 AND J.experienceLevelId = 0) OR ($8 AND J.experienceLevelId = 1) OR ($9 AND J.experienceLevelId = 2)) " +
 			"GROUP BY J.id "+
-			//"HAVING ($12 = 0 OR COUNT(*) >= $12) AND " +
-			//"($13 = 0 OR COUNT(*) <= $13) "+
+			"HAVING ($12 = 0 OR COUNT(*) >= $12) AND " +
+			"($13 = 0 OR COUNT(*) <= $13) "+
 			"ORDER BY "+
 			"CASE WHEN $10 THEN J.id END DESC, "+
 			"CASE WHEN NOT $10 THEN J.id END ASC "+
@@ -160,8 +162,8 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 		params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
 		params.Desc,
 		params.Limit,
-		//params.MinProposals,
-		//params.MaxProposals,
+		params.MinProposals,
+		params.MaxProposals,
 		params.JobType)
 	if err != nil {
 		return nil, err
