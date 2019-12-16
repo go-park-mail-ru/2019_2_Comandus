@@ -23,7 +23,7 @@ func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
 	f := &model.Freelancer{
 		AccountId: userId,
 		Country:0,
-		City:0,
+		City:1,
 	}
 
 	if err := u.freelancerRep.Create(f); err != nil {
