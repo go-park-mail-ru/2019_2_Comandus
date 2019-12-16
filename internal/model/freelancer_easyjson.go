@@ -36,27 +36,27 @@ func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			continue
 		}
 		switch key {
-		case "ID":
+		case "id":
 			out.ID = int64(in.Int64())
-		case "AccountId":
+		case "accountId":
 			out.AccountId = int64(in.Int64())
-		case "Country":
+		case "country":
 			out.Country = string(in.String())
-		case "City":
+		case "city":
 			out.City = string(in.String())
-		case "Address":
+		case "address":
 			out.Address = string(in.String())
-		case "Phone":
+		case "phone":
 			out.Phone = string(in.String())
-		case "TagLine":
+		case "tagline":
 			out.TagLine = string(in.String())
-		case "Overview":
+		case "overview":
 			out.Overview = string(in.String())
-		case "ExperienceLevelId":
+		case "experienceLevelId":
 			out.ExperienceLevelId = int64(in.Int64())
-		case "SpecialityId":
-			out.SpecialityId = int64(in.Int64())
-		case "Avatar":
+		case "specialityId":
+			out.SpecialityId = int64(in.Int64Str())
+		case "avatar":
 			out.Avatar = string(in.String())
 		default:
 			in.SkipRecursive()
@@ -73,57 +73,57 @@ func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"ID\":"
+		const prefix string = ",\"id\":"
 		out.RawString(prefix[1:])
 		out.Int64(int64(in.ID))
 	}
 	{
-		const prefix string = ",\"AccountId\":"
+		const prefix string = ",\"accountId\":"
 		out.RawString(prefix)
 		out.Int64(int64(in.AccountId))
 	}
 	{
-		const prefix string = ",\"Country\":"
+		const prefix string = ",\"country\":"
 		out.RawString(prefix)
 		out.String(string(in.Country))
 	}
 	{
-		const prefix string = ",\"City\":"
+		const prefix string = ",\"city\":"
 		out.RawString(prefix)
 		out.String(string(in.City))
 	}
 	{
-		const prefix string = ",\"Address\":"
+		const prefix string = ",\"address\":"
 		out.RawString(prefix)
 		out.String(string(in.Address))
 	}
 	{
-		const prefix string = ",\"Phone\":"
+		const prefix string = ",\"phone\":"
 		out.RawString(prefix)
 		out.String(string(in.Phone))
 	}
 	{
-		const prefix string = ",\"TagLine\":"
+		const prefix string = ",\"tagline\":"
 		out.RawString(prefix)
 		out.String(string(in.TagLine))
 	}
 	{
-		const prefix string = ",\"Overview\":"
+		const prefix string = ",\"overview\":"
 		out.RawString(prefix)
 		out.String(string(in.Overview))
 	}
 	{
-		const prefix string = ",\"ExperienceLevelId\":"
+		const prefix string = ",\"experienceLevelId\":"
 		out.RawString(prefix)
 		out.Int64(int64(in.ExperienceLevelId))
 	}
 	{
-		const prefix string = ",\"SpecialityId\":"
+		const prefix string = ",\"specialityId\":"
 		out.RawString(prefix)
-		out.Int64(int64(in.SpecialityId))
+		out.Int64Str(int64(in.SpecialityId))
 	}
 	{
-		const prefix string = ",\"Avatar\":"
+		const prefix string = ",\"avatar\":"
 		out.RawString(prefix)
 		out.String(string(in.Avatar))
 	}
