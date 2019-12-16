@@ -41,6 +41,6 @@ type SearchParams struct {
 }
 
 type ContractInput struct {
-	PaymentAmount  float32 `json:"paymentAmount"`
+	PaymentAmount  float32 `json:"paymentAmount, string"`
 	TimeEstimation int     `json:"timeEstimation"`
 }
