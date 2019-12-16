@@ -135,15 +135,15 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
 			"J.country, J.city, J.jobTypeId, J.date, J.status "+
 			"FROM jobs AS J " +
-			"JOIN responses AS R " +
+			"LEFT OUTER JOIN responses AS R " +
 			"ON J.id = R.jobId " +
 			"WHERE LOWER(J.title) like '%' || LOWER($1) || '%' AND " +
-			"J.status <> $2 AND " +
+			"J.status != $2 AND " +
 			"($3 = 0 OR J.paymentAmount <= $3) AND " +
 			"($4 = 0 OR J.paymentAmount >= $4) AND " +
 			"($5 = -1 OR J.country = $5) AND "+
 			"($6 = -1 OR J.city = $6) AND " +
-			//"($14 = -1 OR jobTypeId = $14) AND " +
+			"($14 = -1 OR jobTypeId = $14) AND " +
 			"(($7 AND J.experienceLevelId = 0) OR ($8 AND J.experienceLevelId = 1) OR ($9 AND J.experienceLevelId = 2)) " +
 			"GROUP BY J.id "+
 			"HAVING ($12 = 0 OR COUNT(*) >= $12) AND " +
@@ -161,8 +161,8 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 		params.Desc,
 		params.Limit,
 		params.MinProposals,
-		params.MaxProposals)
-		//params.JobType)
+		params.MaxProposals,
+		params.JobType)
 	if err != nil {
 		return nil, err
 	}
