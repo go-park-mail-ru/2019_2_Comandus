@@ -28,8 +28,8 @@ func (r *CompanyRepository) Create(company *model.Company) error {
 		company.Site,
 		company.TagLine,
 		company.Description,
-		0,//company.Country,
-		1,//company.City,
+		company.Country,
+		company.City,
 		company.Address,
 		company.Phone,
 	).Scan(&company.ID)

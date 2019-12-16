@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"log"
 )
 
 type FreelancerUsecase struct {
@@ -39,16 +40,20 @@ func (u *FreelancerUsecase) InsertLocation(freelancer *model.Freelancer) (*model
 		return nil, errors.Wrap(err, "clients.GetCountry()")
 	}
 
-	city, err := u.locationClient.GetCity(freelancer.City)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.GetCity()")
+	city := "не задано"
+	if freelancer.City != 0 {
+		grpccity, err := u.locationClient.GetCity(freelancer.City)
+		if err != nil {
+			return nil, errors.Wrap(err, "clients.GetCity()")
+		}
+		city = grpccity.Name
 	}
 
 	res := &model.FreelancerOutput{
 		ID:                freelancer.ID,
 		AccountId:         freelancer.AccountId,
 		Country:           country.Name,
-		City:              city.Name,
+		City:              city,
 		Address:           freelancer.Address,
 		Phone:             freelancer.Phone,
 		TagLine:           freelancer.TagLine,
@@ -79,6 +84,8 @@ func (u *FreelancerUsecase) Find(id int64) (*model.ExtendedOutputFreelancer, err
 	if err != nil {
 		return nil, errors.Wrapf(err, "freelancerRep.Find()")
 	}
+
+	log.Println(f.F)
 
 	ouF, err := u.InsertLocation(f.F)
 	exOuFreelancer := &model.ExtendedOutputFreelancer{

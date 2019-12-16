@@ -114,7 +114,7 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	/*currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
 		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile()")
 		respond.Error(w, r, http.StatusUnauthorized, err)
@@ -123,9 +123,9 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 
 	combined := combined{
 		freelancer: currFreelancer.OuFreel,
-		user:       currUser,
-	}
-	respond.Respond(w, r, http.StatusOK, combined)
+		user:       nil,
+	}*/
+	respond.Respond(w, r, http.StatusOK, currFreelancer)
 }
 
 func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *http.Request) {

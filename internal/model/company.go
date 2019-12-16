@@ -16,15 +16,15 @@ type Company struct {
 }
 
 type CompanyOutput struct {
-	ID          int64
-	CompanyName string
-	Site        string
-	TagLine     string
-	Description string
-	Country     string
-	City        string
-	Address     string
-	Phone       string
+	ID          int64	`json:"id"`
+	CompanyName string	`json:"companyName"`
+	Site        string	`json:"Site"`
+	TagLine     string	`json:"tagLine"`
+	Description string	`json:"description"`
+	Country     string	`json:"country"`
+	City        string	`json:"city"`
+	Address     string	`json:"address"`
+	Phone       string	`json:"phone"`
 }
 
 func (comp *Company) Sanitize(sanitizer *bluemonday.Policy) {

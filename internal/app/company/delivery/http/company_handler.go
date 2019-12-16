@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -105,6 +106,9 @@ func (h *CompanyHandler) HandleGetCompany(w http.ResponseWriter, r *http.Request
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
+
+	currCompany.CompanyName = "КОМПАНИЯ"
+	log.Println(currCompany)
 
 	respond.Respond(w, r, http.StatusOK, currCompany)
 }

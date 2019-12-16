@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
+	"log"
 )
 
 const (
@@ -41,7 +42,7 @@ func (u *CompanyUsecase) InsertLocation(company *model.Company) (*model.CompanyO
 	country := NOT_SET
 	city := NOT_SET
 
-	if company.City != -1 && company.Country != -1 {
+	if company.City != -1 && company.Country != -1 && company.City != 0 {
 		grpcCountry, err := u.locationClient.GetCountry(company.Country)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCountry()")
@@ -66,6 +67,7 @@ func (u *CompanyUsecase) InsertLocation(company *model.Company) (*model.CompanyO
 		Address:     company.Address,
 		Phone:       company.Phone,
 	}
+	log.Println(res)
 	return res, nil
 }
 
@@ -79,6 +81,7 @@ func (u *CompanyUsecase) Find(id int64) (*model.CompanyOutput, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "InsertLocation()")
 	}
+	log.Println(res)
 
 	return res, nil
 }
