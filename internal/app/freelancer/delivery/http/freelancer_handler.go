@@ -135,15 +135,10 @@ func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *ht
 		Labels{"path": "search/freelancer", "method": r.Method}))
 	defer timer.ObserveDuration()
 
-	pattern := r.URL.Query().Get("q")
-	if pattern == "" {
-		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchJob()")
-		respond.Error(w, r, http.StatusBadRequest, err)
-	}
-
 
 	var err error
 	params := new(model.SearchParams)
+	pattern := r.URL.Query().Get("q")
 	minGrade := r.URL.Query().Get("minGrade")
 	if minGrade != "" {
 		params.MinGrade, err = strconv.ParseInt(minGrade, 10, 64)

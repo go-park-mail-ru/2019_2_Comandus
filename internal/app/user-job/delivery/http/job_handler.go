@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -237,15 +236,8 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 		Labels{"path": "/search/jobs", "method": r.Method}))
 	defer timer.ObserveDuration()
 
-	pattern := r.URL.Query().Get("q")
-	if pattern == "" {
-		log.Println("HERE")
-		err := errors.Wrapf(errors.New("No search pattern"), "HandleSearchJob()")
-		respond.Error(w, r, http.StatusBadRequest, err)
-	}
-
-
 	var err error
+	pattern := r.URL.Query().Get("q")
 	params := new(model.SearchParams)
 	minGrade := r.URL.Query().Get("minGrade")
 	if minGrade != "" {
