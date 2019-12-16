@@ -35,10 +35,10 @@ type SearchParams struct {
 	Proposals        int64   `json:"proposals"`
 	ExperienceLevel  [3]bool `json:"experienceLevel"`
 	Desc             bool    `json:"desc"`
-	Limit			 int64	 `json:"limit"`
+	Limit            int64   `json:"limit"`
 }
 
 type ContractInput struct {
-	PaymentAmount float32
-	TimeEstimation int
+	PaymentAmount  float32 `json:"paymentAmount"`
+	TimeEstimation int     `json:"timeEstimation"`
 }

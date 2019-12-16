@@ -425,8 +425,10 @@ func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *
 			continue
 		}
 		switch key {
-		case "PaymentAmount":
+		case "paymentAmount":
 			out.PaymentAmount = float32(in.Float32())
+		case "timeEstimation":
+			out.TimeEstimation = int(in.Int())
 		default:
 			in.SkipRecursive()
 		}
@@ -442,9 +444,14 @@ func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel4(out 
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"PaymentAmount\":"
+		const prefix string = ",\"paymentAmount\":"
 		out.RawString(prefix[1:])
 		out.Float32(float32(in.PaymentAmount))
+	}
+	{
+		const prefix string = ",\"timeEstimation\":"
+		out.RawString(prefix)
+		out.Int(int(in.TimeEstimation))
 	}
 	out.RawByte('}')
 }
