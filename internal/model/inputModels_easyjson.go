@@ -50,7 +50,7 @@ func easyjsonA384fcacDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			out.City = int64(in.Int64())
 		case "minProposalCount":
 			out.MinProposals = int64(in.Int64())
-		case "maxProposalCount":
+		case "smaxProposalCount":
 			out.MaxProposals = int64(in.Int64())
 		case "experienceLevel":
 			if in.IsNull() {
@@ -125,7 +125,7 @@ func easyjsonA384fcacEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		out.Int64(int64(in.MinProposals))
 	}
 	{
-		const prefix string = ",\"maxProposalCount\":"
+		const prefix string = ",\"smaxProposalCount\":"
 		out.RawString(prefix)
 		out.Int64(int64(in.MaxProposals))
 	}
