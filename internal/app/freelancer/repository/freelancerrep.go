@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	PATH2AVATAR = "https://89.208.211.100:8080/account/avatar/"
+	PATH2AVATAR = "https://api.fwork.live/account/avatar/"
 )
 
 type FreelancerRepository struct {

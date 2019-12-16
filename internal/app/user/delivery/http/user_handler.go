@@ -245,14 +245,14 @@ func (h *UserHandler) HandleGetAvatar(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	ids := vars["id"]
-	id, err := strconv.Atoi(ids)
+	id, err := strconv.ParseInt(ids, 10, 64)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetAvatar<-Atoi(wrong id)")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	currUser, err := h.UserUsecase.Find(int64(id))
+	currUser, err := h.UserUsecase.Find(id)
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetAvatar<-UserUseCase.Find()")
 		respond.Error(w, r, http.StatusNotFound, err)
