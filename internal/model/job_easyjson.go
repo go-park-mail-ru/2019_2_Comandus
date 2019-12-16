@@ -57,7 +57,7 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		case "city":
 			out.City = int64(in.Int64())
 		case "jobTypeId":
-			out.JobTypeId = int64(in.Int64Str())
+			out.JobTypeId = int64(in.Int64())
 		case "date":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.Date).UnmarshalJSON(data))
@@ -131,7 +131,7 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 	{
 		const prefix string = ",\"jobTypeId\":"
 		out.RawString(prefix)
-		out.Int64Str(int64(in.JobTypeId))
+		out.Int64(int64(in.JobTypeId))
 	}
 	{
 		const prefix string = ",\"date\":"

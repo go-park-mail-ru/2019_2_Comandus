@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -66,6 +67,8 @@ func (h *JobHandler) HandleCreateJob(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
+
+	log.Println(job)
 
 	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
 	if !ok {
