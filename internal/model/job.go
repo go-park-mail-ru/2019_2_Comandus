@@ -24,7 +24,7 @@ type Job struct {
 	PaymentAmount     float32   `json:"paymentAmount,string" valid:"float"`
 	Country           int64     `json:"country" valid:"utfletternum, optional"`
 	City              int64     `json:"city" valid:"utfletternum, optional"`
-	JobTypeId         int64     `json:"jobTypeId" valid:"int, optional"`
+	JobTypeId         int64     `json:"jobTypeId,string" valid:"int, optional"`
 	Date              time.Time `json:"date"`
 	Status            string    `json:"status,string"`
 }
