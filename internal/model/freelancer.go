@@ -19,17 +19,19 @@ type Freelancer struct {
 }
 
 type FreelancerOutput struct {
-	ID                int64
-	AccountId         int64
-	Country           string
-	City              string
-	Address           string
-	Phone             string
-	TagLine           string
-	Overview          string
-	ExperienceLevelId int64
-	SpecialityId      int64
-	Avatar            string
+	ID                int64  `json:"id" valid:"int, optional"`
+	AccountId         int64  `json:"accountId" valid:"int, optional"`
+	Country           string `json:"country" valid:"utfletter"`
+	City              string `json:"city" valid:"utfletter"`
+	Address           string `json:"address" valid:"-"`
+	Phone             string `json:"phone" valid:"-"`
+	TagLine           string `json:"tagline" valid:"-"`
+	Overview          string `json:"overview" valid:"-"`
+	ExperienceLevelId int64  `json:"experienceLevelId" valid:"in(1|2|3)"`
+	SpecialityId      int64  `json:"specialityId,string" valid:"int"`
+	Avatar            string `json:"avatar"`
+}
+
 }
 
 func (freel *Freelancer) Sanitize(sanitizer *bluemonday.Policy) {
