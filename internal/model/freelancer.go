@@ -32,8 +32,6 @@ type FreelancerOutput struct {
 	Avatar            string `json:"avatar"`
 }
 
-}
-
 func (freel *Freelancer) Sanitize(sanitizer *bluemonday.Policy) {
 	freel.Address = sanitizer.Sanitize(freel.Address)
 	freel.Phone = sanitizer.Sanitize(freel.Phone)
