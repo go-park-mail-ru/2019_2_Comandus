@@ -1,16 +1,16 @@
 language: go
-
 script:
-  - make build
-  - eval "$(ssh-agent -s)"
-  - ssh-keyscan -H 89.208.211.100 >> ~/.ssh/known_hosts
-  - chmod 600 $HOME/.ssh/2019-2-Comandus-OINib2To.pem
-  - ssh-add $HOME/.ssh/2019-2-Comandus-OINib2To.pem
-  - travis_wait 20 scp -r ./ ubuntu@89.208.211.100:/home/ubuntu/BACKEND_Comandus
+- make build
+- eval "$(ssh-agent -s)"
+- ssh-keyscan -H 89.208.211.100 >> ~/.ssh/known_hosts
+- chmod 600 $HOME/.ssh/2019-2-Comandus-OINib2To.pem
+- ssh-add $HOME/.ssh/2019-2-Comandus-OINib2To.pem
+- travis_wait 20 scp -r ./ ubuntu@89.208.211.100:/home/ubuntu/BACKEND_Comandus
 before_install:
-  - openssl aes-256-cbc -K $encrypted_82ca6721a7b1_key -iv $encrypted_82ca6721a7b1_iv
-    -in 2019-2-Comandus-OINib2To.pem.enc -out $HOME/.ssh/2019-2-Comandus-OINib2To.pem -d
+- openssl aes-256-cbc -K $encrypted_98616fd44d5e_key -iv $encrypted_98616fd44d5e_iv
+  -in 2019-2-Comandus-OINib2To.pem.enc -out $HOME/.ssh/2019-2-Comandus-OINib2To.pem
+  -d
 branches:
   only:
-    - master
-    - devW
+  - master
+  - dev
