@@ -18,7 +18,7 @@ type Company struct {
 type CompanyOutput struct {
 	ID          int64	`json:"id"`
 	CompanyName string	`json:"companyName"`
-	Site        string	`json:"Site"`
+	Site        string	`json:"site"`
 	TagLine     string	`json:"tagLine"`
 	Description string	`json:"description"`
 	Country     string	`json:"country"`

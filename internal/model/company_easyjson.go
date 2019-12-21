@@ -40,7 +40,7 @@ func easyjson4b608a57DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			out.ID = int64(in.Int64())
 		case "companyName":
 			out.CompanyName = string(in.String())
-		case "Site":
+		case "site":
 			out.Site = string(in.String())
 		case "tagLine":
 			out.TagLine = string(in.String())
@@ -79,7 +79,7 @@ func easyjson4b608a57EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		out.String(string(in.CompanyName))
 	}
 	{
-		const prefix string = ",\"Site\":"
+		const prefix string = ",\"site\":"
 		out.RawString(prefix)
 		out.String(string(in.Site))
 	}

@@ -95,9 +95,9 @@ func (u *CompanyUsecase) Edit(userID int64, company *model.Company) (*model.Comp
 	editedCompany := &model.Company{
 		ID:          m.CompanyId,
 		CompanyName: company.CompanyName,
-		Site:        "",
-		TagLine:     "",
-		Description: "",
+		Site:        company.Site,
+		TagLine:     company.TagLine,
+		Description: company.Description,
 		Country:     company.Country,
 		City:        company.City,
 		Address:     company.Address,
