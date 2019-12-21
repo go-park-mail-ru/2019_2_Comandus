@@ -2,7 +2,7 @@ package clients
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/grpc/response_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/proposal/delivery/grpc/response_grpc"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"log"

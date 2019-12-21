@@ -5,7 +5,7 @@
 package client_mocks
 
 import (
-	response_grpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-response/delivery/grpc/response_grpc"
+	response_grpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/proposal/delivery/grpc/response_grpc"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

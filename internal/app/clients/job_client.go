@@ -2,7 +2,7 @@ package clients
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/grpc/job_grpc"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/delivery/grpc/job_grpc"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"log"
@@ -40,4 +40,18 @@ func (c *JobClient) GetJobFromServer(id int64) (*job_grpc.Job, error) {
 	}
 
 	return currJob, nil
+}
+
+func (c *JobClient) GetUserIDByJobID(jobid int64) (int64, error) {
+	client := job_grpc.NewJobHandlerClient(c.conn)
+	jobReq := &job_grpc.JobID{
+		ID: jobid,
+	}
+
+	uID, err := client.GetUserIDFromJobID(context.Background(), jobReq)
+	if err != nil {
+		return -1 , errors.Wrap(err, "userRep.Find()")
+	}
+
+	return uID.ID, nil
 }

@@ -6,7 +6,7 @@ import (
 	json "encoding/json"
 	company_grpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc/company_grpc"
 	freelancer_grpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc/freelancer_grpc"
-	job_grpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user-job/delivery/grpc/job_grpc"
+	job_grpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/delivery/grpc/job_grpc"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
@@ -45,7 +45,7 @@ func easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 		case "Freelancer":
 			easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalAppFreelancerDeliveryGrpcFreelancerGrpc(in, &out.Freelancer)
 		case "Job":
-			easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalAppUserJobDeliveryGrpcJobGrpc(in, &out.Job)
+			easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalAppJobDeliveryGrpcJobGrpc(in, &out.Job)
 		case "Contract":
 			(out.Contract).UnmarshalEasyJSON(in)
 		default:
@@ -75,7 +75,7 @@ func easyjson42340b0aEncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 	{
 		const prefix string = ",\"Job\":"
 		out.RawString(prefix)
-		easyjson42340b0aEncodeGithubComGoParkMailRu20192ComandusInternalAppUserJobDeliveryGrpcJobGrpc(out, in.Job)
+		easyjson42340b0aEncodeGithubComGoParkMailRu20192ComandusInternalAppJobDeliveryGrpcJobGrpc(out, in.Job)
 	}
 	{
 		const prefix string = ",\"Contract\":"
@@ -108,7 +108,7 @@ func (v *ContractOutput) UnmarshalJSON(data []byte) error {
 func (v *ContractOutput) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalModel(l, v)
 }
-func easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalAppUserJobDeliveryGrpcJobGrpc(in *jlexer.Lexer, out *job_grpc.Job) {
+func easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalAppJobDeliveryGrpcJobGrpc(in *jlexer.Lexer, out *job_grpc.Job) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -171,7 +171,7 @@ func easyjson42340b0aDecodeGithubComGoParkMailRu20192ComandusInternalAppUserJobD
 		in.Consumed()
 	}
 }
-func easyjson42340b0aEncodeGithubComGoParkMailRu20192ComandusInternalAppUserJobDeliveryGrpcJobGrpc(out *jwriter.Writer, in job_grpc.Job) {
+func easyjson42340b0aEncodeGithubComGoParkMailRu20192ComandusInternalAppJobDeliveryGrpcJobGrpc(out *jwriter.Writer, in job_grpc.Job) {
 	out.RawByte('{')
 	first := true
 	_ = first
