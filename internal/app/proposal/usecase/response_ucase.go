@@ -43,6 +43,9 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 	}
 
 	IsResponseYet, err := u.responseRep.CheckForHavingResponse(jobId, currFreelancer.ID)
+	if err != nil {
+		return  errors.Wrap(err, "GetUserIDByJobID()")
+	}
 
 	if IsResponseYet {
 		return errors.New("Вы уже откликались, дождитесь ответа от заказчика")

@@ -210,7 +210,7 @@ func (r *ResponseRepository) CheckForHavingResponse(jobID int64, freelID int64) 
 	err := r.db.QueryRow(
 		"SELECT COUNT(*)"+
 			"FROM responses"+
-			"WHERE jobid = $1 AND freelancerid = $2 AND statusManager = 'review' ",
+			"WHERE jobid = $1 AND freelancerid = $2 AND statusManager = 'REVIEW' ",
 		jobID, freelID).Scan(&count)
 	if err != nil {
 		return false, err
