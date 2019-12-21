@@ -208,8 +208,8 @@ func (r *ResponseRepository) ListResponsesOnJobID(jobID int64) ([]model.ExtendRe
 func (r *ResponseRepository) CheckForHavingResponse(jobID int64, freelID int64) (bool, error) {
 	var count int
 	err := r.db.QueryRow(
-		"SELECT COUNT(*)"+
-			"FROM responses"+
+		"SELECT COUNT(*) "+
+			"FROM responses "+
 			"WHERE jobid = $1 AND freelancerid = $2 AND statusManager = 'REVIEW' ",
 		jobID, freelID).Scan(&count)
 	if err != nil {

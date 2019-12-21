@@ -90,7 +90,7 @@ func (h *ResponseHandler) HandleResponseJob(w http.ResponseWriter, r *http.Reque
 
 	if err := h.ResponseUsecase.CreateResponse(u, response, jobId); err != nil {
 		err := errors.Wrapf(err, "HandleResponseJob<-UCase.CreateResponse()")
-		respond.Error(w, r, http.StatusUnauthorized, err)
+		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
