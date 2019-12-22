@@ -42,7 +42,7 @@ func easyjson4b608a57DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			out.CompanyName = string(in.String())
 		case "site":
 			out.Site = string(in.String())
-		case "tagLine":
+		case "tagline":
 			out.TagLine = string(in.String())
 		case "description":
 			out.Description = string(in.String())
@@ -84,7 +84,7 @@ func easyjson4b608a57EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		out.String(string(in.Site))
 	}
 	{
-		const prefix string = ",\"tagLine\":"
+		const prefix string = ",\"tagline\":"
 		out.RawString(prefix)
 		out.String(string(in.TagLine))
 	}
