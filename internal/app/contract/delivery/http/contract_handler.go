@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -82,6 +83,7 @@ func (h *ContractHandler) HandleCreateContract(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	log.Println(input)
 
 	vars := mux.Vars(r)
 	ids := vars["id"]

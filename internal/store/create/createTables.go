@@ -94,7 +94,9 @@ func CreateTables(db *sql.DB) error {
 		date timestamp not null,
 		statusManager varchar not null,
 		statusFreelancer varchar not null,
-		paymentAmount decimal(8,2) not null 
+		paymentAmount decimal(8,2) not null,
+		coverletter varchar, 
+    	timeestimation varchar
 	);`
 	if _, err := db.Exec(responsesQuery); err != nil {
 		return err
@@ -114,7 +116,7 @@ func CreateTables(db *sql.DB) error {
 		freelancerGrade int,
 		freelancerComment varchar,
 		paymentAmount decimal(8,2) not null,
-		timeestimation integer not null
+		timeestimation integer not null                           
 	);`
 	if _, err := db.Exec(contractsQuery); err != nil {
 		return err
