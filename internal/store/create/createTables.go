@@ -163,3 +163,32 @@ func dropAllTables(db *sql.DB) error {
 
 	return nil
 }
+
+func CreateChatTables(db *sql.DB) error {
+
+	chatsQuery := `CREATE TABLE IF NOT EXISTS chats (
+		id bigserial not null primary key,
+		name varchar,
+		user_id integer not null,
+		support_id integer
+	);`
+
+	if _, err := db.Exec(chatsQuery); err != nil {
+		return err
+	}
+
+	messagesQuery := `CREATE TABLE IF NOT EXISTS messages (
+		id bigserial not null primary key,
+		chat_id integer not null, 
+		sender_id integer not null,
+		receiver_id integer,
+		message varchar,
+		date timestamp
+	);`
+
+	if _, err := db.Exec(messagesQuery); err != nil {
+		return err
+	}
+
+	return nil
+}

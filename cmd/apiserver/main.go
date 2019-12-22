@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	apiserver "github.com/go-park-mail-ru/2019_2_Comandus/internal/app"
+	apichat "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app"
 	"log"
 )
 
@@ -19,6 +20,12 @@ func init() {
 
 func main() {
 	//flag.Parse()
+	go func() {
+		if err := apichat.Start(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	if err := apiserver.Start(); err != nil {
 		log.Fatal(err)
 	}
