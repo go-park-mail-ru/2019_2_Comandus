@@ -27,6 +27,7 @@ type Job struct {
 	JobTypeId         int64     `json:"jobTypeId,string" valid:"int, optional"`
 	Date              time.Time `json:"date"`
 	Status            string    `json:"status,string"`
+	TagLine			  string	`json:"tagLine"`
 }
 
 func (j *Job) IsEqual(job Job) bool {

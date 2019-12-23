@@ -72,7 +72,8 @@ func CreateTables(db *sql.DB) error {
 		city integer,
 		jobTypeId bigserial,
 		date timestamp,
-		status varchar
+		status varchar,
+		tagLine varchar
 	);`
 	if _, err := db.Exec(jobsQuery); err != nil {
 		return err
