@@ -26,7 +26,8 @@ func (r *JobRepository) Create(j *model.Job) error {
 
 	return r.db.QueryRow(
 		"INSERT INTO jobs (managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-			"country, city, jobTypeId, date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
+			"country, city, jobTypeId, date, status, tagLine) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, " +
+			"$11, $12, $13) RETURNING id",
 		j.HireManagerId,
 		j.Title,
 		j.Description,
@@ -39,6 +40,7 @@ func (r *JobRepository) Create(j *model.Job) error {
 		j.JobTypeId,
 		j.Date,
 		j.Status,
+		j.TagLine,
 	).Scan(&j.ID)
 }
 
@@ -50,7 +52,7 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 	j := &model.Job{}
 	if err := r.db.QueryRow(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-			"country, city, jobTypeId, date, status FROM jobs WHERE id = $1 AND status != $2",
+			"country, city, jobTypeId, date, status, tagLine FROM jobs WHERE id = $1 AND status != $2",
 		id,
 		model.JobStateDeleted,
 	).Scan(
@@ -67,6 +69,7 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 		&j.JobTypeId,
 		&j.Date,
 		&j.Status,
+		&j.TagLine,
 	); err != nil {
 		return nil, err
 	}
@@ -80,7 +83,7 @@ func (r *JobRepository) Edit(j *model.Job) error {
 
 	return r.db.QueryRow("UPDATE jobs SET title = $1, description = $2, files = $3, "+
 		"specialityId = $4, experienceLevelId = $5, paymentAmount = $6, country = $7, city = $8, "+
-		"jobTypeId = $9, status = $10 WHERE id = $11 RETURNING id",
+		"jobTypeId = $9, status = $10, tagLine = $11 WHERE id = $12 RETURNING id",
 		j.Title,
 		j.Description,
 		j.Files,
@@ -91,6 +94,7 @@ func (r *JobRepository) Edit(j *model.Job) error {
 		j.City,
 		j.JobTypeId,
 		j.Status,
+		j.TagLine,
 		j.ID,
 	).Scan(&j.ID)
 }
@@ -103,7 +107,7 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-			"country, city, jobTypeId, date, status "+
+			"country, city, jobTypeId, date, status, tagLine "+
 			"FROM jobs WHERE status != $1 "+
 			"ORDER BY id DESC LIMIT 20",
 		model.JobStateDeleted)
@@ -115,7 +119,7 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	for rows.Next() {
 		j := model.Job{}
 		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
-			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status)
+			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status, &j.TagLine)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +140,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
-			"J.country, J.city, J.jobTypeId, J.date, J.status "+
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine "+
 			"FROM jobs AS J " +
 			"LEFT OUTER JOIN responses AS R " +
 			"ON J.id = R.jobId " +
@@ -174,7 +178,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 	for rows.Next() {
 		j := model.Job{}
 		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
-			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status)
+			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status, &j.TagLine)
 		if err != nil {
 			return nil, err
 		}
@@ -194,7 +198,7 @@ func (r *JobRepository) ListMyJobs(managerID int64) ([]model.Job, error) {
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-			"country, city, jobTypeId, date, status FROM jobs AS j "+
+			"country, city, jobTypeId, date, status, tagLine FROM jobs AS j "+
 			"WHERE status != $1 AND managerid = $2 ORDER BY id DESC",
 		model.JobStateDeleted,
 		managerID,
@@ -206,7 +210,7 @@ func (r *JobRepository) ListMyJobs(managerID int64) ([]model.Job, error) {
 	for rows.Next() {
 		j := model.Job{}
 		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
-			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status)
+			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status, &j.TagLine)
 		if err != nil {
 			return nil, err
 		}
@@ -218,6 +222,7 @@ func (r *JobRepository) ListMyJobs(managerID int64) ([]model.Job, error) {
 	return jobs, nil
 }
 
+// ?
 func (r *JobRepository) GetUserIDByJobID(jobID int64) (int64, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 	Labels{"rep": "job", "method": "GetUserIDByJobID"}))
