@@ -2,8 +2,6 @@ package chat_app
 
 import (
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat"
 	chat_rep "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/repository"
 	chat_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/usecase"
@@ -17,7 +15,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// Chat server.
 type Server struct {
 	pattern		string
 	clients		map[int]*Client
@@ -31,7 +28,6 @@ type Server struct {
 	ChatUcase	chat.Usecase
 }
 
-// Create new app server.
 func NewServer(pattern string, db *sql.DB) *Server {
 	clients := make(map[int]*Client)
 	addCh := make(chan *Client)
@@ -89,13 +85,9 @@ func (s *Server) sendAll(msg *model.Message) {
 	}
 }
 
-// Listen and serve.
-// It serves client connection and broadcast request.
 func (s *Server) Listen() {
-
 	log.Println("Listening server...")
 
-	// websocket handler
 	onConnected := func(ws *websocket.Conn) {
 		defer func() {
 			err := ws.Close()
@@ -111,25 +103,18 @@ func (s *Server) Listen() {
 	http.Handle(s.pattern, websocket.Handler(onConnected))
 
 	log.Println("Created handler")
-
 	for {
 		select {
 
-		// Add new a client
 		case c := <-s.addCh:
 			log.Println("Added new client")
-			if len(s.clients) == 2 {
-				s.Err(errors.New("only 2 users can be in chat_app"))
-			}
 			s.clients[c.id] = c
 			log.Println("Now", len(s.clients), "clients connected.")
 			//s.sendPastMessages(c)
 
-		// del a client
 		case c := <-s.delCh:
 			delete(s.clients, c.id)
 
-		// broadcast message for all clients
 		case msg := <-s.sendAllCh:
 			if err := s.MesUcase.Create(msg); err != nil {
 				log.Println(err)
@@ -142,13 +127,5 @@ func (s *Server) Listen() {
 		case <-s.doneCh:
 			return
 		}
-	}
-}
-
-func (s *Server) MainHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	str := "hello from server"
-	if &str != nil {
-		_ = json.NewEncoder(w).Encode(&str)
 	}
 }
