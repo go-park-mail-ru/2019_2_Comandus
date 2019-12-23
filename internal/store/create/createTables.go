@@ -94,7 +94,9 @@ func CreateTables(db *sql.DB) error {
 		date timestamp not null,
 		statusManager varchar not null,
 		statusFreelancer varchar not null,
-		paymentAmount decimal(8,2) not null 
+		paymentAmount decimal(8,2) not null,
+		coverletter varchar, 
+    	timeestimation varchar
 	);`
 	if _, err := db.Exec(responsesQuery); err != nil {
 		return err
@@ -114,7 +116,7 @@ func CreateTables(db *sql.DB) error {
 		freelancerGrade int,
 		freelancerComment varchar,
 		paymentAmount decimal(8,2) not null,
-		timeestimation integer not null
+		timeestimation integer not null                           
 	);`
 	if _, err := db.Exec(contractsQuery); err != nil {
 		return err
@@ -156,6 +158,36 @@ func dropAllTables(db *sql.DB) error {
 
 	query = `DROP TABLE IF EXISTS contracts;`
 	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateChatTables(db *sql.DB) error {
+
+	chatsQuery := `CREATE TABLE IF NOT EXISTS chats (
+		id bigserial not null primary key,
+		name varchar,
+		user_id integer not null,
+		support_id integer
+	);`
+
+	if _, err := db.Exec(chatsQuery); err != nil {
+		return err
+	}
+
+	messagesQuery := `CREATE TABLE IF NOT EXISTS messages (
+		id bigserial not null primary key,
+		chat_id integer not null, 
+		sender_id integer not null,
+		receiver_id integer,
+		message varchar,
+		date timestamp,
+		is_read boolean
+	);`
+
+	if _, err := db.Exec(messagesQuery); err != nil {
 		return err
 	}
 
