@@ -6,13 +6,21 @@ service AuthHandler {
     rpc VerifyUser(UserRequest) returns (UserID);
 }
 
-message UserID {
-    int64 ID=1;
-}
-
 message UserRequest {
     string email=1;
     string password=2;
+}
+
+message HttpError {
+    int32 HttpCode=1;
+    string LogError=2;
+    string ClientError=3;
+}
+
+
+message UserID {
+    int64 ID=1;
+    HttpError err=2;
 }
 
 message User {
@@ -28,4 +36,5 @@ message User {
     int64 HireManagerId=10;
     int64 CompanyId=11;
     bytes Avatar=12;
+    HttpError Err=13;
 }

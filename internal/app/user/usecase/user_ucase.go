@@ -29,17 +29,35 @@ func NewUserUsecase(u user.Repository, fClient clients.ClientFreelancer, mClient
 	}
 }
 
-func (u *UserUsecase) CreateUser(data *model.User) error {
-	if err := data.Validate(); err != nil {
-		return errors.Wrap(err, "user.Validate()")
+func (u *UserUsecase) CreateUser(data *model.User) *model.HttpError {
+	if logErr := data.Validate(); logErr != nil {
+		httpErr := &model.HttpError {
+			HttpCode: 400,
+			LogErr: errors.Wrap(logErr, "user.Validate()"),
+			ClientErr: errors.New( "Неправильная форма данных, пароль должен быть не менее 6 символов.\n " +
+			"Email должен быть в формате title@gmail.com"),
+		}
+
+		return httpErr
 	}
 
 	if err := data.BeforeCreate(); err != nil {
-		return errors.Wrap(err, "user.BeforeCreate()")
+		httpErr := &model.HttpError {
+			HttpCode: 500,
+			LogErr: errors.Wrap(err, "user.Validate()"),
+			ClientErr: errors.New( "Внутрення ошибка на сервере"),
+		}
+		return httpErr
 	}
 
 	if err := u.userRep.Create(data); err != nil {
-		return errors.Wrap(err, "userRep.Create()")
+		httpErr := &model.HttpError {
+			HttpCode: 400,
+			LogErr: errors.Wrap(err, "userRep.Create()"),
+			ClientErr: errors.New("Пользователь с таким email уже существует"),
+		}
+
+		return httpErr
 	}
 
 	return nil
@@ -63,11 +81,11 @@ func (u *UserUsecase) EditUser(new *model.User, old *model.User) error {
 
 func (u *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user *model.User) error {
 	if passwords.NewPassword != passwords.NewPasswordConfirmation {
-		return errors.New("new passwords are different")
+		return errors.New("Введеные новые пароли не совпадают")
 	}
 
 	if !user.ComparePassword(passwords.Password) {
-		err := errors.New("wrong old password")
+		err := errors.New("Неверный пароль от аккаунта")
 		return errors.Wrapf(err, "model.user.ComparePassword")
 	}
 
@@ -142,14 +160,24 @@ func (u *UserUsecase) SetUserType(user *model.User, userType string) error {
 	return nil
 }
 
-func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, error) {
+func (u *UserUsecase) VerifyUser(currUser *model.User) (int64, *model.HttpError) {
 	us, err := u.userRep.FindByEmail(currUser.Email)
 	if err != nil {
-		return 0, errors.Wrapf(err, "userRep.FindByEmail()")
+		httpErr := &model.HttpError {
+			HttpCode: 400,
+			LogErr: errors.Wrapf(err, "userRep.FindByEmail()"),
+			ClientErr: errors.New("Аккаунта с данным email не существует"),
+		}
+		return 0, httpErr
 	}
 
 	if !us.ComparePassword(currUser.Password) {
-		return 0, errors.New("wrong password")
+		httpErr := &model.HttpError {
+			HttpCode: 400,
+			LogErr: errors.New("us.ComparePassword"),
+			ClientErr: errors.New("Неверный пароль"),
+		}
+		return 0, httpErr
 	}
 
 	return us.ID, nil

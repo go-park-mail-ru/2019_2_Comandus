@@ -5,7 +5,6 @@ import (
 	auth_grpc2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/grpc/auth_grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -72,7 +71,13 @@ func (s *AuthServer) CreateUser(context context.Context, userReq *auth_grpc2.Use
 	}
 
 	if err := s.UserUcase.CreateUser(newUser); err != nil {
-		return nil, errors.Wrap(err, "UserUcase.CreateUser")
+		httpErr := &auth_grpc2.HttpError{
+			HttpCode:             int32(err.HttpCode),
+			LogError:             err.LogErr.Error(),
+			ClientError:          err.ClientErr.Error(),
+		}
+		us := &auth_grpc2.User{Err:httpErr}
+		return us, nil
 	}
 
 	res := s.TransformUserRPC(newUser)
@@ -87,7 +92,14 @@ func (s *AuthServer) VerifyUser(context context.Context, userReq *auth_grpc2.Use
 
 	id, err := s.UserUcase.VerifyUser(newUser)
 	if err != nil {
-		return nil, err
+		httpErr := &auth_grpc2.HttpError{
+			HttpCode:             int32(err.HttpCode),
+			LogError:             err.LogErr.Error(),
+			ClientError:          err.ClientErr.Error(),
+		}
+
+		us := &auth_grpc2.UserID{Err:httpErr}
+		return us, nil
 	}
 
 	res := &auth_grpc2.UserID{

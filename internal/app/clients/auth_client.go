@@ -40,7 +40,7 @@ func (c *AuthClient) Disconnect() error {
 	return nil
 }
 
-func (c *AuthClient) CreateUserOnServer(data *model.User) (*auth_grpc.User, error) {
+func (c *AuthClient) CreateUserOnServer(data *model.User) (*auth_grpc.User, *model.HttpError) {
 	client := auth_grpc.NewAuthHandlerClient(c.conn)
 	userReq := &auth_grpc.User{
 		Email:      data.Email,
@@ -50,24 +50,32 @@ func (c *AuthClient) CreateUserOnServer(data *model.User) (*auth_grpc.User, erro
 		UserType:   data.UserType,
 	}
 
-	user, err := client.CreateUser(context.Background(), userReq)
-	if err != nil {
-		return nil, errors.Wrap(err, "client.CreateUser")
+	user, _ := client.CreateUser(context.Background(), userReq)
+	if user.Err != nil {
+		return nil, &model.HttpError {
+			ClientErr: errors.New(user.Err.ClientError),
+			LogErr:    errors.New(user.Err.LogError),
+			HttpCode:  int(user.Err.HttpCode),
+		}
 	}
 
 	return user, nil
 }
 
-func (c *AuthClient) VerifyUserOnServer(user *model.User) (int64, error) {
+func (c *AuthClient) VerifyUserOnServer(user *model.User) (int64, *model.HttpError) {
 	client := auth_grpc.NewAuthHandlerClient(c.conn)
 
-	mes, err := client.VerifyUser(context.Background(), &auth_grpc.UserRequest{
+	mes, _ := client.VerifyUser(context.Background(), &auth_grpc.UserRequest{
 		Email:    user.Email,
 		Password: user.Password,
 	})
 
-	if err != nil {
-		return 0, errors.Wrap(err, "client.VerifyUser()")
+	if mes.Err != nil {
+		return 0, &model.HttpError{
+			ClientErr: errors.New(mes.Err.ClientError),
+			LogErr:    errors.New(mes.Err.LogError),
+			HttpCode:  int(mes.Err.HttpCode),
+		}
 	}
 
 	return mes.ID, nil

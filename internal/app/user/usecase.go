@@ -5,8 +5,8 @@ import (
 )
 
 type Usecase interface {
-	CreateUser(*model.User) error
-	VerifyUser(*model.User) (int64, error)
+	CreateUser(*model.User) *model.HttpError
+	VerifyUser(*model.User) (int64, *model.HttpError)
 	EditUser(newUser *model.User, oldUser *model.User) error
 	EditUserPassword(passwords *model.BodyPassword, user *model.User) error
 	Find(int64) (*model.User, error)

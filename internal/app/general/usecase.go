@@ -6,7 +6,7 @@ import (
 )
 
 type Usecase interface {
-	CreateUser(*model.User) (*auth_grpc.User, error)
-	VerifyUser(*model.User) (int64, error)
+	CreateUser(*model.User) (*auth_grpc.User, *model.HttpError)
+	VerifyUser(*model.User) (int64, *model.HttpError)
 	GetSuggest(query string, update bool, dict string) ([]string, error)
 }

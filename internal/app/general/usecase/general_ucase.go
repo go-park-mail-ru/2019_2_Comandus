@@ -17,10 +17,11 @@ type GeneralUsecase struct {
 	suggestService   *suggest.Service
 }
 
-func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, error) {
+func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, *model.HttpError) {
 	id, err := u.authClient.VerifyUserOnServer(user)
 	if err != nil {
-		return 0, errors.Wrap(err, "AuthClient.VerifyUserOnServer()")
+		err.LogErr = errors.Wrapf(err.LogErr, "AuthClient.VerifyUserOnServer()")
+		return 0, err
 	}
 	return id, nil
 }
@@ -35,25 +36,26 @@ func NewGeneralUsecase(a clients.AuthClient, f clients.ClientFreelancer, m clien
 	}
 }
 
-func (u *GeneralUsecase) CreateUser(newUser *model.User) (*auth_grpc.User, error) {
+func (u *GeneralUsecase) CreateUser(newUser *model.User) (*auth_grpc.User, *model.HttpError) {
 	user, err := u.authClient.CreateUserOnServer(newUser)
 	if err != nil {
-		return nil, errors.Wrap(err, "AuthClient.CreateUserOnServer()")
+		err.LogErr = errors.Wrap(err.LogErr, "AuthClient.CreateUserOnServer()")
+		return nil, err
 	}
 
-	company, err := u.companyClient.CreateCompanyOnServer(user.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.CreateCompanyOnServer()")
+	company, err1 := u.companyClient.CreateCompanyOnServer(user.ID)
+	if err1 != nil {
+		return nil, &model.HttpError{ClientErr: errors.Wrap(err1, "clients.CreateCompanyOnServer()")}
 	}
 
-	freelancer, err := u.freelancerClient.CreateFreelancerOnServer(user.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.CreateFreelancerOnServer")
+	freelancer, err1 := u.freelancerClient.CreateFreelancerOnServer(user.ID)
+	if err1 != nil {
+		return nil, &model.HttpError{ClientErr: errors.Wrap(err1, "clients.CreateFreelancerOnServer")}
 	}
 
-	manager, err := u.managerClient.CreateManagerOnServer(user.ID, company.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "clients.CreateManagerOnServer()")
+	manager, err1 := u.managerClient.CreateManagerOnServer(user.ID, company.ID)
+	if err1 != nil {
+		return nil, &model.HttpError{ClientErr: errors.Wrap(err1, "clients.CreateManagerOnServer()")}
 	}
 
 	user.CompanyId = company.ID

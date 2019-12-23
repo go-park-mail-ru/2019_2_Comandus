@@ -7,8 +7,8 @@ import (
 )
 
 type AuthClient interface {
-	VerifyUserOnServer(user *model.User) (int64, error)
-	CreateUserOnServer(data *model.User) (*auth_grpc.User, error)
+	VerifyUserOnServer(user *model.User) (int64, *model.HttpError)
+	CreateUserOnServer(data *model.User) (*auth_grpc.User, *model.HttpError)
 }
 
 type LocationClient interface {

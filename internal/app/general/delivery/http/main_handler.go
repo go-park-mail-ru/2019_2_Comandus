@@ -80,10 +80,10 @@ func (h *MainHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := h.ucase.CreateUser(newUser)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleCreateUser<-ucase.CreateUser()")
-		respond.Error(w, r, http.StatusInternalServerError, err)
+	createdUser, httpError := h.ucase.CreateUser(newUser)
+	if httpError != nil {
+		//httpError.LogErr = errors.Wrapf(httpError.LogErr ,"CreateUser<-")
+		respond.Error(w, r, http.StatusBadRequest, httpError.ClientErr)
 		return
 	}
 
@@ -129,15 +129,15 @@ func (h *MainHandler) HandleSessionCreate(w http.ResponseWriter, r *http.Request
 
 	currUser := new(model.User)
 	if err := currUser.UnmarshalJSON(body); err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-currCompany.UnmarshalJSON()")
+		err = errors.Wrapf(err, "HandleSessionCreate<-currUser.UnmarshalJSON()")
 		respond.Error(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	id, err := h.ucase.VerifyUser(currUser)
-	if err != nil {
-		err = errors.Wrapf(err, "HandleSessionCreate<-ucase.VerifyUser()")
-		respond.Error(w, r, http.StatusUnauthorized, err)
+	id, httpError := h.ucase.VerifyUser(currUser)
+	if httpError != nil {
+		//httpError.LogErr = errors.Wrapf(httpError.LogErr ,"VerifyUser<-")
+		respond.Error(w, r, http.StatusBadRequest, httpError.ClientErr)
 		return
 	}
 
