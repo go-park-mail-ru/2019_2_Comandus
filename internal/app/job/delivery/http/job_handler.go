@@ -34,6 +34,8 @@ func NewJobHandler(m *mux.Router, private *mux.Router, js user_job.Usecase, sani
 
 	private.HandleFunc("/jobs", handler.HandleCreateJob).Methods(http.MethodPost, http.MethodOptions)
 	m.HandleFunc("/jobs", handler.HandleGetAllJobs).Methods(http.MethodGet, http.MethodOptions)
+	private.HandleFunc("/jobs/{id:[0-9]+}/open", handler.HandleOpenJob).Methods(http.MethodPut, http.MethodOptions)
+	private.HandleFunc("/jobs/{id:[0-9]+}/close", handler.HandleCloseJob).Methods(http.MethodPut, http.MethodOptions)
 	m.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleGetJob).Methods(http.MethodGet, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleUpdateJob).Methods(http.MethodPut, http.MethodOptions)
 	private.HandleFunc("/jobs/{id:[0-9]+}", handler.HandleDeleteJob).Methods(http.MethodDelete, http.MethodOptions)
@@ -367,4 +369,70 @@ func (h *JobHandler) HandleSearchJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Respond(w, r, http.StatusOK, jobs)
+}
+
+func (h *JobHandler) HandleOpenJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path": "/jobs/{jobID}/open", "method": r.Method}))
+	defer timer.ObserveDuration()
+
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("Вы не авторизованы"), "HandleCreateJob()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	jobID, err := strconv.Atoi(ids)
+
+	if err != nil {
+		err = errors.Wrapf(err, "HandleOpenJob<-Atoi(wrong id)")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
+
+	err = h.jobUsecase.ChangeStatus(int64(jobID), model.JobStateOpened, u.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleOpenJob<-ChangeStatus")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
+}
+
+
+
+func (h *JobHandler) HandleCloseJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	timer := prometheus.NewTimer(monitoring.RequestDuration.With(prometheus.
+	Labels{"path": "/jobs/{jobID}/open", "method": r.Method}))
+	defer timer.ObserveDuration()
+
+	u, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
+	if !ok {
+		err := errors.Wrapf(errors.New("Вы не авторизованы"), "HandleCreateJob()")
+		respond.Error(w, r, http.StatusUnauthorized, err)
+		return
+	}
+
+	vars := mux.Vars(r)
+	ids := vars["id"]
+	jobID, err := strconv.Atoi(ids)
+
+	if err != nil {
+		err = errors.Wrapf(err, "HandleCloseJob<-Atoi(wrong id)")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
+
+	err = h.jobUsecase.ChangeStatus(int64(jobID), model.JobStateClosed, u.ID)
+	if err != nil {
+		err = errors.Wrapf(err, "HandleCloseJob<-ChangeStatus")
+		respond.Error(w, r, http.StatusBadRequest, err)
+	}
+
 }

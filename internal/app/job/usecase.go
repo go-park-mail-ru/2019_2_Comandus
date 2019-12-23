@@ -11,4 +11,5 @@ type Usecase interface {
 	MarkAsDeleted(id int64, user *model.User) error
 	PatternSearch(string, model.SearchParams) ([]model.Job, error)
 	GetUserIDByJobID(jobID int64) (int64, error)
+	ChangeStatus(jobID int64, status string, userID int64) error
 }
