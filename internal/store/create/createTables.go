@@ -183,7 +183,8 @@ func CreateChatTables(db *sql.DB) error {
 		sender_id integer not null,
 		receiver_id integer,
 		message varchar,
-		date timestamp
+		date timestamp,
+		is_read boolean
 	);`
 
 	if _, err := db.Exec(messagesQuery); err != nil {

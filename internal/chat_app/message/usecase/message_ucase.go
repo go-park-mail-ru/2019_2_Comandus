@@ -25,19 +25,15 @@ func (u *MessageUsecase) Create(mes *model.Message) error {
 	return nil
 }
 
-func (u *MessageUsecase) ListByUser(userId int64, chatId int64) ([]*model.Message, error) {
-	messages, err := u.rep.ListByUser(userId, chatId)
+func (u *MessageUsecase) List(chatId int64) ([]*model.Message, error) {
+	messages, err := u.rep.List(chatId)
 	if err != nil {
 		return nil, errors.Wrap(err, "messageRep.ListByUser()")
 	}
 	return messages, nil
 }
 
-func (u *MessageUsecase) ListBySupport(supportId int64, chatId int64) ([]*model.Message, error) {
-	messages, err := u.rep.ListBySupport(supportId, chatId)
-	if err != nil {
-		return nil, errors.Wrap(err, "messageRep.ListBySupport()")
-	}
-	return messages, nil
+func (u *MessageUsecase) UpdateStatus(chatId int64, userId int64) error {
+	return u.rep.UpdateStatus(chatId, userId)
 }
 

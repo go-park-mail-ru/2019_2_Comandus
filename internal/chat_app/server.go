@@ -20,7 +20,6 @@ import (
 // Chat server.
 type Server struct {
 	pattern		string
-	//messages  []*Message
 	clients		map[int]*Client
 	addCh		chan *Client
 	delCh		chan *Client
@@ -34,7 +33,6 @@ type Server struct {
 
 // Create new app server.
 func NewServer(pattern string, db *sql.DB) *Server {
-	//messages := []*Message{}
 	clients := make(map[int]*Client)
 	addCh := make(chan *Client)
 	delCh := make(chan *Client)
@@ -78,7 +76,7 @@ func (s *Server) Err(err error) {
 }
 
 func (s *Server) sendPastMessages(c *Client) {
-	messages, _ := s.MesUcase.ListByUser(c.userId, c.chatId)
+	messages, _ := s.MesUcase.List(c.chatId)
 	for _, msg := range messages {
 		c.Write(msg)
 	}
@@ -129,14 +127,13 @@ func (s *Server) Listen() {
 
 		// del a client
 		case c := <-s.delCh:
-			log.Println("Delete client")
 			delete(s.clients, c.id)
 
 		// broadcast message for all clients
 		case msg := <-s.sendAllCh:
-			log.Println("Send all:", msg)
-			_ = s.MesUcase.Create(msg)
-			//s.messages = append(s.messages, msg)
+			if err := s.MesUcase.Create(msg); err != nil {
+				log.Println(err)
+			}
 			s.sendAll(msg)
 
 		case err := <-s.errCh:

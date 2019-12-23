@@ -16,16 +16,13 @@ var maxId int = 0
 
 // Chat client.
 type Client struct {
-	id         	int
-	userId     	int64
-	clientId   	int64
-	senderId 	int64
-	receiverId	int64
-	chatId		int64
-	ws         	*websocket.Conn
-	server     	*Server
-	ch         	chan *model.Message
-	doneCh     	chan bool
+	id         		int
+	isFreelancer	bool
+	chatId			int64
+	ws         		*websocket.Conn
+	server     		*Server
+	ch         		chan *model.Message
+	doneCh     		chan bool
 }
 
 // Create new app client.
@@ -40,8 +37,6 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 
 	return &Client{
 		id:       maxId,
-		userId:   0,
-		clientId: 0,
 		ws:       ws,
 		server:   server,
 		ch:       ch,
@@ -114,22 +109,30 @@ func (c *Client) listenRead() {
 			} else if err != nil {
 				c.server.errCh <- err
 			} else {
+				log.Println(input)
 				if input.Transaction == "init" {
-
-					log.Println(input)
-					c.userId = input.Chat.UserID
-					c.clientId = input.Chat.SupportID
-
 					currChat, err := c.server.ChatUcase.CreateChat(&input.Chat)
 					if err != nil && err.Error() == chat.CHAT_CONFLICT_ERR {
 						c.server.errCh <- err
 					}
 
+					if input.Client {
+						err := c.server.MesUcase.UpdateStatus(currChat.ID, currChat.SupportID)
+						if err != nil {
+							c.server.errCh <- err
+						}
+					} else {
+						err := c.server.MesUcase.UpdateStatus(currChat.ID, currChat.UserID)
+						if err != nil {
+							c.server.errCh <- err
+						}
+					}
+
 					c.chatId = currChat.ID
 
-					log.Println("userID ", c.userId)
+					log.Println("userID ", currChat.UserID)
 					log.Println("chatID ", currChat.ID)
-					messages, err := c.server.MesUcase.ListByUser(c.userId, currChat.ID)
+					messages, err := c.server.MesUcase.List(currChat.ID)
 					if err != nil {
 						c.server.errCh <- err
 					}
@@ -140,11 +143,17 @@ func (c *Client) listenRead() {
 					}
 				} else if input.Transaction == "mes" {
 					msg := input.Message
+
+					if len(c.server.clients) > 1 {
+						msg.IsRead = true
+					}
+
 					if err := c.server.MesUcase.Create(&msg); err != nil {
 						c.server.errCh <- err
 					}
+					c.server.sendAll(&msg)
 				} else {
-					messages, err := c.server.MesUcase.ListByUser(c.userId, c.chatId)
+					messages, err := c.server.MesUcase.List(c.chatId)
 					if err != nil {
 						c.server.errCh <- err
 					}
