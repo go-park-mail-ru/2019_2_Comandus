@@ -88,7 +88,7 @@ func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
 		return user.Avatar, nil
 	}
 
-	response, _ := http.Get("https://sun9-69.userapi.com/c855720/v855720288/da766/u_n0r-sbhwY.jpg")
+	response, _ := http.Get("https://sun9-40.userapi.com/c858036/v858036437/12d222/TpWDmhunUUg.jpg")
 	defer func() {
 		if err := response.Body.Close(); err != nil {
 			log.Println(err)
