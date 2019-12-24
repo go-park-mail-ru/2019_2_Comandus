@@ -31,8 +31,8 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 		"INSERT INTO freelancers (accountId, country, city, address, phone, tagLine, "+
 			"overview, experienceLevelId, specialityId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
 		f.AccountId,
-		0,//f.Country,
-		1,//f.City,
+		0, //f.Country,
+		1, //f.City,
 		f.Address,
 		f.Phone,
 		f.TagLine,
@@ -51,10 +51,10 @@ func (r *FreelancerRepository) Find(id int64) (*model.ExtendFreelancer, error) {
 	exF := &model.ExtendFreelancer{}
 	if err := r.db.QueryRow(
 		"SELECT f.id, f.accountId, f.country, f.city, f.address, f.phone, f.tagLine, "+
-			"f.overview, f.experienceLevelId, f.specialityId, u.firstName, u.secondName " +
-			"FROM freelancers AS f " +
-			"INNER JOIN users AS u " +
-			"ON (f.accountid = u.accountid) " +
+			"f.overview, f.experienceLevelId, f.specialityId, u.firstName, u.secondName "+
+			"FROM freelancers AS f "+
+			"INNER JOIN users AS u "+
+			"ON (f.accountid = u.accountid) "+
 			"WHERE id = $1",
 		id,
 	).Scan(
@@ -138,11 +138,11 @@ func (r *FreelancerRepository) ListOnPattern(pattern string, params model.Search
 			"F.overview, F.experienceLevelId, F.specialityId, U.firstName , U.secondName "+
 			"FROM freelancers AS F "+
 			"INNER JOIN users AS U ON (F.accountid = U.accountid) "+
-			"WHERE (LOWER(U.firstName) like '%' || LOWER($1) || '%' OR " +
-			"LOWER(U.secondName) like '%' || LOWER($1) || '%') AND " +
+			"WHERE (LOWER(U.firstName) like '%' || LOWER($1) || '%' OR "+
+			"LOWER(U.secondName) like '%' || LOWER($1) || '%') AND "+
 			"($2 = -1 OR F.country = $2) AND "+
 			"($3 = -1 OR F.city = $3) AND "+
-			"(($4 AND experienceLevelId = 0) OR ($5 AND experienceLevelId = 1) OR ($6 AND experienceLevelId = 2)) "+
+			"(($4 AND experienceLevelId = 1) OR ($5 AND experienceLevelId = 2) OR ($6 AND experienceLevelId = 3)) "+
 			"ORDER BY "+
 			"CASE WHEN $7 THEN F.id END DESC, "+
 			"CASE WHEN NOT $7 THEN F.id END ASC "+
