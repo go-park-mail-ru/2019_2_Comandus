@@ -35,7 +35,7 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 
 	uIDFromJob, err := u.jobClient.GetUserIDByJobID(jobId)
 	if err != nil {
-		return  errors.Wrap(err, "GetUserIDByJobID()")
+		return errors.Wrap(err, "GetUserIDByJobID()")
 	}
 
 	if uIDFromJob == user.ID {
@@ -44,7 +44,7 @@ func (u *ResponseUsecase) CreateResponse(user *model.User, response *model.Respo
 
 	IsResponseYet, err := u.responseRep.CheckForHavingResponse(jobId, currFreelancer.ID)
 	if err != nil {
-		return  errors.Wrap(err, "GetUserIDByJobID()")
+		return errors.Wrap(err, "GetUserIDByJobID()")
 	}
 
 	if IsResponseYet {
@@ -267,14 +267,13 @@ func (u *ResponseUsecase) GetResponse(id int64) (*model.ResponseOutputWithFreel,
 		Overview:          grpcFreelancer.Fr.Overview,
 		ExperienceLevelId: grpcFreelancer.Fr.ExperienceLevelId,
 		SpecialityId:      grpcFreelancer.Fr.SpecialityId,
-		Avatar:            "https:api.fwork.live/account/avatar/" + strconv.FormatInt(grpcFreelancer.Fr.AccountId, 10),
+		Avatar:            "https://fwork.live/api/account/avatar/" + strconv.FormatInt(grpcFreelancer.Fr.AccountId, 10),
 	}
 	exFr := model.ExtendFreelancer{
 		F:          freelancer,
 		FirstName:  grpcFreelancer.FirstName,
 		SecondName: grpcFreelancer.SecondName,
 	}
-
 
 	res := new(model.ResponseOutputWithFreel)
 	res.Response = *response
