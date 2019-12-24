@@ -197,6 +197,7 @@ func (h *UserHandler) HandleUploadAvatar(w http.ResponseWriter, r *http.Request)
 	}
 
 	newUser := currUser
+
 	newUser.Avatar = image.Bytes()
 	if err := h.UserUsecase.EditUser(newUser, currUser); err != nil {
 		err = errors.Wrapf(err, "HandleUploadAvatar<-UCase.EditUser()")

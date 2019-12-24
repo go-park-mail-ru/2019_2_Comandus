@@ -102,10 +102,8 @@ func (u *UserUsecase) EditUserPassword(passwords *model.BodyPassword, user *mode
 }
 
 func (u *UserUsecase) GetAvatar(user *model.User) ([]byte, error) {
-	if user.Avatar != nil {
-		if _, _, err := image.Decode(bytes.NewReader(user.Avatar)); err == nil {
-			return user.Avatar, nil
-		}
+	if user.Avatar != nil && len(user.Avatar) > 3 {
+		return user.Avatar, nil
 	}
 
 	response, _ := http.Get("https://sun9-40.userapi.com/c858036/v858036437/12d222/TpWDmhunUUg.jpg")
