@@ -64,6 +64,8 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			}
 		case "status":
 			out.Status = string(in.String())
+		case "tagLine":
+			out.TagLine = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -142,6 +144,11 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		const prefix string = ",\"status\":"
 		out.RawString(prefix)
 		out.String(string(in.Status))
+	}
+	{
+		const prefix string = ",\"tagLine\":"
+		out.RawString(prefix)
+		out.String(string(in.TagLine))
 	}
 	out.RawByte('}')
 }
