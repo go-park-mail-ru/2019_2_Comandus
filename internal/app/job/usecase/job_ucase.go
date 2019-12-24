@@ -32,6 +32,7 @@ func (u *JobUsecase) CreateJob(currUser *model.User, job *model.Job) error {
 
 	job.HireManagerId = currManager.ID
 	job.Date = time.Now()
+	job.Status = model.JobStateOpened
 	if err = u.jobRep.Create(job); err != nil {
 		return errors.Wrapf(err, "jobRep.Create()")
 	}
@@ -133,4 +134,26 @@ func (u *JobUsecase) GetMyJobs(managerID int64) ([]model.Job, error) {
 
 func (u *JobUsecase) GetUserIDByJobID(jobID int64) (int64, error) {
 	return u.jobRep.GetUserIDByJobID(jobID)
+}
+
+func (u *JobUsecase) ChangeStatus(jobID int64, status string, userID int64) error{
+	job, err := u.jobRep.Find(jobID)
+	if err != nil {
+		return errors.Wrap(err, "jobRep.Find()")
+	}
+
+	manager, err := u.managerClient.GetManagerByUserFromServer(userID)
+	if err != nil {
+		return errors.Wrap(err, "clients.GetManagerByUserFromServer()")
+	}
+
+	if job.HireManagerId != manager.ID {
+		return errors.Wrap(err, "no access for current manager")
+	}
+
+	if err := u.jobRep.ChangeStatus(jobID, status); err != nil {
+		return errors.Wrap(err, "jobRep.ChangeStatus()")
+	}
+
+	return nil
 }
