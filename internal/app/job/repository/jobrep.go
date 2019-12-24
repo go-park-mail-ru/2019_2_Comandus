@@ -145,7 +145,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 			"LEFT OUTER JOIN responses AS R " +
 			"ON J.id = R.jobId " +
 			"WHERE LOWER(J.title) like '%' || LOWER($1) || '%' AND " +
-			"J.status != $2 AND J.status != $15 AND" +
+			"J.status != $2 AND J.status != $15 AND " +
 			"($3 = 0 OR J.paymentAmount <= $3) AND " +
 			"($4 = 0 OR J.paymentAmount >= $4) AND " +
 			"($5 = -1 OR J.country = $5) AND "+
