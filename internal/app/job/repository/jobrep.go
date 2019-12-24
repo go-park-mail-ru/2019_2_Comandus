@@ -151,7 +151,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 			"($5 = -1 OR J.country = $5) AND "+
 			"($6 = -1 OR J.city = $6) AND " +
 			"($14 = -1 OR jobTypeId = $14) AND " +
-			"(($7 AND J.experienceLevelId = 0) OR ($8 AND J.experienceLevelId = 1) OR ($9 AND J.experienceLevelId = 2)) " +
+			"(($7 AND J.experienceLevelId = 1) OR ($8 AND J.experienceLevelId = 2) OR ($9 AND J.experienceLevelId = 3)) " +
 			"GROUP BY J.id "+
 			"HAVING ($12 = 0 OR COUNT(*) >= $12) AND " +
 			"($13 = 0 OR COUNT(*) <= $13) "+
