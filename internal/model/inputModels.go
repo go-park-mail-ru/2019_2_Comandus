@@ -36,8 +36,9 @@ type SearchParams struct {
 	MaxProposals     int64   `json:"maxProposalCount"`
 	ExperienceLevel  [3]bool `json:"experienceLevel"`
 	Desc             bool    `json:"desc"`
-	JobType			 int64	 `json:"jobTypeId"`
+	JobType          int64   `json:"jobTypeId"`
 	Limit            int64   `json:"limit"`
+	SpecialityId     int64   `json:"specialityId"`
 }
 
 type ContractInput struct {
