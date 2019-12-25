@@ -23,6 +23,7 @@ func NewFreelancerUsecase(f freelancer.Repository, c clients.LocationClient) fre
 func (u *FreelancerUsecase) Create(userId int64) (*model.Freelancer, error) {
 	f := &model.Freelancer{
 		AccountId: userId,
+		ExperienceLevelId:1,
 		Country:0,
 		City:1,
 	}
