@@ -131,6 +131,7 @@ func (r *FreelancerRepository) ListOnPattern(pattern string, params model.Search
 	defer timer.ObserveDuration()
 
 	log.Println(params)
+	log.Println("pattern: '", pattern, "'")
 
 	var exFreelancers []model.ExtendFreelancer
 	rows, err := r.db.Query(
@@ -139,7 +140,8 @@ func (r *FreelancerRepository) ListOnPattern(pattern string, params model.Search
 			"FROM freelancers AS F "+
 			"INNER JOIN users AS U ON (F.accountid = U.accountid) "+
 			"WHERE (LOWER(U.firstName) like '%' || LOWER($1) || '%' OR "+
-			"LOWER(U.secondName) like '%' || LOWER($1) || '%') AND "+
+			"LOWER(U.secondName) like '%' || LOWER($1) || '%' OR " +
+			"LOWER(F.tagLine) like '%' || LOWER($1) || '%') AND "+
 			"($2 = -1 OR F.country = $2) AND "+
 			"($3 = -1 OR F.city = $3) AND "+
 			"(($4 AND experienceLevelId = 1) OR ($5 AND experienceLevelId = 2) OR ($6 AND experienceLevelId = 3)) "+
