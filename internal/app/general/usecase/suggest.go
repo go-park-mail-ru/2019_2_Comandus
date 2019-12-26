@@ -97,6 +97,8 @@ func GetSuggest(service *suggest.Service, query string, dict string) ([]string, 
 		values = append(values, item.Value)
 	}
 
+	values = unique(values)
+
 	return values, nil
 }
 
