@@ -148,6 +148,7 @@ func (c *Client) initChat(input model.Packet) {
 
 func (c *Client) sendMes(input model.Packet) {
 	msg := input.Message
+	msg.ChatID = c.chatId
 
 	for _, client := range c.server.clients {
 		if client.chatId == msg.ChatID && c.userId == msg.ReceiverID {
