@@ -4,9 +4,17 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
+	chgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/delivery/grpc"
+	chat_rep "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/repository"
+	chat_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/usecase"
+	mes_rep "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/message/repository"
+	mes_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/message/usecase"
 	store "github.com/go-park-mail-ru/2019_2_Comandus/internal/store/create"
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
 	"log"
+	"net"
 	"net/http"
 )
 
@@ -28,8 +36,23 @@ func Start() error {
 
 	log.SetFlags(log.Lshortfile)
 
-	// websocket server
-	server := NewServer("/entry", db)
+
+	mUcase := mes_ucase.NewMessageUsecase(mes_rep.NewMessageRepository(db))
+	chUcase := chat_ucase.NewChatUsecase(chat_rep.NewChatRepository(db))
+
+	go func() {
+		lis, err := net.Listen("tcp", clients.CHAT_PORT)
+		if err != nil {
+			log.Fatalln("cant listet port", err)
+		}
+		server := grpc.NewServer()
+		chgrpc.NewChatServerGrpc(server, chUcase)
+
+		fmt.Println("starting server at ", clients.CHAT_PORT)
+		server.Serve(lis)
+	}()
+
+	server := NewServer("/entry", mUcase, chUcase)
 	go server.Listen()
 
 	// static files

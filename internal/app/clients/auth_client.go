@@ -18,6 +18,7 @@ const (
 	MANAGER_PORT    = ":8086"
 	RESPONSE_PORT   = ":8087"
 	USER_PORT       = ":8088"
+	CHAT_PORT		= ":8090"
 )
 
 type AuthClient struct {

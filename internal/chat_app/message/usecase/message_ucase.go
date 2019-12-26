@@ -2,7 +2,7 @@ package mes_ucase
 
 import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/message"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model/chat"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"github.com/pkg/errors"
 	"time"
 )

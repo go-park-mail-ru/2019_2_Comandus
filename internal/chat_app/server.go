@@ -1,14 +1,9 @@
 package chat_app
 
 import (
-	"database/sql"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat"
-	chat_rep "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/repository"
-	chat_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/chat/usecase"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/message"
-	mes_rep "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/message/repository"
-	mes_ucase "github.com/go-park-mail-ru/2019_2_Comandus/internal/chat_app/message/usecase"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model/chat"
+	model2 "github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"log"
 	"net/http"
 
@@ -20,7 +15,7 @@ type Server struct {
 	clients		map[int]*Client
 	addCh		chan *Client
 	delCh		chan *Client
-	sendAllCh	chan *model.Message
+	sendAllCh	chan *model2.Message
 	doneCh		chan bool
 	errCh		chan error
 	initCh		chan bool
@@ -28,11 +23,11 @@ type Server struct {
 	ChatUcase	chat.Usecase
 }
 
-func NewServer(pattern string, db *sql.DB) *Server {
+func NewServer(pattern string, mUcase message.Usecase, chUcase chat.Usecase) *Server {
 	clients := make(map[int]*Client)
 	addCh := make(chan *Client)
 	delCh := make(chan *Client)
-	sendAllCh := make(chan *model.Message)
+	sendAllCh := make(chan *model2.Message)
 	doneCh := make(chan bool)
 	errCh := make(chan error)
 	initCh := make(chan bool)
@@ -46,8 +41,8 @@ func NewServer(pattern string, db *sql.DB) *Server {
 		doneCh,
 		errCh,
 		initCh,
-		mes_ucase.NewMessageUsecase(mes_rep.NewMessageRepository(db)),
-		chat_ucase.NewChatUsecase(chat_rep.NewChatRepository(db)),
+		mUcase,
+		chUcase,
 	}
 }
 
@@ -59,7 +54,7 @@ func (s *Server) Del(c *Client) {
 	s.delCh <- c
 }
 
-func (s *Server) SendAll(msg *model.Message) {
+func (s *Server) SendAll(msg *model2.Message) {
 	s.sendAllCh <- msg
 }
 
@@ -78,10 +73,12 @@ func (s *Server) sendPastMessages(c *Client) {
 	}
 }
 
-func (s *Server) sendAll(msg *model.Message) {
+func (s *Server) sendAll(msg *model2.Message) {
 	log.Println("send All:", msg)
 	for _, c := range s.clients {
-		c.Write(msg)
+		if c.chatId == msg.ChatID {
+			c.Write(msg)
+		}
 	}
 }
 

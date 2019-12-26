@@ -7,3 +7,4 @@ protoc --go_out=plugins=grpc:. internal/app/company/delivery/grpc/company_grpc/*
 protoc --go_out=plugins=grpc:. internal/app/user/delivery/grpc/user_grpc/*.proto
 protoc --go_out=plugins=grpc:. internal/app/job/delivery/grpc/job_grpc/*.proto
 protoc --go_out=plugins=grpc:. internal/app/proposal/delivery/grpc/response_grpc/*.proto
+protoc --go_out=plugins=grpc:. internal/chat_app/chat/delivery/grpc/chat_grpc/*.proto

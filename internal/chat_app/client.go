@@ -1,8 +1,9 @@
 package chat_app
 
 import (
+	"errors"
 	"fmt"
-	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model/chat"
+	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model"
 	"io"
 	"log"
 
@@ -114,9 +115,9 @@ func (c *Client) listenRead() {
 }
 
 func (c *Client) initChat(input model.Packet) {
-	currChat, err := c.server.ChatUcase.CreateChat(&input.Chat)
+	currChat, err := c.server.ChatUcase.FindByProposal(input.Chat.ProposalId)
 	if err != nil {
-		c.server.errCh <- err
+		c.server.errCh <- errors.New("no access")
 		return
 	}
 
@@ -148,13 +149,11 @@ func (c *Client) initChat(input model.Packet) {
 func (c *Client) sendMes(input model.Packet) {
 	msg := input.Message
 
-	/*for _, currClient := range c.server.clients {
-		if msg.ReceiverID == currClient.userId && (input.Client && currClient.isFreelancer) {
+	for _, client := range c.server.clients {
+		if client.chatId == msg.ChatID && c.userId == msg.ReceiverID {
 			msg.IsRead = true
+			break
 		}
-	}*/
-	if len(c.server.clients) > 1 {
-		msg.IsRead = true
 	}
 
 	if err := c.server.MesUcase.Create(&msg); err != nil {

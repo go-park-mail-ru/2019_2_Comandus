@@ -15,8 +15,8 @@ type Message struct {
 }
 
 type Packet struct {
-	Transaction	string		`json:"transaction"`
-	Message		Message		`json:"message"`
-	Chat		Chat		`json:"chat"`
-	Client		bool		`json:"isClient,string"`
+	Transaction string  `json:"transaction"`
+	Message     Message `json:"message"`
+	Chat        Chat    `json:"chat"`
+	Client      bool    `json:"isClient,string"`
 }
