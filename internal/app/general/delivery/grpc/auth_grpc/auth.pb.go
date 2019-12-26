@@ -311,7 +311,7 @@ func (m *User) GetErr() *HttpError {
 func init() {
 	proto.RegisterType((*UserRequest)(nil), "auth_grpc.UserRequest")
 	proto.RegisterType((*HttpError)(nil), "auth_grpc.HttpError")
-	proto.RegisterType((*UserID)(nil), "auth_grpc.UserID")
+	proto.RegisterType((*UserID)(nil), "auth_grpc.Freelancer")
 	proto.RegisterType((*User)(nil), "auth_grpc.User")
 }
 

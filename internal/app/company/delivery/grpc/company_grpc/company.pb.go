@@ -26,7 +26,7 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type CompanyWithUser struct {
 	MyCompany            *Company `protobuf:"bytes,1,opt,name=MyCompany,proto3" json:"MyCompany,omitempty"`
-	UserID               int64    `protobuf:"varint,2,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	UserID               int64    `protobuf:"varint,2,opt,name=Freelancer,proto3" json:"Freelancer,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -400,7 +400,7 @@ func init() {
 	proto.RegisterType((*Company)(nil), "company_grpc.Company")
 	proto.RegisterType((*CompanyOutput)(nil), "company_grpc.CompanyOutput")
 	proto.RegisterType((*CompanyID)(nil), "company_grpc.CompanyID")
-	proto.RegisterType((*UserID)(nil), "company_grpc.UserID")
+	proto.RegisterType((*UserID)(nil), "company_grpc.Freelancer")
 }
 
 func init() {

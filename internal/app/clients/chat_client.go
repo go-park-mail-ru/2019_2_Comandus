@@ -34,8 +34,8 @@ func (c *ChatClient) CreateChatOnServer(chat *model2.Chat) error {
 
 	grpcchat := &chat_grpc.Chat{
 		ID:                   chat.ID,
-		User:                 chat.UserID,
-		Support:              chat.SupportID,
+		User:                 chat.Freelancer,
+		Support:              chat.Manager,
 		Name:                 chat.Name,
 		Proposal:             chat.ProposalId,
 	}

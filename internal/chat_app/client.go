@@ -16,8 +16,8 @@ var maxId int = 0
 type Client struct {
 	id         		int
 	userId			int64
-	isFreelancer	bool
-	chatId			int64
+	//isFreelancer	bool
+	//chatId			int64
 	ws         		*websocket.Conn
 	server     		*Server
 	ch         		chan *model.Message
@@ -121,21 +121,23 @@ func (c *Client) initChat(input model.Packet) {
 		return
 	}
 
+	c.userId = input.Chat.UserId
+
 	if input.Client {
-		err := c.server.MesUcase.UpdateStatus(currChat.ID, currChat.SupportID)
+		err := c.server.MesUcase.UpdateStatus(currChat.ID, currChat.Manager)
 		if err != nil {
 			c.server.errCh <- err
 			return
 		}
 	} else {
-		err := c.server.MesUcase.UpdateStatus(currChat.ID, currChat.UserID)
+		err := c.server.MesUcase.UpdateStatus(currChat.ID, currChat.Freelancer)
 		if err != nil {
 			c.server.errCh <- err
 			return
 		}
 	}
 
-	c.chatId = currChat.ID
+	//c.chatId = currChat.ID
 	messages, err := c.server.MesUcase.List(currChat.ID)
 	if err != nil {
 		c.server.errCh <- err
@@ -148,10 +150,24 @@ func (c *Client) initChat(input model.Packet) {
 
 func (c *Client) sendMes(input model.Packet) {
 	msg := input.Message
-	msg.ChatID = c.chatId
+	msg.SenderID = c.userId
+
+	chat, err := c.server.ChatUcase.FindByProposal(msg.ProposalId)
+	if err != nil {
+		c.server.errCh <- err
+		return
+	}
+
+	msg.ChatID = chat.ID
+
+	if c.userId != chat.Manager {
+		msg.ReceiverID = chat.Manager
+	} else {
+		msg.ReceiverID = chat.Freelancer
+	}
 
 	for _, client := range c.server.clients {
-		if client.chatId == msg.ChatID && c.userId == msg.ReceiverID {
+		if client.userId == msg.SenderID || client.userId == msg.ReceiverID {
 			msg.IsRead = true
 			break
 		}

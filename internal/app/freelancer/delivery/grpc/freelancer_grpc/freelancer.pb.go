@@ -383,7 +383,7 @@ func init() {
 	proto.RegisterType((*Freelancer)(nil), "freelancer_grpc.Freelancer")
 	proto.RegisterType((*FreelancerOutput)(nil), "freelancer_grpc.FreelancerOutput")
 	proto.RegisterType((*FreelancerID)(nil), "freelancer_grpc.FreelancerID")
-	proto.RegisterType((*UserID)(nil), "freelancer_grpc.UserID")
+	proto.RegisterType((*UserID)(nil), "freelancer_grpc.Freelancer")
 	proto.RegisterType((*ExtendedFreelancer)(nil), "freelancer_grpc.ExtendedFreelancer")
 }
 

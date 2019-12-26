@@ -66,17 +66,17 @@ func (s *Server) Err(err error) {
 	s.errCh <- err
 }
 
-func (s *Server) sendPastMessages(c *Client) {
-	messages, _ := s.MesUcase.List(c.chatId)
+/*func (s *Server) sendPastMessages(c *Client) {
+	messages, _ := s.MesUcase.List()
 	for _, msg := range messages {
 		c.Write(msg)
 	}
-}
+}*/
 
 func (s *Server) sendAll(msg *model2.Message) {
 	log.Println("send All:", msg)
 	for _, c := range s.clients {
-		if c.chatId == msg.ChatID {
+		if c.userId == msg.SenderID || c.userId == msg.ReceiverID {
 			c.Write(msg)
 		}
 	}

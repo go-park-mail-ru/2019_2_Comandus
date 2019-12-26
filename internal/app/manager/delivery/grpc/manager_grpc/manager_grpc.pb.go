@@ -166,7 +166,7 @@ func (m *UserID) GetID() int64 {
 }
 
 type Info struct {
-	UserID               int64    `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	UserID               int64    `protobuf:"varint,1,opt,name=Freelancer,proto3" json:"Freelancer,omitempty"`
 	CompanyID            int64    `protobuf:"varint,2,opt,name=CompanyID,proto3" json:"CompanyID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -215,7 +215,7 @@ func (m *Info) GetCompanyID() int64 {
 func init() {
 	proto.RegisterType((*Manager)(nil), "manager_grpc.Manager")
 	proto.RegisterType((*ManagerID)(nil), "manager_grpc.ManagerID")
-	proto.RegisterType((*UserID)(nil), "manager_grpc.UserID")
+	proto.RegisterType((*UserID)(nil), "manager_grpc.Freelancer")
 	proto.RegisterType((*Info)(nil), "manager_grpc.Info")
 }
 

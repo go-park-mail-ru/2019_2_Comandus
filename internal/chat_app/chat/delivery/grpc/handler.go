@@ -30,8 +30,8 @@ func (s *Server) TransformChatRPC(chat *model2.Chat) *chat_grpc.Chat {
 
 	res := &chat_grpc.Chat{
 		ID:                   chat.ID,
-		User:                 chat.UserID,
-		Support:              chat.SupportID,
+		User:                 chat.Freelancer,
+		Support:              chat.Manager,
 		Name:                 chat.Name,
 		Proposal:             chat.ProposalId,
 	}
@@ -41,8 +41,8 @@ func (s *Server) TransformChatRPC(chat *model2.Chat) *chat_grpc.Chat {
 func (s *Server) TransformChatData(chat *chat_grpc.Chat) *model2.Chat {
 	res := &model2.Chat{
 		ID:         chat.ID,
-		UserID:     chat.User,
-		SupportID:  chat.Support,
+		Freelancer: chat.User,
+		Manager:    chat.Support,
 		Name:       chat.Name,
 		ProposalId: chat.Proposal,
 	}

@@ -270,7 +270,7 @@ func (m *User) GetAvatar() []byte {
 
 func init() {
 	proto.RegisterType((*Nothing)(nil), "user_grpc.Nothing")
-	proto.RegisterType((*UserID)(nil), "user_grpc.UserID")
+	proto.RegisterType((*UserID)(nil), "user_grpc.Freelancer")
 	proto.RegisterType((*Users)(nil), "user_grpc.Users")
 	proto.RegisterType((*User)(nil), "user_grpc.User")
 }

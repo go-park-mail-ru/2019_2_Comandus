@@ -155,8 +155,8 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 		}
 
 		chat := &model.Chat{
-			UserID:     response.FreelancerId,
-			SupportID:  currManager.ID,
+			Freelancer: response.FreelancerId,
+			Manager:    currManager.ID,
 			Name:       "Чат №" + strconv.Itoa(int(response.ID)),
 			ProposalId: response.ID,
 		}

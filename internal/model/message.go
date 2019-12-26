@@ -12,6 +12,7 @@ type Message struct {
 	Body       	string		`json:"body"`
 	Date       	time.Time	`json:"date"`
 	IsRead		bool		`json:"isRead"`
+	ProposalId	int64		`json:"proposalId"`
 }
 
 type Packet struct {

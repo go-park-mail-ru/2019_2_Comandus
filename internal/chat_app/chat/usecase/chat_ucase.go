@@ -18,7 +18,7 @@ func NewChatUsecase(r chat.Repository) chat.Usecase {
 
 
 func (u *ChatUsecase) CreateChat(newChat *model.Chat) (*model.Chat, error) {
-	extChat, err := u.rep.FindCurrent(newChat.UserID, newChat.SupportID)
+	extChat, err := u.rep.FindCurrent(newChat.Freelancer, newChat.Manager)
 	if err == nil {
 		return extChat, errors.New(chat.CHAT_CONFLICT_ERR)
 	}
