@@ -59,7 +59,7 @@ func (u *ContractUsecase) CreateContract(user *model.User, responseId int64, inp
 		ResponseID:           response.ID,
 		CompanyID:            currManager.CompanyId,
 		FreelancerID:         response.FreelancerId,
-		StartTime:            time.Time{},
+		StartTime:            time.Now(),
 		EndTime:              time.Time{},
 		Status:               model.ContractStatusExpected,
 		StatusFreelancerWork: model.FreelancerNotReady,
@@ -229,16 +229,16 @@ func (u *ContractUsecase) ContractList(user *model.User) ([]model.ContractOutput
 			return nil, errors.Wrap(err, "clients.GetFreelancerFromServer()")
 		}
 
-		company , err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
+		company, err := u.companyClient.GetCompanyFromServer(contract.CompanyID)
 		if err != nil {
 			return nil, errors.Wrap(err, "clients.GetCompanyFromServer()")
 		}
 
 		contractOutput := model.ContractOutput{
-			Job:      *job,
-			Contract: contract,
-			Freelancer:*exF,
-			Company:*company,
+			Job:        *job,
+			Contract:   contract,
+			Freelancer: *exF,
+			Company:    *company,
 		}
 
 		res = append(res, contractOutput)
@@ -326,7 +326,7 @@ func (u *ContractUsecase) TickWorkAsReady(user *model.User, contractID int64) er
 }
 
 func (u *ContractUsecase) GetClosedContracts(id int64) ([]model.PublicContractVersion, error) {
-	publicContracts , err := u.contractRep.GetClosedContracts(id)
+	publicContracts, err := u.contractRep.GetClosedContracts(id)
 	if err != nil {
 		err = errors.Wrapf(err, "GetClosedContracts()")
 		return nil, err
