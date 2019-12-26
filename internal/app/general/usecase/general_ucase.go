@@ -11,9 +11,11 @@ import (
 
 type GeneralUsecase struct {
 	authClient       clients.AuthClient
+	userClient		 clients.ClientUser
 	freelancerClient clients.ClientFreelancer
 	managerClient    clients.ManagerClient
 	companyClient    clients.CompanyClient
+	jobClient		 clients.ClientJob
 	suggestService   *suggest.Service
 }
 
@@ -27,12 +29,14 @@ func (u *GeneralUsecase) VerifyUser(user *model.User) (int64, *model.HttpError) 
 }
 
 func NewGeneralUsecase(a clients.AuthClient, f clients.ClientFreelancer, m clients.ManagerClient,
-	c clients.CompanyClient) general.Usecase {
+	c clients.CompanyClient, u clients.ClientUser, j clients.ClientJob) general.Usecase {
 	return &GeneralUsecase{
 		authClient:       a,
 		freelancerClient: f,
 		managerClient:    m,
 		companyClient:    c,
+		userClient:       u,
+		jobClient:		  j,
 	}
 }
 
@@ -64,12 +68,10 @@ func (u *GeneralUsecase) CreateUser(newUser *model.User) (*auth_grpc.User, *mode
 	return user, nil
 }
 
-func (u *GeneralUsecase) GetSuggest(query string, update bool, dict string) ([]string, error) {
-	if update {
-		var err error
-		u.suggestService, err = NewSuggestService()
-		if err != nil {
-			return nil, errors.Wrap(err, "NewSuggestService()")
+func (u *GeneralUsecase) GetSuggest(query string, dict string) ([]string, error) {
+	if u.suggestService == nil {
+		if err := u.createSuggestService(); err != nil {
+			return nil, errors.Wrap(err, "suggest service not implemented")
 		}
 	}
 
@@ -79,4 +81,14 @@ func (u *GeneralUsecase) GetSuggest(query string, update bool, dict string) ([]s
 	}
 
 	return res, nil
+}
+
+func (u *GeneralUsecase) createSuggestService() error {
+	suggestService, err := NewSuggestService(u.userClient, u.jobClient)
+	if err != nil {
+		u.suggestService = nil
+		return err
+	}
+	u.suggestService = suggestService
+	return nil
 }

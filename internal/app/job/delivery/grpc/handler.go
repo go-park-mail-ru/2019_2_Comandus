@@ -94,3 +94,16 @@ func (s *JobServer) GetUserIDFromJobID(context context.Context, jID *job_grpc.Jo
 	}
 	return userID, nil
 }
+
+func (s *JobServer) GetTags(context context.Context, nothing *job_grpc.Nothing) (*job_grpc.Jobs, error) {
+	tags, err := s.Ucase.GetTags()
+	if err != nil {
+		return nil, err
+	}
+
+	jobs := &job_grpc.Jobs{
+		Tags: tags,
+	}
+	return jobs, nil
+}
+

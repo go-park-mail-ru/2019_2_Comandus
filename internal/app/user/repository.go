@@ -7,4 +7,5 @@ type Repository interface {
 	Find(int64) (*model.User, error)
 	FindByEmail(string) (*model.User, error)
 	Edit(user *model.User) error
+	GetNames() ([]string, error)
 }

@@ -5,6 +5,11 @@ import "google/protobuf/timestamp.proto";
 service JobHandler {
     rpc Find(JobID) returns (Job);
     rpc GetUserIDFromJobID (JobID) returns (UserID);
+    rpc GetTags(Nothing) returns (Jobs);
+}
+
+message Nothing {
+    bool dummy=1;
 }
 
 message Job {
@@ -29,4 +34,8 @@ message JobID {
 
 message UserID {
     int64 ID=1;
+}
+
+message Jobs {
+    repeated string tags=1;
 }

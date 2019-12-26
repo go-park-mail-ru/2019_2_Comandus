@@ -11,4 +11,5 @@ type Repository interface {
 	ListMyJobs(int64) ([]model.Job, error)
 	GetUserIDByJobID(jobID int64) (int64, error)
 	ChangeStatus(jobID int64, status string) error
+	GetTags() ([]string, error)
 }

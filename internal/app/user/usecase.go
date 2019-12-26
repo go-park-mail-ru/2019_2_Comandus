@@ -13,4 +13,5 @@ type Usecase interface {
 	SetUserType(user *model.User, userType string) error
 	GetRoles(user *model.User) ([]*model.Role, error)
 	GetAvatar(user *model.User) ([]byte, error)
+	GetNames() ([]string, error)
 }

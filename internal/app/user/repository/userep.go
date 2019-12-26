@@ -99,3 +99,34 @@ func (r *UserRepository) Edit(u *model.User) error {
 		u.ID,
 	).Scan(&u.ID)
 }
+
+func (r *UserRepository) GetNames() ([]string, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+	Labels{"rep": "user", "method": "get names"}))
+	defer timer.ObserveDuration()
+
+	var names []string
+	rows, err := r.db.Query(
+		"SELECT DISTINCT ON (LOWER(firstName || ' ' || secondName)) " +
+			"firstName || ' ' || secondName AS name "+
+			"FROM users "+
+			"LIMIT 100;")
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var name string
+		err := rows.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+

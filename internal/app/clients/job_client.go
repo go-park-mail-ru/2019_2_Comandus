@@ -55,3 +55,14 @@ func (c *JobClient) GetUserIDByJobID(jobid int64) (int64, error) {
 
 	return uID.ID, nil
 }
+
+func (c *JobClient) GetTags() ([]string, error) {
+	client := job_grpc.NewJobHandlerClient(c.conn)
+
+	nothing := &job_grpc.Nothing{}
+	jobs, err := client.GetTags(context.Background(), nothing)
+	if err != nil {
+		return nil, err
+	}
+	return jobs.Tags, err
+}

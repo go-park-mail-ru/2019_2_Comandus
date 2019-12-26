@@ -257,3 +257,34 @@ func (r *JobRepository) ChangeStatus(jobID int64, status string) error {
 		status, jobID)
 	return nil
 }
+
+func (r *JobRepository) GetTags() ([]string, error) {
+	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
+	Labels{"rep": "job", "method": "get tags"}))
+	defer timer.ObserveDuration()
+
+	var tags []string
+	rows, err := r.db.Query(
+		"SELECT DISTINCT ON (LOWER(tagLine)) " +
+			"tagLine "+
+			"FROM jobs "+
+			"LIMIT 100;")
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var tag string
+		err := rows.Scan(&tag)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+

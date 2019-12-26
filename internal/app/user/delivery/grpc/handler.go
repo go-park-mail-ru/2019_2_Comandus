@@ -70,3 +70,14 @@ func (s *UserServer) Find(context context.Context, userId *user_grpc.UserID) (*u
 	res := s.TransformUserRPC(currUser)
 	return res, nil
 }
+
+func (s *UserServer) GetNames(context.Context, *user_grpc.Nothing) (*user_grpc.Users, error) {
+	names, err := s.UserUcase.GetNames()
+	if err != nil {
+		return nil, errors.Wrap(err, "UserUcase.GetNames()")
+	}
+	grpnames := new(user_grpc.Users)
+	grpnames.Names = names
+	return grpnames, nil
+}
+

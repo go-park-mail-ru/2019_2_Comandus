@@ -212,3 +212,11 @@ func (u *UserUsecase) GetRoles(user *model.User) ([]*model.Role, error) {
 
 	return roles, nil
 }
+
+func (u *UserUsecase) GetNames() ([]string, error) {
+	names, err := u.userRep.GetNames()
+	if err != nil {
+		return nil, errors.Wrap(err, "userRep.GetNames()")
+	}
+	return names, nil
+}

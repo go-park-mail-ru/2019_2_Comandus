@@ -157,3 +157,7 @@ func (u *JobUsecase) ChangeStatus(jobID int64, status string, userID int64) erro
 
 	return nil
 }
+
+func (u *JobUsecase) GetTags() ([]string, error) {
+	return u.jobRep.GetTags()
+}

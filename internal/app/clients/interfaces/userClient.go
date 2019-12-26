@@ -6,4 +6,5 @@ import (
 
 type ClientUser interface {
 	GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.User, error)
+	GetNamesFromServer() (*user_grpc.Users, error)
 }

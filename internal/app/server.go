@@ -116,7 +116,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	jobU := jobUcase.NewJobUsecase(jobRep, managerClient)
 	responseU := responseUcase.NewResponseUsecase(responseRep, freelancerClient, managerClient, jobClient)
 	contractU := contractUcase.NewContractUsecase(contractRep, freelancerClient, managerClient, companyClient, jobClient, responseClient)
-	generalU := generalUsecase.NewGeneralUsecase(authClient, freelancerClient, managerClient, companyClient)
+	generalU := generalUsecase.NewGeneralUsecase(authClient, freelancerClient, managerClient, companyClient, userClient, jobClient)
 	locationU := locationUcase.NewLocationUsecase(locationRep)
 
 	s.Mux.Handle("/metrics", promhttp.Handler())
@@ -153,7 +153,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	go func() {
 		lis, err := net.Listen("tcp", clients.USER_PORT)
 		if err != nil {
-			log.Fatalln("cant listen port", err)
+			log.Fatalln("cant listet port", err)
 		}
 		server := grpc.NewServer()
 		ugrpc.NewUserServerGrpc(server, userU)

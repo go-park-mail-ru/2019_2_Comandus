@@ -7,4 +7,5 @@ import (
 type ClientJob interface {
 	GetJobFromServer(id int64) (*job_grpc.Job, error)
 	GetUserIDByJobID(jobid int64) (int64, error)
+	GetTags() ([]string, error)
 }

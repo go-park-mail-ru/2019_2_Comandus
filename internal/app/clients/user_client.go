@@ -41,3 +41,15 @@ func (c *UserClient) GetUserFromServer(userID *user_grpc.UserID) (*user_grpc.Use
 
 	return res, nil
 }
+
+func (c *UserClient) GetNamesFromServer() (*user_grpc.Users, error) {
+	client := user_grpc.NewUserHandlerClient(c.conn)
+
+	nothing := new(user_grpc.Nothing)
+	users, err := client.GetNames(context.Background(), nothing)
+	if err != nil {
+		return nil, errors.Wrap(err, "client.GetNames()")
+	}
+
+	return users, nil
+}

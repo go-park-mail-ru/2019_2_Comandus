@@ -3,10 +3,19 @@ package user_grpc;
 
 service UserHandler {
     rpc Find(UserID) returns (User);
+    rpc GetNames(Nothing) returns (Users);
+}
+
+message Nothing {
+    bool dummy=1;
 }
 
 message UserID {
     int64 ID=1;
+}
+
+message Users {
+    repeated string names=1;
 }
 
 message User {
