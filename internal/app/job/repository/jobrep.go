@@ -51,8 +51,13 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 
 	j := &model.Job{}
 	if err := r.db.QueryRow(
-		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-			"country, city, jobTypeId, date, status, tagLine FROM jobs WHERE id = $1 AND status != $2",
+		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(*) " +
+			"FROM jobs AS J " +
+			"LEFT JOIN responses AS R " +
+			"ON J.id = R.jobId "+
+			"WHERE J.id = $1 AND J.status != $2 " +
+			"GROUP BY J.id;",
 		id,
 		model.JobStateDeleted,
 	).Scan(
@@ -70,6 +75,7 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 		&j.Date,
 		&j.Status,
 		&j.TagLine,
+		&j.Proposals,
 	); err != nil {
 		return nil, err
 	}
@@ -106,10 +112,14 @@ func (r *JobRepository) List() ([]model.Job, error) {
 
 	var jobs []model.Job
 	rows, err := r.db.Query(
-		"SELECT id, managerId, title, description, files, specialityId, experienceLevelId, paymentAmount, "+
-			"country, city, jobTypeId, date, status, tagLine "+
-			"FROM jobs WHERE status != $1 "+
-			"ORDER BY id DESC LIMIT 20",
+		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(*) "+
+			"FROM jobs AS J " +
+			"LEFT JOIN responses AS R " +
+			"ON J.id = R.jobId " +
+			"WHERE J.status != $1 " +
+			"GROUP BY J.id "+
+			"ORDER BY J.id DESC LIMIT 20",
 		model.JobStateDeleted)
 
 	if err != nil {
@@ -119,7 +129,8 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	for rows.Next() {
 		j := model.Job{}
 		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
-			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status, &j.TagLine)
+			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date,
+			&j.Status, &j.TagLine, &j.Proposals)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +151,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
-			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine "+
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(*) "+
 			"FROM jobs AS J "+
 			"LEFT OUTER JOIN responses AS R "+
 			"ON J.id = R.jobId "+
@@ -180,7 +191,8 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 	for rows.Next() {
 		j := model.Job{}
 		err := rows.Scan(&j.ID, &j.HireManagerId, &j.Title, &j.Description, &j.Files, &j.SpecialityId,
-			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date, &j.Status, &j.TagLine)
+			&j.ExperienceLevelId, &j.PaymentAmount, &j.Country, &j.City, &j.JobTypeId, &j.Date,
+			&j.Status, &j.TagLine, &j.Proposals)
 		if err != nil {
 			return nil, err
 		}

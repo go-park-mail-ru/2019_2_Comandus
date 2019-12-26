@@ -66,6 +66,8 @@ func easyjson8a33d6c7DecodeGithubComGoParkMailRu20192ComandusInternalModel(in *j
 			out.Status = string(in.String())
 		case "tagLine":
 			out.TagLine = string(in.String())
+		case "proposals":
+			out.Proposals = int64(in.Int64())
 		default:
 			in.SkipRecursive()
 		}
@@ -149,6 +151,11 @@ func easyjson8a33d6c7EncodeGithubComGoParkMailRu20192ComandusInternalModel(out *
 		const prefix string = ",\"tagLine\":"
 		out.RawString(prefix)
 		out.String(string(in.TagLine))
+	}
+	{
+		const prefix string = ",\"proposals\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.Proposals))
 	}
 	out.RawByte('}')
 }
