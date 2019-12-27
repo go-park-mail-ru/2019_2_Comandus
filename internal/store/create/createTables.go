@@ -171,7 +171,8 @@ func CreateChatTables(db *sql.DB) error {
 		id bigserial not null primary key,
 		name varchar,
 		user_id integer not null,
-		support_id integer
+		support_id integer,
+		proposal_id integer
 	);`
 
 	if _, err := db.Exec(chatsQuery); err != nil {
@@ -185,7 +186,8 @@ func CreateChatTables(db *sql.DB) error {
 		receiver_id integer,
 		message varchar,
 		date timestamp,
-		is_read boolean
+		is_read boolean,
+		proposal_id integer
 	);`
 
 	if _, err := db.Exec(messagesQuery); err != nil {

@@ -20,7 +20,7 @@ func formFreelancerDictionary(client clients.ClientUser) (dictionary.Dictionary,
 		NGramSize: 3,
 		Wrap:      [2]string{"$", "$"},
 		Pad:       "$",
-		Alphabet:  []string{"english", "$"},
+		Alphabet:  []string{"russian", "$"},
 	}
 
 	return dict, index, nil

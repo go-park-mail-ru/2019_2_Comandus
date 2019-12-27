@@ -14,15 +14,17 @@ type ResponseUsecase struct {
 	freelancerClient clients.ClientFreelancer
 	managerClient    clients.ManagerClient
 	jobClient        clients.ClientJob
+	chatClient		 clients.ChatClient
 }
 
 func NewResponseUsecase(r user_response.Repository, fClient clients.ClientFreelancer, mclient clients.ManagerClient,
-	jClient clients.ClientJob) user_response.Usecase {
+	jClient clients.ClientJob, chClient clients.ChatClient) user_response.Usecase {
 	return &ResponseUsecase{
 		responseRep:      r,
 		freelancerClient: fClient,
 		managerClient:    mclient,
 		jobClient:        jClient,
+		chatClient:		  chClient,
 	}
 }
 
@@ -151,6 +153,18 @@ func (u *ResponseUsecase) AcceptResponse(user *model.User, responseId int64) err
 		if response.StatusManager != model.ResponseStatusReview {
 			return errors.New("wrong current status")
 		}
+
+		chat := &model.Chat{
+			Freelancer: response.FreelancerId,
+			Manager:    currManager.ID,
+			Name:       "Чат №" + strconv.Itoa(int(response.ID)),
+			ProposalId: response.ID,
+		}
+
+		if err := u.chatClient.CreateChatOnServer(chat); err != nil {
+			return errors.Wrap(err, "CreateChatOnServer")
+		}
+
 		response.StatusManager = model.ResponseStatusAccepted
 	} else {
 		currFreelancer, err := u.freelancerClient.GetFreelancerByUserFromServer(user.ID)

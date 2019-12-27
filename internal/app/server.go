@@ -5,34 +5,30 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/clients"
 	cogrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/grpc"
-	fgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc"
-	logrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/delivery/grpc"
-	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
-	managerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
-	managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
-	jgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/delivery/grpc"
-	regrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/proposal/delivery/grpc"
-	ugrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc"
-
 	companyHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/delivery/http"
 	companyRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/repository"
 	companyUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/company/usecase"
+	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/contract/delivery/http"
+	contractRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/contract/repository"
+	contractUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/contract/usecase"
+	fgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/grpc"
 	freelancerHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/delivery/http"
 	freelancerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/repository"
 	freelancerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/freelancer/usecase"
 	authgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/grpc"
 	mainHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/delivery/http"
 	generalUsecase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/general/usecase"
+	jgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/delivery/grpc"
+	logrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/delivery/grpc"
 	locationhttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/delivery/http"
 	locationRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/repository"
 	locationUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/location/usecase"
-	//mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
-	//"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
-	//managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
+	mgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/delivery/grpc"
+	managerRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/repository"
+	managerUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/manager/usecase"
+	regrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/proposal/delivery/grpc"
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/app/token"
-	contractHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/contract/delivery/http"
-	contractRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/contract/repository"
-	contractUcase "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/contract/usecase"
+	ugrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/user/delivery/grpc"
 	//jgrpc "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/delivery/grpc"
 	jobHttp "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/delivery/http"
 	jobRepository "github.com/go-park-mail-ru/2019_2_Comandus/internal/app/job/repository"
@@ -107,6 +103,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	responseClient := new(clients.ResponseClient)
 	authClient := new(clients.AuthClient)
 	locationClient := new(clients.LocationClient)
+	chatClient := new(clients.ChatClient)
 
 	userU := userUcase.NewUserUsecase(userRep, freelancerClient, managerClient, companyClient)
 	companyU := companyUcase.NewCompanyUsecase(companyRep, managerClient, locationClient)
@@ -114,7 +111,7 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 	freelancerU := freelancerUcase.NewFreelancerUsecase(freelancerRep, locationClient)
 
 	jobU := jobUcase.NewJobUsecase(jobRep, managerClient)
-	responseU := responseUcase.NewResponseUsecase(responseRep, freelancerClient, managerClient, jobClient)
+	responseU := responseUcase.NewResponseUsecase(responseRep, freelancerClient, managerClient, jobClient, chatClient)
 	contractU := contractUcase.NewContractUsecase(contractRep, freelancerClient, managerClient, companyClient, jobClient, responseClient)
 	generalU := generalUsecase.NewGeneralUsecase(authClient, freelancerClient, managerClient, companyClient, userClient, jobClient)
 	locationU := locationUcase.NewLocationUsecase(locationRep)
@@ -264,5 +261,9 @@ func (s *Server) ConfigureServer(db *sql.DB) {
 
 	if err := locationClient.Connect(); err != nil {
 		log.Println("location:", err)
+	}
+
+	if err := chatClient.Connect(); err != nil {
+		log.Println("chat:", err)
 	}
 }
