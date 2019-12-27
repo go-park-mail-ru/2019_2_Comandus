@@ -153,7 +153,80 @@ func (v *FreelancerOutput) UnmarshalJSON(data []byte) error {
 func (v *FreelancerOutput) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel(l, v)
 }
-func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *jlexer.Lexer, out *Freelancer) {
+func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *jlexer.Lexer, out *FreelancerContracts) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "active":
+			out.ActiveContracts = int64(in.Int64())
+		case "success":
+			out.SuccessContracts = int64(in.Int64())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(out *jwriter.Writer, in FreelancerContracts) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"active\":"
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.ActiveContracts))
+	}
+	{
+		const prefix string = ",\"success\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.SuccessContracts))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v FreelancerContracts) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v FreelancerContracts) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *FreelancerContracts) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *FreelancerContracts) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(l, v)
+}
+func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel2(in *jlexer.Lexer, out *Freelancer) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -204,7 +277,7 @@ func easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(in *
 		in.Consumed()
 	}
 }
-func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(out *jwriter.Writer, in Freelancer) {
+func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel2(out *jwriter.Writer, in Freelancer) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -269,23 +342,23 @@ func easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(out 
 // MarshalJSON supports json.Marshaler interface
 func (v Freelancer) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(&w, v)
+	easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Freelancer) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel1(w, v)
+	easyjson92f8d27bEncodeGithubComGoParkMailRu20192ComandusInternalModel2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Freelancer) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(&r, v)
+	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Freelancer) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel1(l, v)
+	easyjson92f8d27bDecodeGithubComGoParkMailRu20192ComandusInternalModel2(l, v)
 }

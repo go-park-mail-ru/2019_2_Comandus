@@ -319,7 +319,7 @@ func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel3(in *
 				if out.OuFreel == nil {
 					out.OuFreel = new(FreelancerOutput)
 				}
-				(*out.OuFreel).UnmarshalEasyJSON(in)
+				easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(in, out.OuFreel)
 			}
 		case "firstName":
 			out.FirstName = string(in.String())
@@ -345,7 +345,7 @@ func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel3(out 
 		if in.OuFreel == nil {
 			out.RawString("null")
 		} else {
-			(*in.OuFreel).MarshalEasyJSON(out)
+			easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(out, *in.OuFreel)
 		}
 	}
 	{
@@ -384,7 +384,119 @@ func (v *ExtendedOutputFreelancer) UnmarshalJSON(data []byte) error {
 func (v *ExtendedOutputFreelancer) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel3(l, v)
 }
-func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *jlexer.Lexer, out *ExtendResponse) {
+func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *jlexer.Lexer, out *FreelancerOutput) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "id":
+			out.ID = int64(in.Int64())
+		case "accountId":
+			out.AccountId = int64(in.Int64())
+		case "country":
+			out.Country = string(in.String())
+		case "city":
+			out.City = string(in.String())
+		case "address":
+			out.Address = string(in.String())
+		case "phone":
+			out.Phone = string(in.String())
+		case "tagline":
+			out.TagLine = string(in.String())
+		case "overview":
+			out.Overview = string(in.String())
+		case "experienceLevelId":
+			out.ExperienceLevelId = int64(in.Int64())
+		case "specialityId":
+			out.SpecialityId = int64(in.Int64Str())
+		case "avatar":
+			out.Avatar = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(out *jwriter.Writer, in FreelancerOutput) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.ID))
+	}
+	{
+		const prefix string = ",\"accountId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.AccountId))
+	}
+	{
+		const prefix string = ",\"country\":"
+		out.RawString(prefix)
+		out.String(string(in.Country))
+	}
+	{
+		const prefix string = ",\"city\":"
+		out.RawString(prefix)
+		out.String(string(in.City))
+	}
+	{
+		const prefix string = ",\"address\":"
+		out.RawString(prefix)
+		out.String(string(in.Address))
+	}
+	{
+		const prefix string = ",\"phone\":"
+		out.RawString(prefix)
+		out.String(string(in.Phone))
+	}
+	{
+		const prefix string = ",\"tagline\":"
+		out.RawString(prefix)
+		out.String(string(in.TagLine))
+	}
+	{
+		const prefix string = ",\"overview\":"
+		out.RawString(prefix)
+		out.String(string(in.Overview))
+	}
+	{
+		const prefix string = ",\"experienceLevelId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.ExperienceLevelId))
+	}
+	{
+		const prefix string = ",\"specialityId\":"
+		out.RawString(prefix)
+		out.Int64Str(int64(in.SpecialityId))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
+	}
+	out.RawByte('}')
+}
+func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel5(in *jlexer.Lexer, out *ExtendResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -411,7 +523,7 @@ func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *
 				if out.R == nil {
 					out.R = new(Response)
 				}
-				easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel5(in, out.R)
+				(*out.R).UnmarshalEasyJSON(in)
 			}
 		case "firstName":
 			out.FirstName = string(in.String())
@@ -429,7 +541,7 @@ func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(in *
 		in.Consumed()
 	}
 }
-func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(out *jwriter.Writer, in ExtendResponse) {
+func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel5(out *jwriter.Writer, in ExtendResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -439,7 +551,7 @@ func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(out 
 		if in.R == nil {
 			out.RawString("null")
 		} else {
-			easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel5(out, *in.R)
+			(*in.R).MarshalEasyJSON(out)
 		}
 	}
 	{
@@ -463,132 +575,25 @@ func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(out 
 // MarshalJSON supports json.Marshaler interface
 func (v ExtendResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(&w, v)
+	easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ExtendResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(w, v)
+	easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ExtendResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(&r, v)
+	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ExtendResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(l, v)
-}
-func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel5(in *jlexer.Lexer, out *Response) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = int64(in.Int64())
-		case "freelancerId":
-			out.FreelancerId = int64(in.Int64())
-		case "jobId":
-			out.JobId = int64(in.Int64())
-		case "files":
-			out.Files = string(in.String())
-		case "date":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.Date).UnmarshalJSON(data))
-			}
-		case "statusManager":
-			out.StatusManager = string(in.String())
-		case "statusFreelancer":
-			out.StatusFreelancer = string(in.String())
-		case "paymentAmount":
-			out.PaymentAmount = float32(in.Float32Str())
-		case "coverLetter":
-			out.CoverLetter = string(in.String())
-		case "timeEstimation":
-			out.TimeEstimation = int(in.Int())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel5(out *jwriter.Writer, in Response) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Int64(int64(in.ID))
-	}
-	{
-		const prefix string = ",\"freelancerId\":"
-		out.RawString(prefix)
-		out.Int64(int64(in.FreelancerId))
-	}
-	{
-		const prefix string = ",\"jobId\":"
-		out.RawString(prefix)
-		out.Int64(int64(in.JobId))
-	}
-	{
-		const prefix string = ",\"files\":"
-		out.RawString(prefix)
-		out.String(string(in.Files))
-	}
-	{
-		const prefix string = ",\"date\":"
-		out.RawString(prefix)
-		out.Raw((in.Date).MarshalJSON())
-	}
-	{
-		const prefix string = ",\"statusManager\":"
-		out.RawString(prefix)
-		out.String(string(in.StatusManager))
-	}
-	{
-		const prefix string = ",\"statusFreelancer\":"
-		out.RawString(prefix)
-		out.String(string(in.StatusFreelancer))
-	}
-	{
-		const prefix string = ",\"paymentAmount\":"
-		out.RawString(prefix)
-		out.Float32Str(float32(in.PaymentAmount))
-	}
-	{
-		const prefix string = ",\"coverLetter\":"
-		out.RawString(prefix)
-		out.String(string(in.CoverLetter))
-	}
-	{
-		const prefix string = ",\"timeEstimation\":"
-		out.RawString(prefix)
-		out.Int(int(in.TimeEstimation))
-	}
-	out.RawByte('}')
+	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel5(l, v)
 }
 func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel6(in *jlexer.Lexer, out *ExtendFreelancer) {
 	isTopLevel := in.IsStart()
@@ -617,7 +622,7 @@ func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel6(in *
 				if out.F == nil {
 					out.F = new(Freelancer)
 				}
-				(*out.F).UnmarshalEasyJSON(in)
+				easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel7(in, out.F)
 			}
 		case "firstName":
 			out.FirstName = string(in.String())
@@ -643,7 +648,7 @@ func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel6(out 
 		if in.F == nil {
 			out.RawString("null")
 		} else {
-			(*in.F).MarshalEasyJSON(out)
+			easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel7(out, *in.F)
 		}
 	}
 	{
@@ -681,4 +686,276 @@ func (v *ExtendFreelancer) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ExtendFreelancer) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel6(l, v)
+}
+func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel7(in *jlexer.Lexer, out *Freelancer) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "id":
+			out.ID = int64(in.Int64())
+		case "accountId":
+			out.AccountId = int64(in.Int64())
+		case "country":
+			out.Country = int64(in.Int64())
+		case "city":
+			out.City = int64(in.Int64())
+		case "address":
+			out.Address = string(in.String())
+		case "phone":
+			out.Phone = string(in.String())
+		case "tagline":
+			out.TagLine = string(in.String())
+		case "overview":
+			out.Overview = string(in.String())
+		case "experienceLevelId":
+			out.ExperienceLevelId = int64(in.Int64())
+		case "specialityId":
+			out.SpecialityId = int64(in.Int64Str())
+		case "avatar":
+			out.Avatar = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel7(out *jwriter.Writer, in Freelancer) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.ID))
+	}
+	{
+		const prefix string = ",\"accountId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.AccountId))
+	}
+	{
+		const prefix string = ",\"country\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.Country))
+	}
+	{
+		const prefix string = ",\"city\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.City))
+	}
+	{
+		const prefix string = ",\"address\":"
+		out.RawString(prefix)
+		out.String(string(in.Address))
+	}
+	{
+		const prefix string = ",\"phone\":"
+		out.RawString(prefix)
+		out.String(string(in.Phone))
+	}
+	{
+		const prefix string = ",\"tagline\":"
+		out.RawString(prefix)
+		out.String(string(in.TagLine))
+	}
+	{
+		const prefix string = ",\"overview\":"
+		out.RawString(prefix)
+		out.String(string(in.Overview))
+	}
+	{
+		const prefix string = ",\"experienceLevelId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.ExperienceLevelId))
+	}
+	{
+		const prefix string = ",\"specialityId\":"
+		out.RawString(prefix)
+		out.Int64Str(int64(in.SpecialityId))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
+	}
+	out.RawByte('}')
+}
+func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel8(in *jlexer.Lexer, out *ContractOutputFreelancer) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "freelancer":
+			if in.IsNull() {
+				in.Skip()
+				out.OuFreel = nil
+			} else {
+				if out.OuFreel == nil {
+					out.OuFreel = new(FreelancerOutput)
+				}
+				easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel4(in, out.OuFreel)
+			}
+		case "firstName":
+			out.FirstName = string(in.String())
+		case "secondName":
+			out.SecondName = string(in.String())
+		case "contracts":
+			if in.IsNull() {
+				in.Skip()
+				out.Contracts = nil
+			} else {
+				if out.Contracts == nil {
+					out.Contracts = new(FreelancerContracts)
+				}
+				easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel9(in, out.Contracts)
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel8(out *jwriter.Writer, in ContractOutputFreelancer) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"freelancer\":"
+		out.RawString(prefix[1:])
+		if in.OuFreel == nil {
+			out.RawString("null")
+		} else {
+			easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel4(out, *in.OuFreel)
+		}
+	}
+	{
+		const prefix string = ",\"firstName\":"
+		out.RawString(prefix)
+		out.String(string(in.FirstName))
+	}
+	{
+		const prefix string = ",\"secondName\":"
+		out.RawString(prefix)
+		out.String(string(in.SecondName))
+	}
+	{
+		const prefix string = ",\"contracts\":"
+		out.RawString(prefix)
+		if in.Contracts == nil {
+			out.RawString("null")
+		} else {
+			easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel9(out, *in.Contracts)
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ContractOutputFreelancer) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel8(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ContractOutputFreelancer) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel8(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ContractOutputFreelancer) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel8(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ContractOutputFreelancer) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel8(l, v)
+}
+func easyjson61e0ab13DecodeGithubComGoParkMailRu20192ComandusInternalModel9(in *jlexer.Lexer, out *FreelancerContracts) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "active":
+			out.ActiveContracts = int64(in.Int64())
+		case "success":
+			out.SuccessContracts = int64(in.Int64())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson61e0ab13EncodeGithubComGoParkMailRu20192ComandusInternalModel9(out *jwriter.Writer, in FreelancerContracts) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"active\":"
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.ActiveContracts))
+	}
+	{
+		const prefix string = ",\"success\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.SuccessContracts))
+	}
+	out.RawByte('}')
 }

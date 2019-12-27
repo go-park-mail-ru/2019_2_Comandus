@@ -29,10 +29,18 @@ type ExtendResponse struct {
 }
 
 type ExtendedOutputFreelancer struct {
-	OuFreel    *FreelancerOutput `json:"freelancer"`
-	FirstName  string            `json:"firstName"`
-	SecondName string            `json:"secondName"`
+	OuFreel		*FreelancerOutput 		`json:"freelancer"`
+	FirstName	string	            	`json:"firstName"`
+	SecondName	string	            	`json:"secondName"`
 }
+
+type ContractOutputFreelancer struct {
+	OuFreel		*FreelancerOutput 		`json:"freelancer"`
+	FirstName	string	            	`json:"firstName"`
+	SecondName	string	            	`json:"secondName"`
+	Contracts	*FreelancerContracts	`json:"contracts"`
+}
+
 
 type PublicContractVersion struct {
 	FirstName         string `json:"firstName"`

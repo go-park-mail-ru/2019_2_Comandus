@@ -5,7 +5,6 @@ import (
 	"github.com/go-park-mail-ru/2019_2_Comandus/internal/model/chat"
 	"io"
 	"log"
-
 	"golang.org/x/net/websocket"
 )
 

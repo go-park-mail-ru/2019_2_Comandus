@@ -42,21 +42,28 @@ func (r *FreelancerRepository) Create(f *model.Freelancer) error {
 	).Scan(&f.ID)
 }
 
-func (r *FreelancerRepository) Find(id int64) (*model.ExtendFreelancer, error) {
+func (r *FreelancerRepository) Find(id int64) (*model.ExtendFreelancer, *model.FreelancerContracts, error) {
 	timer := prometheus.NewTimer(monitoring.DBQueryDuration.With(prometheus.
 		Labels{"rep": "freelancer", "method": "find"}))
 	defer timer.ObserveDuration()
 
 	f := &model.Freelancer{}
 	exF := &model.ExtendFreelancer{}
+	contracts := &model.FreelancerContracts{}
+
 	if err := r.db.QueryRow(
 		"SELECT f.id, f.accountId, f.country, f.city, f.address, f.phone, f.tagLine, "+
-			"f.overview, f.experienceLevelId, f.specialityId, u.firstName, u.secondName "+
+			"f.overview, f.experienceLevelId, f.specialityId, u.firstName, u.secondName, " +
+			"COUNT(c.id) filter (where c.status = $2) as closed, " +
+			"COUNT(c.id) filter (where c.status = $3) as active "+
 			"FROM freelancers AS f "+
-			"INNER JOIN users AS u "+
-			"ON (f.accountid = u.accountid) "+
-			"WHERE id = $1",
-		id,
+			"LEFT JOIN users AS u "+
+			"ON f.accountid = u.accountid " +
+			"LEFT JOIN contracts AS c "+
+			"ON f.id = c.freelancerId " +
+			"WHERE f.id = $1 " +
+			"GROUP BY f.id, u.accountId, c.status;",
+		id, model.ContractStatusDone, model.ContractStatusUnderDevelopment,
 	).Scan(
 		&f.ID,
 		&f.AccountId,
@@ -70,12 +77,15 @@ func (r *FreelancerRepository) Find(id int64) (*model.ExtendFreelancer, error) {
 		&f.SpecialityId,
 		&exF.FirstName,
 		&exF.SecondName,
+		&contracts.SuccessContracts,
+		&contracts.ActiveContracts,
 	); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	f.Avatar = PATH2AVATAR + strconv.Itoa(int(f.AccountId))
 	exF.F = f
-	return exF, nil
+
+	return exF, contracts, nil
 }
 
 func (r *FreelancerRepository) FindByUser(accountId int64) (*model.Freelancer, error) {

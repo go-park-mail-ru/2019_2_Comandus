@@ -18,6 +18,11 @@ type Freelancer struct {
 	Avatar            string `json:"avatar"`
 }
 
+type FreelancerContracts struct {
+	ActiveContracts		int64	`json:"active"`
+	SuccessContracts	int64	`json:"success"`
+}
+
 type FreelancerOutput struct {
 	ID                int64  `json:"id" valid:"int, optional"`
 	AccountId         int64  `json:"accountId" valid:"int, optional"`

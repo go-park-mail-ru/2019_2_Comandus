@@ -107,25 +107,21 @@ func (h *FreelancerHandler) HandleGetFreelancer(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	currFreelancer, err := h.FreelancerUsecase.Find(int64(id))
+	currFreelancer, contracts, err := h.FreelancerUsecase.Find(int64(id))
 	if err != nil {
 		err = errors.Wrapf(err, "HandleGetFreelancer<-clients.GetFreelancerFromServer()")
 		respond.Error(w, r, http.StatusNotFound, err)
 		return
 	}
 
-	/*currUser, ok := r.Context().Value(respond.CtxKeyUser).(*model.User)
-	if !ok {
-		err := errors.Wrapf(errors.New("no currUser in context"), "HandleEditProfile()")
-		respond.Error(w, r, http.StatusUnauthorized, err)
-		return
+	res := model.ContractOutputFreelancer{
+		OuFreel:    currFreelancer.OuFreel,
+		FirstName:  currFreelancer.FirstName,
+		SecondName: currFreelancer.SecondName,
+		Contracts:  contracts,
 	}
 
-	combined := combined{
-		freelancer: currFreelancer.OuFreel,
-		user:       nil,
-	}*/
-	respond.Respond(w, r, http.StatusOK, currFreelancer)
+	respond.Respond(w, r, http.StatusOK, res)
 }
 
 func (h *FreelancerHandler) HandleSearchFreelancers(w http.ResponseWriter, r *http.Request) {

@@ -80,10 +80,10 @@ func (u *FreelancerUsecase) FindByUser(userId int64) (*model.FreelancerOutput, e
 	return res, nil
 }
 
-func (u *FreelancerUsecase) Find(id int64) (*model.ExtendedOutputFreelancer, error) {
-	f, err := u.freelancerRep.Find(id)
+func (u *FreelancerUsecase) Find(id int64) (*model.ExtendedOutputFreelancer, *model.FreelancerContracts, error) {
+	f, contracts, err := u.freelancerRep.Find(id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "freelancerRep.Find()")
+		return nil, nil, errors.Wrapf(err, "freelancerRep.Find()")
 	}
 
 	log.Println(f.F)
@@ -95,10 +95,10 @@ func (u *FreelancerUsecase) Find(id int64) (*model.ExtendedOutputFreelancer, err
 		SecondName: f.SecondName,
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "InsertLocation()")
+		return nil, nil, errors.Wrap(err, "InsertLocation()")
 	}
 
-	return exOuFreelancer, nil
+	return exOuFreelancer, contracts, nil
 }
 
 func (u *FreelancerUsecase) Edit(userID int64, new *model.Freelancer) error {
@@ -137,7 +137,7 @@ func (u *FreelancerUsecase) FindPart(offset int, limit int) ([]model.ExtendFreel
 }
 
 func (u *FreelancerUsecase) FindNoLocation(id int64) (*model.ExtendFreelancer, error) {
-	f, err := u.freelancerRep.Find(id)
+	f, _, err := u.freelancerRep.Find(id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "freelancerRep.Find()")
 	}
