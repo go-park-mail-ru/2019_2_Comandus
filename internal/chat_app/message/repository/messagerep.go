@@ -17,14 +17,15 @@ func NewMessageRepository(db *sql.DB) message.Repository {
 
 func (r *MessageRepository) Create(message *model.Message) error {
 	return r.db.QueryRow(
-		"INSERT INTO messages (chat_id, sender_id, receiver_id, message, date, is_read) " +
-			"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		"INSERT INTO messages (chat_id, sender_id, receiver_id, message, date, is_read, proposal_id) " +
+			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
 		message.ChatID,
 		message.SenderID,
 		message.ReceiverID,
 		message.Body,
 		message.Date,
 		message.IsRead,
+		message.ProposalId,
 	).Scan(&message.ID)
 }
 
@@ -39,7 +40,7 @@ func (r *MessageRepository) UpdateStatus(chatId int64, userId int64) error {
 	log.Println("update status chat id: ", chatId, ", userId: ", userId)
 	rows, err := r.db.Query("UPDATE messages SET is_read = $1 WHERE chat_id = $2 AND " +
 		"receiver_id = $3 AND " +
-		"NOT is_read RETURNING id, chat_id, sender_id, receiver_id, message, date, is_read;",
+		"NOT is_read RETURNING id, chat_id, sender_id, receiver_id, message, date, is_read, proposal_id;",
 		true,
 		chatId,
 		userId,
@@ -51,9 +52,9 @@ func (r *MessageRepository) UpdateStatus(chatId int64, userId int64) error {
 func (r *MessageRepository) List(chatId int64) ([]*model.Message, error) {
 	var messages []*model.Message
 	rows, err := r.db.Query(
-		"SELECT id, chat_id, sender_id, receiver_id, message, date, is_read FROM messages " +
+		"SELECT id, chat_id, sender_id, receiver_id, message, date, is_read, proposal_id FROM messages " +
 			"WHERE chat_id = $1 " +
-			"ORDER BY date DESC", chatId)
+			"ORDER BY date", chatId)
 
 	if err != nil {
 		return nil, err
@@ -61,7 +62,7 @@ func (r *MessageRepository) List(chatId int64) ([]*model.Message, error) {
 
 	for rows.Next() {
 		m := &model.Message{}
-		err := rows.Scan(&m.ID, &m.ChatID, &m.SenderID, &m.ReceiverID, &m.Body, &m.Date, &m.IsRead)
+		err := rows.Scan(&m.ID, &m.ChatID, &m.SenderID, &m.ReceiverID, &m.Body, &m.Date, &m.IsRead, &m.ProposalId)
 		if err != nil {
 			return nil, err
 		}

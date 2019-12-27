@@ -167,7 +167,7 @@ func (c *Client) sendMes(input model.Packet) {
 	}
 
 	for _, client := range c.server.clients {
-		if client.userId == msg.SenderID || client.userId == msg.ReceiverID {
+		if client.userId == msg.ReceiverID {
 			msg.IsRead = true
 			break
 		}
