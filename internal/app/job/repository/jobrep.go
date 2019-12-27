@@ -52,7 +52,7 @@ func (r *JobRepository) Find(id int64) (*model.Job, error) {
 	j := &model.Job{}
 	if err := r.db.QueryRow(
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
-			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(*) " +
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(R.id) " +
 			"FROM jobs AS J " +
 			"LEFT JOIN responses AS R " +
 			"ON J.id = R.jobId "+
@@ -113,7 +113,7 @@ func (r *JobRepository) List() ([]model.Job, error) {
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
-			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(*) "+
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(R.id) "+
 			"FROM jobs AS J " +
 			"LEFT JOIN responses AS R " +
 			"ON J.id = R.jobId " +
@@ -151,7 +151,7 @@ func (r *JobRepository) ListOnPattern(pattern string, params model.SearchParams)
 	var jobs []model.Job
 	rows, err := r.db.Query(
 		"SELECT J.id, J.managerId, J.title, J.description, J.files, J.specialityId, J.experienceLevelId, J.paymentAmount, "+
-			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(*) "+
+			"J.country, J.city, J.jobTypeId, J.date, J.status, J.tagLine, COUNT(R.id) "+
 			"FROM jobs AS J "+
 			"LEFT OUTER JOIN responses AS R "+
 			"ON J.id = R.jobId "+

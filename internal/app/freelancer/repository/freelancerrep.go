@@ -154,7 +154,8 @@ func (r *FreelancerRepository) ListOnPattern(pattern string, params model.Search
 			"LOWER(F.tagLine) like '%' || LOWER($1) || '%') AND "+
 			"($2 = -1 OR F.country = $2) AND "+
 			"($3 = -1 OR F.city = $3) AND "+
-			"(($4 AND experienceLevelId = 1) OR ($5 AND experienceLevelId = 2) OR ($6 AND experienceLevelId = 3)) "+
+			"(($4 AND experienceLevelId = 1) OR ($5 AND experienceLevelId = 2) OR ($6 AND experienceLevelId = 3)) AND " +
+			"U.userType != $9 "+
 			"ORDER BY "+
 			"CASE WHEN $7 THEN F.id END DESC, "+
 			"CASE WHEN NOT $7 THEN F.id END ASC "+
@@ -165,6 +166,7 @@ func (r *FreelancerRepository) ListOnPattern(pattern string, params model.Search
 		params.ExperienceLevel[0], params.ExperienceLevel[1], params.ExperienceLevel[2],
 		params.Desc,
 		params.Limit,
+		model.UserCustomer,
 	)
 	if err != nil {
 		return nil, err
