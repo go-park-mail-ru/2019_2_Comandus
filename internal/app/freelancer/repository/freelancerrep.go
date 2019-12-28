@@ -151,6 +151,7 @@ func (r *FreelancerRepository) ListOnPattern(pattern string, params model.Search
 			"INNER JOIN users AS U ON (F.accountid = U.accountid) "+
 			"WHERE (LOWER(U.firstName) like '%' || LOWER($1) || '%' OR "+
 			"LOWER(U.secondName) like '%' || LOWER($1) || '%' OR " +
+			"LOWER(U.firstName || ' ' || U.secondName) like '%' || LOWER($1) || '%' OR " +
 			"LOWER(F.tagLine) like '%' || LOWER($1) || '%') AND "+
 			"($2 = -1 OR F.country = $2) AND "+
 			"($3 = -1 OR F.city = $3) AND "+
